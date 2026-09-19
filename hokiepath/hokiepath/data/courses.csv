@@ -1,0 +1,33 @@
+course_code,course_title,skills_taught,department,offered_terms
+CS 3114,Data Structures and Algorithms,Data Structures & Algorithms|Java,CS,Fall
+CS 3214,Computer Systems,C/C++|Linux|System Design,CS,Fall|Spring
+CS 4604,Introduction to Database Management Systems,SQL|System Design,CS,Fall|Spring|Summer
+CS 4804,Introduction to Artificial Intelligence,Machine Learning|Python,CS,Fall|Spring
+CS 4824,Machine Learning,Machine Learning|Statistics|Python,CS,Fall
+CS 3704,Intermediate Software Design,Git|Project Management|Teamwork,CS,Fall
+CS 4264,Principles of Computer Security,Network Security|Penetration Testing,CS,Fall|Spring
+CS 3744,Intro to GUI Programming and Graphics,JavaScript|React,CS,Fall|Spring
+CMDA 3634,Computer Science Foundations for CMDA,C/C++|Python,CMDA,Fall|Spring|Summer
+CMDA 4654,Intermediate Data Analytics and Machine Learning,Machine Learning|Statistics,CMDA,Fall
+STAT 3005,Statistical Methods,Statistics,STAT,Fall|Spring|Summer
+FIN 3104,Introduction to Finance,Financial Statement Analysis|DCF Valuation,FIN,Fall|Spring
+FIN 3144,Investments,Equity Research|Financial Statement Analysis,FIN,Fall
+FIN 4114,Financial Modeling,Financial Modeling|Excel Modeling|LBO Modeling,FIN,Fall
+FIN 4124,"Mergers, Acquisitions and Corporate Restructuring",M&A Concepts|DCF Valuation,FIN,Fall
+ACIS 2115,Principles of Accounting,Accounting Fundamentals,ACIS,Fall
+ACIS 3115,Intermediate Financial Accounting,Accounting Fundamentals|Financial Statement Analysis,ACIS,Fall
+ACIS 4314,Auditing,Auditing,ACIS,Fall|Spring|Summer
+BIT 2406,Quantitative Methods,Excel Modeling|Statistics,BIT,Spring
+BIT 4444,Business Analytics and Data Visualization,Tableau / Power BI|Data Visualization|SQL,BIT,Fall|Spring|Summer
+BIT 4454,Cloud Computing for Business,Cloud (AWS/Azure/GCP)|Spark / Databricks,BIT,Fall|Spring|Summer
+MGT 3304,Management Theory and Leadership Practice,Leadership|Teamwork,MGT,Fall|Spring
+MGT 4394,Strategic Management,Business Strategy|Case Interviewing,MGT,Fall|Spring|Summer
+MKTG 3104,Marketing Management,Market Research|Digital Marketing,MKTG,Spring
+ISE 3414,Probabilistic Operations Research,Supply Chain Analytics|Statistics,ISE,Fall
+ME 2024,Engineering Design and Economics,CAD (SolidWorks)|Project Management,ME,Spring
+ECE 2514,Computational Engineering,C/C++|MATLAB,ECE,Fall
+ECE 4534,Embedded System Design,Embedded Systems|C/C++,ECE,Spring
+MATH 4425,Mathematical Finance,Stochastic Calculus|Statistics,MATH,Fall|Spring|Summer
+COMM 2014,Public Speaking,Public Speaking,COMM,Fall|Spring|Summer
+ENGL 3764,Technical Writing,Technical Writing,ENGL,Fall|Spring|Summer
+PSCI 3824,Public Policy Analysis,Policy Analysis,PSCI,Spring

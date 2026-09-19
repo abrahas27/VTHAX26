@@ -1,0 +1,21 @@
+major_code,major_name,college
+CS,Computer Science,Engineering
+CPE,Computer Engineering,Engineering
+EE,Electrical Engineering,Engineering
+ME,Mechanical Engineering,Engineering
+CEE,Civil Engineering,Engineering
+BME,Biomedical Engineering,Engineering
+ISE,Industrial and Systems Engineering,Engineering
+FIN,Finance,Business
+ACIS,Accounting and Information Systems,Business
+BIT,Business Information Technology,Business
+MKTG,Marketing,Business
+MGT,Management,Business
+ECON,Economics,Science
+CMDA,Computational Modeling and Data Analytics,Science
+MATH,Mathematics,Science
+STAT,Statistics,Science
+BIO,Biological Sciences,Science
+PSCI,Political Science,Liberal Arts
+COMM,Communication,Liberal Arts
+ID,Industrial Design,"Architecture, Arts & Design"

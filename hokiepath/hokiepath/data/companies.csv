@@ -1,0 +1,45 @@
+company_id,company_name,industry,headquarters,career_paths,target_majors,hires_vt_students,sponsors_visa,avg_vt_hires_per_year_mock
+CO001,Deloitte,Consulting,"New York, NY",CP07|CP08|CP09|CP10,ACIS|BIT|CMDA|CPE|CS|ECON|FIN|ISE|MGT,true,true,43
+CO002,Databricks,Technology,"San Francisco, CA",CP01|CP02|CP03|CP08,BIT|CMDA|CPE|CS|ECON|ISE|MATH|STAT,true,unknown,68
+CO003,Accenture,Consulting,"Dublin, IE",CP08|CP07|CP01,BIT|CMDA|CPE|CS|ECON|FIN|ISE|MATH|MGT,true,unknown,16
+CO004,EY,Professional Services,"London, UK",CP09|CP08|CP07,ACIS|BIT|CMDA|CS|ECON|FIN|ISE|MGT,true,true,79
+CO005,PwC,Professional Services,"London, UK",CP09|CP08|CP07,ACIS|BIT|CMDA|CS|ECON|FIN|ISE|MGT,true,unknown,74
+CO006,KPMG,Professional Services,"Amstelveen, NL",CP09|CP08,ACIS|BIT|CMDA|CS|FIN|ISE,true,false,76
+CO007,Booz Allen Hamilton,Consulting,"McLean, VA",CP10|CP02|CP08|CP01,BIT|CMDA|CPE|CS|ECON|ISE|MATH|STAT,true,unknown,65
+CO008,McKinsey & Company,Consulting,"New York, NY",CP07,BIT|ECON|FIN|ISE|MGT,true,unknown,59
+CO009,Boston Consulting Group,Consulting,"Boston, MA",CP07|CP08,BIT|CMDA|CS|ECON|FIN|ISE|MGT,true,true,3
+CO010,Bain & Company,Consulting,"Boston, MA",CP07,BIT|ECON|FIN|ISE|MGT,true,unknown,13
+CO011,Goldman Sachs,Investment Banking,"New York, NY",CP04|CP05|CP06|CP01,ACIS|CMDA|CPE|CS|ECON|FIN|MATH|STAT,true,true,39
+CO012,J.P. Morgan,Investment Banking,"New York, NY",CP04|CP05|CP01|CP02,ACIS|CMDA|CPE|CS|ECON|FIN|MATH|STAT,true,true,60
+CO013,Morgan Stanley,Investment Banking,"New York, NY",CP04|CP05|CP01,ACIS|CMDA|CPE|CS|ECON|FIN|MATH,true,true,65
+CO014,Bank of America,Banking,"Charlotte, NC",CP04|CP05|CP01,ACIS|CMDA|CPE|CS|ECON|FIN|MATH,true,unknown,43
+CO015,Wells Fargo,Banking,"San Francisco, CA",CP04|CP02|CP01,ACIS|CMDA|CPE|CS|ECON|FIN|MATH|STAT,true,true,53
+CO016,Truist,Banking,"Charlotte, NC",CP04|CP09|CP02,ACIS|CMDA|CS|ECON|FIN|MATH|STAT,true,false,47
+CO017,Capital One,Financial Services,"McLean, VA",CP01|CP02|CP11|CP05,BIT|CMDA|CPE|CS|ECON|FIN|ID|MATH|MGT|STAT,true,false,51
+CO018,Citadel,Quantitative Trading,"Miami, FL",CP06|CP01,CMDA|CPE|CS|MATH|STAT,true,unknown,68
+CO019,Jane Street,Quantitative Trading,"New York, NY",CP06|CP01,CMDA|CPE|CS|MATH|STAT,true,unknown,12
+CO020,Freddie Mac,Financial Services,"McLean, VA",CP02|CP01|CP09,ACIS|CMDA|CPE|CS|ECON|FIN|MATH|STAT,true,unknown,46
+CO021,Amazon,Technology,"Seattle, WA",CP01|CP03|CP13|CP11,BIT|CMDA|CPE|CS|ID|ISE|MATH|MGT,true,true,74
+CO022,Microsoft,Technology,"Redmond, WA",CP01|CP03|CP11|CP10,BIT|CMDA|CPE|CS|ID|MATH|MGT,true,unknown,40
+CO023,Google,Technology,"Mountain View, CA",CP01|CP03|CP11|CP12,BIT|CMDA|COMM|CPE|CS|ID|MATH|MGT,true,false,61
+CO024,Meta,Technology,"Menlo Park, CA",CP01|CP03|CP12,CMDA|COMM|CPE|CS|ID|MATH,true,true,85
+CO025,IBM,Technology,"Armonk, NY",CP08|CP01|CP03,BIT|CMDA|CPE|CS|ISE|MATH,true,unknown,76
+CO026,Cisco,Technology,"San Jose, CA",CP10|CP01|CP16,BIT|CMDA|CPE|CS|EE|MATH,true,false,6
+CO027,Palantir,Technology,"Denver, CO",CP01|CP02|CP08,BIT|CMDA|CPE|CS|ECON|ISE|MATH|STAT,true,unknown,50
+CO028,Lockheed Martin,Aerospace & Defense,"Bethesda, MD",CP15|CP16|CP01|CP10,BIT|CMDA|CPE|CS|EE|ISE|MATH|ME,true,false,62
+CO029,Northrop Grumman,Aerospace & Defense,"Falls Church, VA",CP15|CP16|CP10|CP01,BIT|CMDA|CPE|CS|EE|ISE|MATH|ME,true,false,14
+CO030,RTX,Aerospace & Defense,"Arlington, VA",CP15|CP16|CP01,CMDA|CPE|CS|EE|ISE|MATH|ME,true,false,77
+CO031,Leidos,Defense & IT,"Reston, VA",CP10|CP01|CP02,BIT|CMDA|CPE|CS|ECON|MATH|STAT,true,unknown,66
+CO032,General Dynamics,Aerospace & Defense,"Reston, VA",CP15|CP16|CP10,BIT|CPE|CS|EE|ISE|ME,true,true,57
+CO033,Collins Aerospace,Aerospace & Defense,"Charlotte, NC",CP15|CP16,CPE|EE|ISE|ME,true,unknown,79
+CO034,Volvo Group,Manufacturing,"Gothenburg, SE",CP15|CP13,BIT|ISE|ME|MGT,true,false,53
+CO035,Dominion Energy,Energy,"Richmond, VA",CP16|CP17|CP02,CEE|CMDA|CPE|CS|ECON|EE|MATH|STAT,true,unknown,36
+CO036,Kimley-Horn,Engineering Services,"Raleigh, NC",CP17,CEE,true,false,75
+CO037,Clark Construction,Construction,"Bethesda, MD",CP17|CP13,BIT|CEE|ISE|MGT,true,false,68
+CO038,Procter & Gamble,Consumer Goods,"Cincinnati, OH",CP14|CP13|CP15,BIT|COMM|ISE|ME|MGT|MKTG,true,unknown,6
+CO039,Altria,Consumer Goods,"Richmond, VA",CP14|CP13|CP09,ACIS|BIT|COMM|FIN|ISE|MGT|MKTG,true,unknown,31
+CO040,Hilton,Hospitality,"McLean, VA",CP14|CP02|CP11,BIT|CMDA|COMM|CS|ECON|ID|MATH|MGT|MKTG|STAT,true,true,9
+CO041,Carilion Clinic,Healthcare,"Roanoke, VA",CP18|CP02,BIO|BME|CMDA|CS|ECON|MATH|STAT,true,unknown,69
+CO042,Fralin Biomedical Research Institute,Research,"Roanoke, VA",CP18,BIO|BME,true,unknown,16
+CO043,MITRE,Research (FFRDC),"McLean, VA",CP10|CP03|CP19|CP02,BIT|CMDA|COMM|CPE|CS|ECON|MATH|PSCI|STAT,true,unknown,82
+CO044,U.S. Government Accountability Office,Government,"Washington, DC",CP19|CP09,ACIS|COMM|ECON|FIN|PSCI,true,false,63

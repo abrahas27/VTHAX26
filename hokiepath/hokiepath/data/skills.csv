@@ -1,0 +1,55 @@
+skill_id,skill_name,category
+SK001,Python,Technical
+SK002,Java,Technical
+SK003,C/C++,Technical
+SK004,JavaScript,Technical
+SK005,React,Technical
+SK006,SQL,Technical
+SK007,Git,Technical
+SK008,Cloud (AWS/Azure/GCP),Technical
+SK009,Data Structures & Algorithms,Technical
+SK010,System Design,Technical
+SK011,Machine Learning,Technical
+SK012,Deep Learning,Technical
+SK013,LLMs & AI Agents,Technical
+SK014,Spark / Databricks,Technical
+SK015,Data Visualization,Technical
+SK016,Statistics,Technical
+SK017,Tableau / Power BI,Technical
+SK018,Network Security,Technical
+SK019,Penetration Testing,Technical
+SK020,Linux,Technical
+SK021,Embedded Systems,Technical
+SK022,CAD (SolidWorks),Technical
+SK023,MATLAB,Technical
+SK024,Circuit Design,Technical
+SK025,Structural Analysis,Technical
+SK026,Lab Research Methods,Technical
+SK027,Figma,Technical
+SK028,User Research,Technical
+SK029,Excel Modeling,Finance
+SK030,Financial Modeling,Finance
+SK031,DCF Valuation,Finance
+SK032,Accounting Fundamentals,Finance
+SK033,LBO Modeling,Finance
+SK034,M&A Concepts,Finance
+SK035,Equity Research,Finance
+SK036,Financial Statement Analysis,Finance
+SK037,Auditing,Finance
+SK038,Market Sizing,Business
+SK039,Case Interviewing,Business
+SK040,Business Strategy,Business
+SK041,Product Roadmapping,Business
+SK042,Supply Chain Analytics,Business
+SK043,Digital Marketing,Business
+SK044,Market Research,Business
+SK045,Sales,Business
+SK046,Stochastic Calculus,Finance
+SK047,Public Speaking,Professional
+SK048,Networking,Professional
+SK049,Technical Writing,Professional
+SK050,Leadership,Professional
+SK051,Teamwork,Professional
+SK052,Behavioral Interviewing,Professional
+SK053,Project Management,Professional
+SK054,Policy Analysis,Professional

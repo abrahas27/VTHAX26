@@ -1,0 +1,103 @@
+path_id,skill_id,skill_name,importance
+CP01,SK009,Data Structures & Algorithms,1.0
+CP01,SK001,Python,0.92
+CP01,SK002,Java,0.84
+CP01,SK007,Git,0.76
+CP01,SK010,System Design,0.68
+CP01,SK008,Cloud (AWS/Azure/GCP),0.6
+CP01,SK052,Behavioral Interviewing,0.52
+CP02,SK001,Python,1.0
+CP02,SK006,SQL,0.92
+CP02,SK016,Statistics,0.84
+CP02,SK011,Machine Learning,0.76
+CP02,SK015,Data Visualization,0.68
+CP02,SK014,Spark / Databricks,0.6
+CP03,SK001,Python,1.0
+CP03,SK011,Machine Learning,0.92
+CP03,SK012,Deep Learning,0.84
+CP03,SK013,LLMs & AI Agents,0.76
+CP03,SK008,Cloud (AWS/Azure/GCP),0.68
+CP03,SK010,System Design,0.6
+CP04,SK030,Financial Modeling,1.0
+CP04,SK031,DCF Valuation,0.92
+CP04,SK033,LBO Modeling,0.84
+CP04,SK034,M&A Concepts,0.76
+CP04,SK032,Accounting Fundamentals,0.68
+CP04,SK029,Excel Modeling,0.6
+CP04,SK048,Networking,0.52
+CP04,SK052,Behavioral Interviewing,0.44
+CP05,SK036,Financial Statement Analysis,1.0
+CP05,SK029,Excel Modeling,0.92
+CP05,SK016,Statistics,0.84
+CP05,SK001,Python,0.76
+CP05,SK048,Networking,0.68
+CP05,SK047,Public Speaking,0.6
+CP06,SK001,Python,1.0
+CP06,SK003,C/C++,0.92
+CP06,SK016,Statistics,0.84
+CP06,SK046,Stochastic Calculus,0.76
+CP06,SK011,Machine Learning,0.68
+CP06,SK009,Data Structures & Algorithms,0.6
+CP07,SK039,Case Interviewing,1.0
+CP07,SK038,Market Sizing,0.92
+CP07,SK040,Business Strategy,0.84
+CP07,SK029,Excel Modeling,0.76
+CP07,SK047,Public Speaking,0.68
+CP07,SK050,Leadership,0.6
+CP08,SK008,Cloud (AWS/Azure/GCP),1.0
+CP08,SK006,SQL,0.92
+CP08,SK014,Spark / Databricks,0.84
+CP08,SK053,Project Management,0.76
+CP08,SK039,Case Interviewing,0.68
+CP08,SK047,Public Speaking,0.6
+CP09,SK032,Accounting Fundamentals,1.0
+CP09,SK037,Auditing,0.92
+CP09,SK029,Excel Modeling,0.84
+CP09,SK036,Financial Statement Analysis,0.76
+CP09,SK051,Teamwork,0.68
+CP10,SK018,Network Security,1.0
+CP10,SK019,Penetration Testing,0.92
+CP10,SK020,Linux,0.84
+CP10,SK001,Python,0.76
+CP10,SK008,Cloud (AWS/Azure/GCP),0.68
+CP11,SK041,Product Roadmapping,1.0
+CP11,SK028,User Research,0.92
+CP11,SK006,SQL,0.84
+CP11,SK040,Business Strategy,0.76
+CP11,SK047,Public Speaking,0.68
+CP11,SK050,Leadership,0.6
+CP12,SK027,Figma,1.0
+CP12,SK028,User Research,0.92
+CP12,SK004,JavaScript,0.84
+CP12,SK047,Public Speaking,0.76
+CP13,SK042,Supply Chain Analytics,1.0
+CP13,SK029,Excel Modeling,0.92
+CP13,SK006,SQL,0.84
+CP13,SK053,Project Management,0.76
+CP13,SK017,Tableau / Power BI,0.68
+CP14,SK043,Digital Marketing,1.0
+CP14,SK044,Market Research,0.92
+CP14,SK015,Data Visualization,0.84
+CP14,SK047,Public Speaking,0.76
+CP15,SK022,CAD (SolidWorks),1.0
+CP15,SK023,MATLAB,0.92
+CP15,SK025,Structural Analysis,0.84
+CP15,SK053,Project Management,0.76
+CP15,SK049,Technical Writing,0.68
+CP16,SK024,Circuit Design,1.0
+CP16,SK021,Embedded Systems,0.92
+CP16,SK003,C/C++,0.84
+CP16,SK023,MATLAB,0.76
+CP17,SK025,Structural Analysis,1.0
+CP17,SK022,CAD (SolidWorks),0.92
+CP17,SK053,Project Management,0.84
+CP17,SK049,Technical Writing,0.76
+CP18,SK026,Lab Research Methods,1.0
+CP18,SK023,MATLAB,0.92
+CP18,SK016,Statistics,0.84
+CP18,SK049,Technical Writing,0.76
+CP18,SK001,Python,0.68
+CP19,SK054,Policy Analysis,1.0
+CP19,SK049,Technical Writing,0.92
+CP19,SK016,Statistics,0.84
+CP19,SK047,Public Speaking,0.76

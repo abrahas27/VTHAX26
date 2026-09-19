@@ -1,0 +1,164 @@
+visit_id,company_id,company_name,event_id,visit_date,visit_type,roles_recruiting,majors_targeted,recruiter_count_mock,vt_alumni_attending,on_campus_interviews
+RV0001,CO001,Deloitte,EV0008,2026-09-08,coffee_chat,CP10|CP08,BIT|CMDA|CPE|CS|ISE,5,true,true
+RV0002,CO001,Deloitte,EV0009,2026-10-21,coffee_chat,CP07,BIT|ECON|FIN|ISE|MGT,7,false,false
+RV0003,CO001,Deloitte,EV0010,2026-12-10,coffee_chat,CP09,ACIS|FIN,4,true,false
+RV0004,CO001,Deloitte,EV0011,2026-11-04,technical_workshop,CP09,ACIS|FIN,3,true,false
+RV0005,CO001,Deloitte,EV0001,2026-09-29,career_fair_booth,CP10,BIT|CPE|CS,8,true,true
+RV0006,CO001,Deloitte,EV0002,2026-09-30,career_fair_booth,CP07|CP08|CP09,ACIS|BIT|CMDA|CS|ECON|FIN|ISE|MGT,2,true,false
+RV0007,CO001,Deloitte,EV0003,2026-09-16,career_fair_booth,CP07|CP08|CP09,ACIS|BIT|CMDA|CS|ECON|FIN|ISE|MGT,4,true,true
+RV0008,CO002,Databricks,EV0012,2026-09-25,technical_workshop,CP03,CMDA|CPE|CS,7,true,false
+RV0009,CO002,Databricks,EV0013,2026-09-23,info_session,CP01,CMDA|CPE|CS|MATH,2,true,false
+RV0010,CO002,Databricks,EV0014,2026-11-09,networking,CP03|CP02,CMDA|CPE|CS|ECON|MATH|STAT,1,true,false
+RV0011,CO002,Databricks,EV0001,2026-09-29,career_fair_booth,CP01|CP02|CP03,CMDA|CPE|CS|ECON|MATH|STAT,9,true,false
+RV0012,CO003,Accenture,EV0015,2026-10-08,networking,CP07|CP01,BIT|CMDA|CPE|CS|ECON|FIN|ISE|MATH|MGT,1,true,false
+RV0013,CO003,Accenture,EV0016,2026-10-01,technical_workshop,CP01|CP08,BIT|CMDA|CPE|CS|ISE|MATH,6,false,true
+RV0014,CO003,Accenture,EV0001,2026-09-29,career_fair_booth,CP01,CMDA|CPE|CS|MATH,7,true,true
+RV0015,CO003,Accenture,EV0002,2026-09-30,career_fair_booth,CP07|CP08,BIT|CMDA|CS|ECON|FIN|ISE|MGT,3,true,true
+RV0016,CO003,Accenture,EV0003,2026-09-16,career_fair_booth,CP07|CP08,BIT|CMDA|CS|ECON|FIN|ISE|MGT,3,true,true
+RV0017,CO004,EY,EV0017,2026-08-27,networking,CP07|CP08,BIT|CMDA|CS|ECON|FIN|ISE|MGT,3,true,false
+RV0018,CO004,EY,EV0018,2026-11-16,resume_review,CP09|CP08,ACIS|BIT|CMDA|CS|FIN|ISE,3,false,true
+RV0019,CO004,EY,EV0002,2026-09-30,career_fair_booth,CP07|CP08|CP09,ACIS|BIT|CMDA|CS|ECON|FIN|ISE|MGT,10,true,false
+RV0020,CO005,PwC,EV0019,2026-09-28,coffee_chat,CP09,ACIS|FIN,7,true,false
+RV0021,CO005,PwC,EV0020,2026-11-02,coffee_chat,CP09,ACIS|FIN,5,true,false
+RV0022,CO005,PwC,EV0002,2026-09-30,career_fair_booth,CP07|CP08|CP09,ACIS|BIT|CMDA|CS|ECON|FIN|ISE|MGT,7,true,true
+RV0023,CO005,PwC,EV0003,2026-09-16,career_fair_booth,CP07|CP08|CP09,ACIS|BIT|CMDA|CS|ECON|FIN|ISE|MGT,2,true,true
+RV0024,CO006,KPMG,EV0021,2026-11-27,info_session,CP09,ACIS|FIN,4,false,false
+RV0025,CO006,KPMG,EV0022,2026-10-08,technical_workshop,CP08,BIT|CMDA|CS|ISE,8,false,false
+RV0026,CO006,KPMG,EV0023,2026-11-12,technical_workshop,CP09,ACIS|FIN,8,true,false
+RV0027,CO006,KPMG,EV0024,2026-09-03,networking,CP09|CP08,ACIS|BIT|CMDA|CS|FIN|ISE,5,true,false
+RV0028,CO006,KPMG,EV0002,2026-09-30,career_fair_booth,CP08|CP09,ACIS|BIT|CMDA|CS|FIN|ISE,2,true,true
+RV0029,CO007,Booz Allen Hamilton,EV0025,2026-10-29,networking,CP01,CMDA|CPE|CS|MATH,2,true,true
+RV0030,CO007,Booz Allen Hamilton,EV0026,2026-11-26,resume_review,CP08|CP02,BIT|CMDA|CS|ECON|ISE|MATH|STAT,3,true,false
+RV0031,CO007,Booz Allen Hamilton,EV0027,2026-10-12,networking,CP08|CP10,BIT|CMDA|CPE|CS|ISE,8,true,false
+RV0032,CO008,McKinsey & Company,EV0028,2026-09-11,networking,CP07,BIT|ECON|FIN|ISE|MGT,2,false,false
+RV0033,CO008,McKinsey & Company,EV0029,2026-10-01,info_session,CP07,BIT|ECON|FIN|ISE|MGT,3,false,false
+RV0034,CO008,McKinsey & Company,EV0002,2026-09-30,career_fair_booth,CP07,BIT|ECON|FIN|ISE|MGT,3,true,false
+RV0035,CO008,McKinsey & Company,EV0003,2026-09-16,career_fair_booth,CP07,BIT|ECON|FIN|ISE|MGT,3,true,false
+RV0036,CO009,Boston Consulting Group,EV0030,2026-10-23,networking,CP07|CP08,BIT|CMDA|CS|ECON|FIN|ISE|MGT,4,true,false
+RV0037,CO009,Boston Consulting Group,EV0031,2026-12-01,resume_review,CP07|CP08,BIT|CMDA|CS|ECON|FIN|ISE|MGT,5,true,false
+RV0038,CO009,Boston Consulting Group,EV0002,2026-09-30,career_fair_booth,CP07|CP08,BIT|CMDA|CS|ECON|FIN|ISE|MGT,7,true,false
+RV0039,CO009,Boston Consulting Group,EV0003,2026-09-16,career_fair_booth,CP07|CP08,BIT|CMDA|CS|ECON|FIN|ISE|MGT,7,true,false
+RV0040,CO010,Bain & Company,EV0032,2026-09-18,resume_review,CP07,BIT|ECON|FIN|ISE|MGT,4,false,false
+RV0041,CO010,Bain & Company,EV0033,2026-10-19,technical_workshop,CP07,BIT|ECON|FIN|ISE|MGT,3,true,false
+RV0042,CO010,Bain & Company,EV0002,2026-09-30,career_fair_booth,CP07,BIT|ECON|FIN|ISE|MGT,3,true,false
+RV0043,CO010,Bain & Company,EV0003,2026-09-16,career_fair_booth,CP07,BIT|ECON|FIN|ISE|MGT,9,true,false
+RV0044,CO011,Goldman Sachs,EV0034,2026-09-11,networking,CP05|CP01,CMDA|CPE|CS|ECON|FIN|MATH,5,true,false
+RV0045,CO011,Goldman Sachs,EV0035,2026-11-02,resume_review,CP01|CP04,ACIS|CMDA|CPE|CS|ECON|FIN|MATH,7,true,true
+RV0046,CO011,Goldman Sachs,EV0001,2026-09-29,career_fair_booth,CP01,CMDA|CPE|CS|MATH,9,true,true
+RV0047,CO011,Goldman Sachs,EV0002,2026-09-30,career_fair_booth,CP04|CP05,ACIS|ECON|FIN|MATH,7,true,true
+RV0048,CO012,J.P. Morgan,EV0036,2026-10-05,info_session,CP01|CP04,ACIS|CMDA|CPE|CS|ECON|FIN|MATH,7,true,false
+RV0049,CO012,J.P. Morgan,EV0037,2026-09-21,technical_workshop,CP04,ACIS|ECON|FIN,5,true,true
+RV0050,CO012,J.P. Morgan,EV0003,2026-09-16,career_fair_booth,CP04|CP05,ACIS|ECON|FIN|MATH,7,true,true
+RV0051,CO013,Morgan Stanley,EV0038,2026-10-05,networking,CP04,ACIS|ECON|FIN,4,false,false
+RV0052,CO013,Morgan Stanley,EV0039,2026-11-23,coffee_chat,CP04|CP05,ACIS|ECON|FIN|MATH,3,true,true
+RV0053,CO013,Morgan Stanley,EV0001,2026-09-29,career_fair_booth,CP01,CMDA|CPE|CS|MATH,8,true,true
+RV0054,CO013,Morgan Stanley,EV0002,2026-09-30,career_fair_booth,CP04|CP05,ACIS|ECON|FIN|MATH,10,true,true
+RV0055,CO014,Bank of America,EV0040,2026-11-09,technical_workshop,CP05|CP01,CMDA|CPE|CS|ECON|FIN|MATH,8,true,false
+RV0056,CO014,Bank of America,EV0041,2026-10-09,info_session,CP04|CP01,ACIS|CMDA|CPE|CS|ECON|FIN|MATH,4,true,false
+RV0057,CO014,Bank of America,EV0042,2026-11-06,networking,CP05|CP04,ACIS|ECON|FIN|MATH,2,false,false
+RV0058,CO014,Bank of America,EV0043,2026-12-11,networking,CP05|CP04,ACIS|ECON|FIN|MATH,6,true,false
+RV0059,CO014,Bank of America,EV0001,2026-09-29,career_fair_booth,CP01,CMDA|CPE|CS|MATH,7,true,true
+RV0060,CO014,Bank of America,EV0002,2026-09-30,career_fair_booth,CP04|CP05,ACIS|ECON|FIN|MATH,10,true,true
+RV0061,CO015,Wells Fargo,EV0044,2026-10-22,info_session,CP04,ACIS|ECON|FIN,7,false,false
+RV0062,CO015,Wells Fargo,EV0045,2026-12-01,coffee_chat,CP02,CMDA|CS|ECON|MATH|STAT,3,false,false
+RV0063,CO015,Wells Fargo,EV0046,2026-11-10,technical_workshop,CP01|CP02,CMDA|CPE|CS|ECON|MATH|STAT,4,true,false
+RV0064,CO015,Wells Fargo,EV0047,2026-09-11,networking,CP01,CMDA|CPE|CS|MATH,1,false,true
+RV0065,CO015,Wells Fargo,EV0001,2026-09-29,career_fair_booth,CP01|CP02,CMDA|CPE|CS|ECON|MATH|STAT,6,true,true
+RV0066,CO015,Wells Fargo,EV0002,2026-09-30,career_fair_booth,CP04,ACIS|ECON|FIN,10,true,false
+RV0067,CO015,Wells Fargo,EV0003,2026-09-16,career_fair_booth,CP04,ACIS|ECON|FIN,4,true,true
+RV0068,CO016,Truist,EV0048,2026-11-11,coffee_chat,CP09,ACIS|FIN,1,true,true
+RV0069,CO016,Truist,EV0001,2026-09-29,career_fair_booth,CP02,CMDA|CS|ECON|MATH|STAT,10,true,true
+RV0070,CO016,Truist,EV0002,2026-09-30,career_fair_booth,CP04|CP09,ACIS|ECON|FIN,8,true,true
+RV0071,CO017,Capital One,EV0049,2026-08-24,networking,CP05,ECON|FIN|MATH,6,false,false
+RV0072,CO017,Capital One,EV0050,2026-10-27,technical_workshop,CP01|CP05,CMDA|CPE|CS|ECON|FIN|MATH,7,false,false
+RV0073,CO017,Capital One,EV0001,2026-09-29,career_fair_booth,CP01|CP02,CMDA|CPE|CS|ECON|MATH|STAT,4,true,true
+RV0074,CO017,Capital One,EV0002,2026-09-30,career_fair_booth,CP05,ECON|FIN|MATH,9,true,true
+RV0075,CO017,Capital One,EV0003,2026-09-16,career_fair_booth,CP05,ECON|FIN|MATH,10,true,false
+RV0076,CO018,Citadel,EV0051,2026-11-12,resume_review,CP06|CP01,CMDA|CPE|CS|MATH|STAT,8,true,true
+RV0077,CO018,Citadel,EV0052,2026-10-08,coffee_chat,CP06,CMDA|CS|MATH|STAT,3,true,true
+RV0078,CO018,Citadel,EV0053,2026-08-27,coffee_chat,CP06|CP01,CMDA|CPE|CS|MATH|STAT,5,true,false
+RV0079,CO018,Citadel,EV0054,2026-10-29,technical_workshop,CP06|CP01,CMDA|CPE|CS|MATH|STAT,6,true,true
+RV0080,CO018,Citadel,EV0001,2026-09-29,career_fair_booth,CP01,CMDA|CPE|CS|MATH,4,true,true
+RV0081,CO019,Jane Street,EV0055,2026-09-25,resume_review,CP06|CP01,CMDA|CPE|CS|MATH|STAT,8,true,false
+RV0082,CO019,Jane Street,EV0056,2026-09-30,networking,CP01,CMDA|CPE|CS|MATH,1,true,false
+RV0083,CO020,Freddie Mac,EV0057,2026-08-26,resume_review,CP09|CP01,ACIS|CMDA|CPE|CS|FIN|MATH,3,true,true
+RV0084,CO020,Freddie Mac,EV0001,2026-09-29,career_fair_booth,CP01|CP02,CMDA|CPE|CS|ECON|MATH|STAT,4,true,false
+RV0085,CO020,Freddie Mac,EV0002,2026-09-30,career_fair_booth,CP09,ACIS|FIN,2,true,true
+RV0086,CO021,Amazon,EV0058,2026-10-23,technical_workshop,CP13,BIT|ISE|MGT,8,false,true
+RV0087,CO021,Amazon,EV0001,2026-09-29,career_fair_booth,CP01|CP03,CMDA|CPE|CS|MATH,10,true,false
+RV0088,CO021,Amazon,EV0002,2026-09-30,career_fair_booth,CP13,BIT|ISE|MGT,9,true,true
+RV0089,CO021,Amazon,EV0003,2026-09-16,career_fair_booth,CP13,BIT|ISE|MGT,9,true,true
+RV0090,CO022,Microsoft,EV0059,2026-10-30,networking,CP10|CP03,BIT|CMDA|CPE|CS,4,true,false
+RV0091,CO022,Microsoft,EV0001,2026-09-29,career_fair_booth,CP01|CP03|CP10,BIT|CMDA|CPE|CS|MATH,9,true,true
+RV0092,CO023,Google,EV0060,2026-11-26,coffee_chat,CP11|CP03,BIT|CMDA|CPE|CS|ID|MGT,6,false,false
+RV0093,CO023,Google,EV0061,2026-09-02,coffee_chat,CP11,BIT|CS|ID|MGT,8,true,true
+RV0094,CO023,Google,EV0062,2026-09-24,info_session,CP12|CP01,CMDA|COMM|CPE|CS|ID|MATH,5,true,false
+RV0095,CO023,Google,EV0001,2026-09-29,career_fair_booth,CP01|CP03,CMDA|CPE|CS|MATH,7,true,true
+RV0096,CO024,Meta,EV0063,2026-12-09,coffee_chat,CP01,CMDA|CPE|CS|MATH,2,true,false
+RV0097,CO024,Meta,EV0064,2026-12-09,info_session,CP12|CP03,CMDA|COMM|CPE|CS|ID,4,false,false
+RV0098,CO024,Meta,EV0065,2026-09-04,resume_review,CP03,CMDA|CPE|CS,5,true,true
+RV0099,CO024,Meta,EV0001,2026-09-29,career_fair_booth,CP01|CP03,CMDA|CPE|CS|MATH,2,true,false
+RV0100,CO025,IBM,EV0066,2026-11-13,info_session,CP03,CMDA|CPE|CS,4,true,true
+RV0101,CO025,IBM,EV0067,2026-10-22,networking,CP08|CP01,BIT|CMDA|CPE|CS|ISE|MATH,1,true,false
+RV0102,CO025,IBM,EV0068,2026-11-18,resume_review,CP01,CMDA|CPE|CS|MATH,3,true,true
+RV0103,CO025,IBM,EV0001,2026-09-29,career_fair_booth,CP01|CP03,CMDA|CPE|CS|MATH,10,true,false
+RV0104,CO025,IBM,EV0002,2026-09-30,career_fair_booth,CP08,BIT|CMDA|CS|ISE,4,true,false
+RV0105,CO025,IBM,EV0003,2026-09-16,career_fair_booth,CP08,BIT|CMDA|CS|ISE,7,true,true
+RV0106,CO026,Cisco,EV0069,2026-11-20,networking,CP01,CMDA|CPE|CS|MATH,3,true,false
+RV0107,CO026,Cisco,EV0001,2026-09-29,career_fair_booth,CP01|CP10|CP16,BIT|CMDA|CPE|CS|EE|MATH,2,true,false
+RV0108,CO027,Palantir,EV0070,2026-10-28,resume_review,CP08|CP02,BIT|CMDA|CS|ECON|ISE|MATH|STAT,1,false,false
+RV0109,CO027,Palantir,EV0001,2026-09-29,career_fair_booth,CP01|CP02,CMDA|CPE|CS|ECON|MATH|STAT,8,true,true
+RV0110,CO027,Palantir,EV0003,2026-09-16,career_fair_booth,CP08,BIT|CMDA|CS|ISE,4,true,false
+RV0111,CO028,Lockheed Martin,EV0071,2026-10-21,info_session,CP16|CP01,CMDA|CPE|CS|EE|MATH,4,false,false
+RV0112,CO029,Northrop Grumman,EV0072,2026-09-09,networking,CP15|CP01,CMDA|CPE|CS|ISE|MATH|ME,5,true,false
+RV0113,CO030,RTX,EV0073,2026-11-13,resume_review,CP15|CP16,CPE|EE|ISE|ME,8,false,true
+RV0114,CO030,RTX,EV0001,2026-09-29,career_fair_booth,CP01|CP15|CP16,CMDA|CPE|CS|EE|ISE|MATH|ME,7,true,false
+RV0115,CO031,Leidos,EV0074,2026-11-25,resume_review,CP01|CP02,CMDA|CPE|CS|ECON|MATH|STAT,8,false,false
+RV0116,CO031,Leidos,EV0001,2026-09-29,career_fair_booth,CP01|CP02|CP10,BIT|CMDA|CPE|CS|ECON|MATH|STAT,6,true,false
+RV0117,CO032,General Dynamics,EV0075,2026-09-30,info_session,CP15,ISE|ME,4,false,false
+RV0118,CO032,General Dynamics,EV0076,2026-09-22,technical_workshop,CP15,ISE|ME,6,false,false
+RV0119,CO032,General Dynamics,EV0001,2026-09-29,career_fair_booth,CP10|CP15|CP16,BIT|CPE|CS|EE|ISE|ME,10,true,false
+RV0120,CO033,Collins Aerospace,EV0077,2026-09-15,technical_workshop,CP16|CP15,CPE|EE|ISE|ME,1,false,false
+RV0121,CO033,Collins Aerospace,EV0078,2026-11-17,coffee_chat,CP15|CP16,CPE|EE|ISE|ME,8,true,false
+RV0122,CO033,Collins Aerospace,EV0079,2026-11-26,resume_review,CP16,CPE|EE,6,false,false
+RV0123,CO033,Collins Aerospace,EV0080,2026-12-04,resume_review,CP16,CPE|EE,6,true,false
+RV0124,CO033,Collins Aerospace,EV0001,2026-09-29,career_fair_booth,CP15|CP16,CPE|EE|ISE|ME,2,true,false
+RV0125,CO034,Volvo Group,EV0081,2026-10-08,resume_review,CP15|CP13,BIT|ISE|ME|MGT,2,true,true
+RV0126,CO034,Volvo Group,EV0082,2026-10-28,coffee_chat,CP13|CP15,BIT|ISE|ME|MGT,1,false,true
+RV0127,CO034,Volvo Group,EV0083,2026-10-13,info_session,CP15,ISE|ME,6,false,false
+RV0128,CO034,Volvo Group,EV0084,2026-10-02,info_session,CP15|CP13,BIT|ISE|ME|MGT,2,true,false
+RV0129,CO034,Volvo Group,EV0001,2026-09-29,career_fair_booth,CP15,ISE|ME,8,true,true
+RV0130,CO034,Volvo Group,EV0002,2026-09-30,career_fair_booth,CP13,BIT|ISE|MGT,5,true,false
+RV0131,CO034,Volvo Group,EV0003,2026-09-16,career_fair_booth,CP13,BIT|ISE|MGT,4,true,true
+RV0132,CO035,Dominion Energy,EV0085,2026-10-19,technical_workshop,CP16,CPE|EE,7,true,true
+RV0133,CO035,Dominion Energy,EV0001,2026-09-29,career_fair_booth,CP02|CP16|CP17,CEE|CMDA|CPE|CS|ECON|EE|MATH|STAT,9,true,false
+RV0134,CO036,Kimley-Horn,EV0086,2026-10-20,resume_review,CP17,CEE,2,true,false
+RV0135,CO036,Kimley-Horn,EV0001,2026-09-29,career_fair_booth,CP17,CEE,3,true,false
+RV0136,CO037,Clark Construction,EV0087,2026-09-14,resume_review,CP13,BIT|ISE|MGT,5,true,false
+RV0137,CO037,Clark Construction,EV0088,2026-09-02,info_session,CP13,BIT|ISE|MGT,5,true,false
+RV0138,CO037,Clark Construction,EV0003,2026-09-16,career_fair_booth,CP13,BIT|ISE|MGT,10,true,true
+RV0139,CO038,Procter & Gamble,EV0089,2026-11-10,technical_workshop,CP15,ISE|ME,8,true,false
+RV0140,CO038,Procter & Gamble,EV0090,2026-11-30,technical_workshop,CP15,ISE|ME,8,true,false
+RV0141,CO038,Procter & Gamble,EV0002,2026-09-30,career_fair_booth,CP13|CP14,BIT|COMM|ISE|MGT|MKTG,6,true,false
+RV0142,CO038,Procter & Gamble,EV0003,2026-09-16,career_fair_booth,CP13|CP14,BIT|COMM|ISE|MGT|MKTG,5,true,true
+RV0143,CO039,Altria,EV0091,2026-11-25,networking,CP09|CP13,ACIS|BIT|FIN|ISE|MGT,6,true,false
+RV0144,CO039,Altria,EV0092,2026-11-18,resume_review,CP09|CP13,ACIS|BIT|FIN|ISE|MGT,7,false,false
+RV0145,CO039,Altria,EV0002,2026-09-30,career_fair_booth,CP09|CP13|CP14,ACIS|BIT|COMM|FIN|ISE|MGT|MKTG,8,true,false
+RV0146,CO039,Altria,EV0003,2026-09-16,career_fair_booth,CP09|CP13|CP14,ACIS|BIT|COMM|FIN|ISE|MGT|MKTG,7,true,false
+RV0147,CO040,Hilton,EV0093,2026-10-15,technical_workshop,CP14|CP02,CMDA|COMM|CS|ECON|MATH|MGT|MKTG|STAT,1,false,false
+RV0148,CO040,Hilton,EV0094,2026-11-30,networking,CP14,COMM|MGT|MKTG,5,true,false
+RV0149,CO040,Hilton,EV0003,2026-09-16,career_fair_booth,CP14,COMM|MGT|MKTG,5,true,true
+RV0150,CO041,Carilion Clinic,EV0095,2026-10-09,info_session,CP18,BIO|BME,8,true,false
+RV0151,CO041,Carilion Clinic,EV0001,2026-09-29,career_fair_booth,CP02,CMDA|CS|ECON|MATH|STAT,10,true,true
+RV0152,CO042,Fralin Biomedical Research Institute,EV0096,2026-09-22,coffee_chat,CP18,BIO|BME,2,true,false
+RV0153,CO042,Fralin Biomedical Research Institute,EV0097,2026-10-19,resume_review,CP18,BIO|BME,5,true,false
+RV0154,CO043,MITRE,EV0098,2026-10-02,coffee_chat,CP02,CMDA|CS|ECON|MATH|STAT,3,false,false
+RV0155,CO043,MITRE,EV0099,2026-11-05,info_session,CP02,CMDA|CS|ECON|MATH|STAT,8,false,false
+RV0156,CO043,MITRE,EV0100,2026-12-01,coffee_chat,CP19,COMM|ECON|PSCI,3,true,true
+RV0157,CO043,MITRE,EV0101,2026-12-04,technical_workshop,CP03|CP10,BIT|CMDA|CPE|CS,1,true,true
+RV0158,CO043,MITRE,EV0001,2026-09-29,career_fair_booth,CP02|CP03|CP10,BIT|CMDA|CPE|CS|ECON|MATH|STAT,3,true,false
+RV0159,CO043,MITRE,EV0002,2026-09-30,career_fair_booth,CP19,COMM|ECON|PSCI,3,true,true
+RV0160,CO044,U.S. Government Accountability Office,EV0102,2026-11-02,networking,CP09,ACIS|FIN,6,true,true
+RV0161,CO044,U.S. Government Accountability Office,EV0103,2026-11-20,technical_workshop,CP19,COMM|ECON|PSCI,6,true,true
+RV0162,CO044,U.S. Government Accountability Office,EV0104,2026-11-19,coffee_chat,CP09,ACIS|FIN,5,false,false
+RV0163,CO044,U.S. Government Accountability Office,EV0002,2026-09-30,career_fair_booth,CP09|CP19,ACIS|COMM|ECON|FIN|PSCI,5,true,true
