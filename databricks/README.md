@@ -1,6 +1,9 @@
 # HokiePath: mock data + Databricks setup
 
-AI career navigator for Virginia Tech (VTHacks, Deloitte x Databricks challenge, *Campus Career Navigator* track).
+> In the app repo these files live under `databricks/` (notebook, generator, `data/`) and `lakebase/` (Postgres schema).
+> Paths below are relative to that layout.
+
+AI career navigator for Virginia Tech (VTHacks, Deloitte x Databricks challenge, _Campus Career Navigator_ track).
 
 ```
 hokiepath/
@@ -28,24 +31,24 @@ fails to create, check the quota first.
 
 ## Tables in Unity Catalog (`workspace.hokiepath`)
 
-| Layer | Tables | Used by |
-|---|---|---|
-| Silver | `majors`, `skills`, `career_paths`, `path_skills`, `companies`, `clubs`, `courses`, `events`, `recruiter_visits`, `opportunities` | Agent tools, app |
-| Silver (synthetic analytics) | `students` (1,200), `student_skills`, `event_registrations` | Genie admin view |
-| Gold | `gold_events_enriched`, `gold_recruiter_visits_enriched` | App dashboard, tools |
-| Gold (CDF on) | `gold_event_search_docs`, `gold_opportunity_search_docs` | Vector Search |
-| Gold | `gold_student_skill_gaps`, `gold_skill_gap_summary`, `gold_path_supply_demand` | Genie / Career Services insights |
+| Layer                        | Tables                                                                                                                            | Used by                          |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
+| Silver                       | `majors`, `skills`, `career_paths`, `path_skills`, `companies`, `clubs`, `courses`, `events`, `recruiter_visits`, `opportunities` | Agent tools, app                 |
+| Silver (synthetic analytics) | `students` (1,200), `student_skills`, `event_registrations`                                                                       | Genie admin view                 |
+| Gold                         | `gold_events_enriched`, `gold_recruiter_visits_enriched`                                                                          | App dashboard, tools             |
+| Gold (CDF on)                | `gold_event_search_docs`, `gold_opportunity_search_docs`                                                                          | Vector Search                    |
+| Gold                         | `gold_student_skill_gaps`, `gold_skill_gap_summary`, `gold_path_supply_demand`                                                    | Genie / Career Services insights |
 
 ## Agent tools (Unity Catalog SQL functions)
 
-| Function | What the agent uses it for |
-|---|---|
-| `list_career_paths()` | Map a vague goal ("finance stuff") to a path |
-| `get_skill_gap(target_path, student_skills)` | What's missing from the resume |
+| Function                                                     | What the agent uses it for                     |
+| ------------------------------------------------------------ | ---------------------------------------------- |
+| `list_career_paths()`                                        | Map a vague goal ("finance stuff") to a path   |
+| `get_skill_gap(target_path, student_skills)`                 | What's missing from the resume                 |
 | `build_gap_roadmap(target_path, student_skills, days_ahead)` | Events, clubs, and courses that close each gap |
-| `find_events(target_path, major, days_ahead)` | Upcoming VT events |
-| `companies_visiting(target_path, days_ahead)` | Recruiter Radar |
-| `find_opportunities(target_path, opp_type)` | Internships, full-time, research |
+| `find_events(target_path, major, days_ahead)`                | Upcoming VT events                             |
+| `companies_visiting(target_path, days_ahead)`                | Recruiter Radar                                |
+| `find_opportunities(target_path, opp_type)`                  | Internships, full-time, research               |
 
 Add them as tools in **AI Playground** to prototype the agent with no code, then move to the Mosaic AI Agent
 Framework with MLflow tracing for the real app.

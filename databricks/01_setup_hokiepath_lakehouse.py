@@ -13,7 +13,7 @@
 # MAGIC
 # MAGIC **Before running:** upload every CSV from the `data/` folder into the Volume created in step 1
 # MAGIC (Catalog Explorer → your schema → Volumes → `raw` → *Upload to this volume*), **or** put this repo in a
-# MAGIC Git folder and the notebook will copy `../data/*.csv` into the Volume for you.
+# MAGIC Git folder and the notebook will copy `databricks/data/*.csv` into the Volume for you.
 
 # COMMAND ----------
 
@@ -39,10 +39,12 @@ spark.sql(f"CREATE VOLUME IF NOT EXISTS {fq}.raw COMMENT 'Raw CSV drops for Hoki
 spark.sql(f"USE CATALOG {catalog}")
 spark.sql(f"USE SCHEMA {schema}")
 
-# If the repo lives in a Git folder, copy ../data/*.csv into the Volume automatically.
+# If the repo lives in a Git folder, copy the seed CSVs into the Volume automatically.
+# Repo layout keeps them in databricks/data/ (next to this notebook); ../data is the old seed-package layout.
 import os, shutil, glob
-repo_data = os.path.abspath(os.path.join(os.getcwd(), "..", "data"))
-if os.path.isdir(repo_data):
+repo_data = next((d for d in (os.path.abspath(os.path.join(os.getcwd(), "data")),
+                              os.path.abspath(os.path.join(os.getcwd(), "..", "data"))) if os.path.isdir(d)), "")
+if repo_data:
     for f in glob.glob(os.path.join(repo_data, "*.csv")):
         shutil.copy(f, os.path.join(VOLUME_PATH, os.path.basename(f)))
     print("Copied CSVs from", repo_data)
