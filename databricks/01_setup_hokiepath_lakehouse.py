@@ -427,9 +427,10 @@ TOOL_FUNCTIONS = {
 }
 
 for fname, f in TOOL_FUNCTIONS.items():
+    comment = f["comment"].replace("'", "\\'")   # escape apostrophes like "student's"
     stmt = (f"CREATE OR REPLACE FUNCTION {fq}.{fname}({f['params']})\n"
             f"RETURNS TABLE ({f['returns']})\n"
-            f"COMMENT '{f['comment']}'\n"
+            f"COMMENT '{comment}'\n"
             f"RETURN {f['body']}")
     spark.sql(stmt)
     print("registered tool:", f"{fq}.{fname}")
