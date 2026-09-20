@@ -289,6 +289,25 @@ export async function saveChatMessage(input: {
   );
 }
 
+/**
+ * Persist a whole turn in one statement. The two messages must land in order, and `created_at`
+ * defaults to now() -- two concurrent inserts could tie and scramble the transcript, so they go
+ * in as one multi-row INSERT with an explicit offset rather than as two awaits.
+ */
+export async function saveChatTurn(input: {
+  sessionId: string;
+  question: string;
+  answer: string;
+  toolCalls: unknown;
+}): Promise<void> {
+  await q(
+    `INSERT INTO chat_messages (session_id, role, content, tool_calls, created_at)
+     VALUES ($1, 'user', $2, NULL, now()),
+            ($1, 'assistant', $3, $4::jsonb, now() + interval '1 millisecond')`,
+    [input.sessionId, input.question, input.answer, JSON.stringify(input.toolCalls)],
+  );
+}
+
 export interface ChatMessageRow {
   message_id: string;
   role: "user" | "assistant" | "tool";

@@ -21,6 +21,19 @@ import type { SkillProfile } from "@/lib/types";
 const MAX_ROWS = 25;
 const trim = <T>(rows: T[]) => rows.slice(0, MAX_ROWS);
 
+/**
+ * Keep only the named columns. Every row a tool returns is re-read by the model on every later
+ * step of the turn, so a wide row is paid for several times over in both latency and tokens.
+ */
+const pick = <K extends string>(
+  rows: Record<string, unknown>[],
+  keys: readonly K[],
+  limit: number,
+) =>
+  rows
+    .slice(0, limit)
+    .map((row) => Object.fromEntries(keys.filter((k) => row[k] != null).map((k) => [k, row[k]])));
+
 export interface ToolContext {
   profile: SkillProfile;
   /** Collects every id returned to the model this turn, for the output guard (spec 10.8). */
@@ -52,6 +65,91 @@ export function buildTools(ctx: ToolContext) {
   const studentSkills = ctx.profile.skills.map((s) => s.name).join(", ");
 
   return {
+    plan_for_path: tool({
+      description:
+        "EVERYTHING about one career path in a single call: the student's skill gaps, upcoming " +
+        "events, companies visiting campus, open opportunities, matching clubs, and an ordered " +
+        "gap-closing roadmap. Use this for any question about a goal, a path or a pivot. It " +
+        "replaces calling get_skill_gap, find_events, companies_visiting, find_opportunities, " +
+        "find_clubs and build_gap_roadmap one after another, and leaves you far more of your " +
+        "tool budget for the answer. target_path is a path name or a CPxx id.",
+      inputSchema: z.object({
+        target_path: z.string(),
+        days_ahead: z.number().int().min(1).max(180).default(60),
+      }),
+      execute: async ({ target_path, days_ahead }) => {
+        const path = await resolvePath(target_path);
+        if (!path) {
+          return {
+            error: `No career path matches "${target_path}". Pick one from the list above.`,
+          };
+        }
+        const name = path.path_name;
+
+        // Six warehouse queries that do not depend on each other. In series they were six agent
+        // steps -- six model round trips as well as six queries -- which is what made a pivot
+        // question take ten seconds before the first token (spec 6.4).
+        const [gaps, events, visits, opportunities, roadmap, clubs] = await Promise.all([
+          ucFn("get_skill_gap", { target_path: name, student_skills: studentSkills }),
+          ucFn("find_events", { target_path: name, major: "", days_ahead }),
+          ucFn("companies_visiting", { target_path: name, days_ahead }),
+          ucFn("find_opportunities", { target_path: name, opp_type: "" }),
+          ucFn("build_gap_roadmap", {
+            target_path: name,
+            student_skills: studentSkills,
+            days_ahead: 90,
+          }),
+          sql(
+            `SELECT club_id, club_name, meeting_day, skills_developed
+               FROM ${T("clubs")} WHERE array_contains(career_paths, :pid)
+               ORDER BY members_mock DESC LIMIT 6`,
+            { pid: path.path_id },
+          ),
+        ]);
+
+        remember(ctx, events as Record<string, unknown>[], "event_id");
+        remember(ctx, visits as Record<string, unknown>[], "event_id");
+        remember(ctx, opportunities as Record<string, unknown>[], "opportunity_id");
+        remember(ctx, roadmap as Record<string, unknown>[], "item_id");
+        remember(ctx, clubs as Record<string, unknown>[], "club_id");
+
+        return {
+          path_id: path.path_id,
+          path_name: name,
+          gaps: pick(
+            (gaps as Record<string, unknown>[]).filter((g) => g.has_skill !== true),
+            ["skill_name", "importance"],
+            8,
+          ),
+          events: pick(
+            events as Record<string, unknown>[],
+            ["event_id", "title", "event_type", "start_ts", "location", "company_name"],
+            10,
+          ),
+          visits: pick(
+            visits as Record<string, unknown>[],
+            ["event_id", "company_name", "visit_date", "visit_type", "roles_recruiting"],
+            8,
+          ),
+          opportunities: pick(
+            opportunities as Record<string, unknown>[],
+            ["opportunity_id", "title", "opportunity_type", "company_name", "deadline", "location"],
+            8,
+          ),
+          roadmap: pick(
+            roadmap as Record<string, unknown>[],
+            ["item_type", "item_id", "name", "when_text", "closes_gaps"],
+            10,
+          ),
+          clubs: pick(
+            clubs as Record<string, unknown>[],
+            ["club_id", "club_name", "meeting_day", "skills_developed"],
+            6,
+          ),
+        };
+      },
+    }),
+
     list_career_paths: tool({
       description:
         "List the career paths HokiePath knows about. Use when the student's goal is vague or ambiguous.",
@@ -107,7 +205,7 @@ export function buildTools(ctx: ToolContext) {
         days_ahead: z.number().int().min(1).max(120).default(30),
       }),
       execute: async ({ target_path, major, days_ahead }) =>
-        trim(
+        pick(
           remember(
             ctx,
             await ucFn("find_events", {
@@ -117,6 +215,8 @@ export function buildTools(ctx: ToolContext) {
             }),
             "event_id",
           ),
+          ["event_id", "title", "event_type", "start_ts", "location", "company_name"],
+          12,
         ),
     }),
 
@@ -127,7 +227,7 @@ export function buildTools(ctx: ToolContext) {
         days_ahead: z.number().int().min(1).max(120).default(60),
       }),
       execute: async ({ target_path, days_ahead }) =>
-        trim(
+        pick(
           remember(
             ctx,
             await ucFn("companies_visiting", {
@@ -136,6 +236,8 @@ export function buildTools(ctx: ToolContext) {
             }),
             "event_id",
           ),
+          ["event_id", "company_name", "visit_date", "visit_type", "roles_recruiting"],
+          12,
         ),
     }),
 
@@ -146,7 +248,7 @@ export function buildTools(ctx: ToolContext) {
         opp_type: z.enum(["internship", "full_time", "research", ""]).default(""),
       }),
       execute: async ({ target_path, opp_type }) =>
-        trim(
+        pick(
           remember(
             ctx,
             await ucFn("find_opportunities", {
@@ -155,6 +257,8 @@ export function buildTools(ctx: ToolContext) {
             }),
             "opportunity_id",
           ),
+          ["opportunity_id", "title", "opportunity_type", "company_name", "deadline", "location"],
+          12,
         ),
     }),
 

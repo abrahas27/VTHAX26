@@ -147,6 +147,70 @@ describe.skipIf(!live)(`bench ${LABEL}`, () => {
       return "ok";
     });
 
+    console.log("\n-- agent: a full pivot turn --");
+    {
+      const { streamText, stepCountIs } = await import("ai");
+      const { chatModel } = await import("@/lib/databricks/llm");
+      const { buildTools } = await import("@/lib/agent/tools");
+      const { systemPrompt } = await import("@/lib/agent/system-prompt");
+      const paths = await catalog.careerPaths();
+      const pathNames = Object.fromEntries(paths.map((p) => [p.path_id, p.path_name]));
+      const profile: import("@/lib/types").SkillProfile = {
+        userId: "00000000-0000-0000-0000-000000000000",
+        displayName: "Priya",
+        majorCode: "CS",
+        classYear: "Sophomore",
+        skills: [
+          { name: "Python", level: 3, source: "resume", canonical: true },
+          { name: "Java", level: 3, source: "resume", canonical: true },
+          { name: "SQL", level: 2, source: "resume", canonical: true },
+        ],
+        preferences: {
+          seeking: ["internship"],
+          interestedPaths: ["CP01"],
+          energizers: ["Solving puzzles"],
+          industries: ["Tech"],
+          locations: ["NYC"],
+          hoursPerWeek: "3-5",
+          flags: {},
+        },
+        fitScores: { CP01: 72 },
+        primaryGoal: "CP01",
+      };
+      // render_dashboard writes to Lakebase for a real user; this bench profile has no row, so it
+      // is left out and the measurement covers the data tools plus the written answer.
+      const { render_dashboard: _skip, ...dataTools } = buildTools({
+        profile,
+        seenIds: new Set(),
+        renderedTabs: [],
+      });
+
+      const t0 = performance.now();
+      const res = streamText({
+        model: chatModel(),
+        system: systemPrompt(profile, pathNames),
+        prompt: "How can I pivot into investment banking?",
+        tools: dataTools,
+        stopWhen: stepCountIs(8),
+        temperature: 0.3,
+        maxOutputTokens: 1500,
+      });
+      let first = -1;
+      for await (const _chunk of res.textStream) {
+        if (first < 0) first = Math.round(performance.now() - t0);
+      }
+      const total = Math.round(performance.now() - t0);
+      const steps = await res.steps;
+      const calls = steps.flatMap((step) => step.toolCalls).map((c) => c.toolName);
+      console.log(`  ${"agent:time to first token".padEnd(36)} ${String(first).padStart(6)} ms`);
+      console.log(`  ${"agent:total".padEnd(36)} ${String(total).padStart(6)} ms`);
+      console.log(
+        `  ${"agent:tool calls".padEnd(36)} ${String(calls.length).padStart(6)}     ${calls.join(", ")}`,
+      );
+      rows.push({ step: "agent:time to first token", ms: first, note: calls.join("|") });
+      rows.push({ step: "agent:total", ms: total, note: `${steps.length} steps` });
+    }
+
     console.log(`\n=== end "${LABEL}" ===`);
     console.log(JSON.stringify({ label: LABEL, rows }));
   }, 600_000);

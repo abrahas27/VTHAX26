@@ -91,12 +91,12 @@ export function pool(): Pool {
       // into nothing. Well under the server's own idle timeout.
       idleTimeoutMillis: 5 * 60_000,
       connectionTimeoutMillis: 8_000,
-    });
-    // search_path belongs to the connection, not the query. Setting it once when a physical
-    // connection opens (pg queues it ahead of anything the caller sends on that client) saves a
-    // full round trip on every query but the first -- roughly 40-70 ms each, on every route.
-    cachedPool.on("connect", (client) => {
-      void client.query("SET search_path TO app, public");
+      // search_path belongs to the connection, not to the query. Postgres applies `options` at
+      // startup, so every checked-out client is already pointed at schema `app` -- one fewer
+      // round trip on every query in the app, with nothing extra on the wire. (Issuing the SET
+      // from a pool `connect` handler also works, but overlaps the caller's first query and pg
+      // deprecates that.)
+      options: "-c search_path=app,public",
     });
     cachedPool.on("error", (err) => console.error("[lakebase] idle client error", err));
   }
@@ -108,8 +108,8 @@ export async function q<T extends QueryResultRow = QueryResultRow>(
   text: string,
   values: unknown[] = [],
 ): Promise<T[]> {
-  // pool.query checks a client out and releases it for us; search_path is already set by the
-  // pool's `connect` handler above, so this is one round trip rather than two.
+  // pool.query checks a client out and releases it for us, and search_path is already set by the
+  // pool's connection options, so this is one round trip rather than two.
   return timed(sqlLabel("pg", text), async () => (await pool().query<T>(text, values)).rows);
 }
 

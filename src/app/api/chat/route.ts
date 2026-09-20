@@ -9,7 +9,7 @@ import { applyOutputGuard, rateLimit, sanitizeUserMessage } from "@/lib/agent/gu
 import { systemPrompt } from "@/lib/agent/system-prompt";
 import { buildTools, type ToolContext } from "@/lib/agent/tools";
 import type { DashboardSpec } from "@/lib/agent/dashboard-spec";
-import { ensureChatSession, getProfile, logAgentTurn, saveChatMessage } from "@/lib/db/queries";
+import { ensureChatSession, getProfile, logAgentTurn, saveChatTurn } from "@/lib/db/queries";
 import { withTiming } from "@/lib/timing";
 
 export const runtime = "nodejs";
@@ -108,23 +108,21 @@ export async function POST(req: Request) {
         console.warn(`[chat] output guard removed unknown ids`, guarded.invalidIds);
       }
 
+      // Three sequential writes used to hold the function open for ~200 ms after the last token
+      // had already reached the student. They do not depend on each other.
       try {
-        await saveChatMessage({ sessionId, role: "user", content: question });
-        await saveChatMessage({
-          sessionId,
-          role: "assistant",
-          content: guarded.text,
-          toolCalls,
-        });
-        await logAgentTurn({
-          userId: auth.user.userId,
-          sessionId,
-          question,
-          answer: guarded.text,
-          toolCalls,
-          latencyMs: Date.now() - startedAt,
-          model: env.DATABRICKS_LLM_ENDPOINT ?? "unknown",
-        });
+        await Promise.all([
+          saveChatTurn({ sessionId, question, answer: guarded.text, toolCalls }),
+          logAgentTurn({
+            userId: auth.user.userId,
+            sessionId,
+            question,
+            answer: guarded.text,
+            toolCalls,
+            latencyMs: Date.now() - startedAt,
+            model: env.DATABRICKS_LLM_ENDPOINT ?? "unknown",
+          }),
+        ]);
       } catch (err) {
         console.error("[chat] could not persist the turn", err);
       }
