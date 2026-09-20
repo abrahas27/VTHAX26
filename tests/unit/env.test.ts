@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { parseEnv } from "@/lib/env";
 
 const live = {
@@ -12,7 +12,7 @@ const live = {
   LAKEBASE_HOST: "instance.database.cloud.databricks.com",
   LAKEBASE_DB: "databricks_postgres",
   LAKEBASE_USER: "me@example.com",
-  LAKEBASE_INSTANCE: "hokiepath-db",
+  LAKEBASE_ENDPOINT: "projects/hokiepath-db/branches/production/endpoints/primary",
 };
 
 describe("parseEnv", () => {
@@ -41,15 +41,22 @@ describe("parseEnv", () => {
     expect(env.ADMIN_EMAILS).toEqual(["a@vt.edu"]);
   });
 
-  it("lists every missing live-service variable when DEMO_MODE is off", () => {
-    const { DATABRICKS_TOKEN: _t, LAKEBASE_HOST: _h, ...partial } = live;
-    expect(() => parseEnv(partial)).toThrow(/DATABRICKS_TOKEN[\s\S]*LAKEBASE_HOST/);
+  it("lists every missing Databricks core variable when DEMO_MODE is off", () => {
+    const { DATABRICKS_TOKEN: _t, DATABRICKS_WAREHOUSE_ID: _w, ...partial } = live;
+    expect(() => parseEnv(partial)).toThrow(/DATABRICKS_TOKEN[\s\S]*DATABRICKS_WAREHOUSE_ID/);
   });
 
-  it("requires a Lakebase auth method", () => {
-    const { LAKEBASE_INSTANCE: _i, ...partial } = live;
-    expect(() => parseEnv(partial)).toThrow(/LAKEBASE_INSTANCE/);
-    expect(() => parseEnv({ ...partial, LAKEBASE_PASSWORD: "pw" })).not.toThrow();
+  it("does not require services that arrive in later phases", () => {
+    // Lakebase (11.8) and model serving (11.5) are checked where they are used, so that an
+    // unfinished phase cannot break routes that do not touch them.
+    const {
+      LAKEBASE_HOST: _h,
+      LAKEBASE_DB: _d,
+      LAKEBASE_USER: _u,
+      LAKEBASE_ENDPOINT: _e,
+      ...partial
+    } = live;
+    expect(() => parseEnv({ ...partial, DATABRICKS_LLM_ENDPOINT: "" })).not.toThrow();
   });
 
   it("only needs auth settings in DEMO_MODE", () => {
@@ -64,5 +71,37 @@ describe("parseEnv", () => {
 
   it("rejects a malformed Databricks host", () => {
     expect(() => parseEnv({ ...live, DATABRICKS_HOST: "not a url" })).toThrow(/DATABRICKS_HOST/);
+  });
+});
+
+describe("requireEnv", () => {
+  const withEnv = async (vars: Record<string, string>, run: () => void) => {
+    const saved = { ...process.env };
+    Object.assign(process.env, vars);
+    try {
+      run();
+    } finally {
+      process.env = saved;
+    }
+  };
+
+  it("returns the requested values when they are set", async () => {
+    vi.resetModules();
+    const { requireEnv } = await import("@/lib/env");
+    await withEnv({ ...live, LAKEBASE_HOST: "db.example.com" }, () => {
+      expect(requireEnv(["LAKEBASE_HOST"], "Lakebase")).toEqual({
+        LAKEBASE_HOST: "db.example.com",
+      });
+    });
+  });
+
+  it("names the missing variables and where they are needed", async () => {
+    vi.resetModules();
+    const { requireEnv } = await import("@/lib/env");
+    await withEnv({ ...live, LAKEBASE_HOST: "", LAKEBASE_USER: "" }, () => {
+      expect(() => requireEnv(["LAKEBASE_HOST", "LAKEBASE_USER"], "Lakebase")).toThrow(
+        /Lakebase needs LAKEBASE_HOST, LAKEBASE_USER/,
+      );
+    });
   });
 });

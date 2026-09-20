@@ -4,12 +4,27 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * HokiePath design tokens (spec 5.1-5.2): modern, sleek, dark-first, with Virginia Tech identity
+ * used as confident accents. The spec's names (--bg, --surface, --primary, --accent, ...) are the
+ * source of truth; the shadcn variables below alias them so generated components inherit the theme.
+ */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
+
+  /* Spec tokens exposed as Tailwind colors: bg-surface, border-hp-border, text-muted, ... */
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-hp-border: var(--hp-border);
+  --color-muted-text: var(--muted-text);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -39,82 +54,90 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* 16px cards, 10px inputs, 999px chips (spec 5.1) */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 1.75rem;
+  --radius-4xl: 2rem;
+
+  /* Type scale: 12 / 14 / 16 / 20 / 24 / 32 / 48 */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.5rem;
+  --text-2xl: 2rem;
+  --text-3xl: 3rem;
 }
 
+/* Dark is the default theme (spec 5). Light mode is supported via the `light` class. */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --bg: #0b0b0f;
+  --surface: #14141b;
+  --surface-2: #1c1c25;
+  --hp-border: #2a2a35;
+  --text: #f4f4f5;
+  --muted-text: #a1a1aa;
+  --hp-primary: #a8325c; /* VT maroon, lifted for dark */
+  --hp-accent: #f08a3c; /* AI-created goal tabs, highlights, focus ring */
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+
+  --shadow-card: 0 1px 0 rgb(255 255 255 / 0.04) inset, 0 8px 24px rgb(0 0 0 / 0.35);
+  --radius: 1rem;
+
+  --background: var(--bg);
+  --foreground: var(--text);
+  --card: var(--surface);
+  --card-foreground: var(--text);
+  --popover: var(--surface);
+  --popover-foreground: var(--text);
+  --primary: var(--hp-primary);
+  --primary-foreground: #ffffff;
+  --secondary: var(--surface-2);
+  --secondary-foreground: var(--text);
+  --muted: var(--surface-2);
+  --muted-foreground: var(--muted-text);
+  --accent: var(--hp-accent);
+  --accent-foreground: #1a1205;
+  --destructive: var(--danger);
+  --border: var(--hp-border);
+  --input: var(--surface-2);
+  --ring: var(--hp-accent);
+
+  --chart-1: var(--hp-primary);
+  --chart-2: var(--hp-accent);
+  --chart-3: #6366f1;
+  --chart-4: #22c55e;
+  --chart-5: #a1a1aa;
+
+  --sidebar: var(--surface);
+  --sidebar-foreground: var(--text);
+  --sidebar-primary: var(--hp-primary);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: var(--surface-2);
+  --sidebar-accent-foreground: var(--text);
+  --sidebar-border: var(--hp-border);
+  --sidebar-ring: var(--hp-accent);
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+.light {
+  --bg: #fafafb;
+  --surface: #ffffff;
+  --surface-2: #f4f3f6;
+  --hp-border: #e4e2e8;
+  --text: #18181b;
+  --muted-text: #5b5b66;
+  --hp-primary: #861f41; /* VT Chicago Maroon */
+  --hp-accent: #e5751f; /* VT Burnt Orange */
+
+  --shadow-card: 0 1px 0 rgb(0 0 0 / 0.02) inset, 0 6px 16px rgb(0 0 0 / 0.08);
+  --accent-foreground: #ffffff;
 }
 
 @layer base {
@@ -127,4 +150,27 @@
   html {
     @apply font-sans;
   }
+  h1,
+  h2,
+  h3 {
+    @apply font-semibold tracking-[-0.02em];
+  }
+  /* Spec 5.2 / 5.4: motion is decorative, and every interactive element shows a visible focus ring. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@utility card-elevated {
+  background-color: var(--surface);
+  border: 1px solid var(--hp-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
 }

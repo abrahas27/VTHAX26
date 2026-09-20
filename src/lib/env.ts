@@ -52,7 +52,7 @@ export const envSchema = z
     LAKEBASE_HOST: optStr(),
     LAKEBASE_DB: optStr(),
     LAKEBASE_USER: optStr(),
-    LAKEBASE_INSTANCE: optStr(),
+    LAKEBASE_ENDPOINT: optStr(),
     LAKEBASE_PASSWORD: optStr(),
 
     // App
@@ -62,25 +62,12 @@ export const envSchema = z
   })
   .superRefine((e, ctx) => {
     // DEMO_MODE serves fixtures (14.4), so live-service config is only mandatory when it is off.
+    // Services that arrive later in the build (Lakebase, model serving, Vector Search, Genie) are
+    // checked where they are used instead, so an unfinished phase does not break the whole app.
     if (e.DEMO_MODE === "true") return;
-    const required = [
-      "DATABRICKS_HOST",
-      "DATABRICKS_TOKEN",
-      "DATABRICKS_WAREHOUSE_ID",
-      "DATABRICKS_LLM_ENDPOINT",
-      "LAKEBASE_HOST",
-      "LAKEBASE_DB",
-      "LAKEBASE_USER",
-    ] as const;
+    const required = ["DATABRICKS_HOST", "DATABRICKS_TOKEN", "DATABRICKS_WAREHOUSE_ID"] as const;
     for (const key of required) {
       if (!e[key]) ctx.addIssue({ code: "custom", path: [key], message: `${key} is required` });
-    }
-    if (!e.LAKEBASE_PASSWORD && !e.LAKEBASE_INSTANCE) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["LAKEBASE_INSTANCE"],
-        message: "Set LAKEBASE_INSTANCE (OAuth credentials) or LAKEBASE_PASSWORD (native role)",
-      });
     }
   });
 
@@ -110,3 +97,21 @@ export const env = new Proxy({} as Env, {
 });
 
 export const isDemoMode = () => env.DEMO_MODE === "true";
+
+/**
+ * Assert the variables a late-arriving service needs, with a message that names the spec step.
+ * Use at the top of a client module's entry point rather than widening the global schema, so a
+ * service that is not configured yet only breaks its own routes.
+ */
+export function requireEnv<K extends keyof Env>(
+  keys: readonly K[],
+  where: string,
+): { [P in K]: NonNullable<Env[P]> } {
+  const missing = keys.filter((k) => !env[k]);
+  if (missing.length > 0) {
+    throw new Error(
+      `${where} needs ${missing.join(", ")}. See .env.example and docs/integrations/.`,
+    );
+  }
+  return Object.fromEntries(keys.map((k) => [k, env[k]])) as { [P in K]: NonNullable<Env[P]> };
+}

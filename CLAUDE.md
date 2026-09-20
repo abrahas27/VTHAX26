@@ -7,11 +7,16 @@ Update the **Current phase** and **Fallbacks in use** sections at the end of eve
 
 ## Current phase
 
-**P0 Kickoff: done (2026-09-19).** Scaffold, layout, `.env.example`, `env.ts`, integration template. Waiting on the human
-setup steps (spec 11.1-11.4, 12.1) before P1. Nothing talks to Databricks, Lakebase, or Google yet.
+**P1 Foundations: code complete (2026-09-19).** Design tokens, landing page (F1), Auth.js + Google with
+`src/proxy.ts` route protection, `sql.ts` / `functions.ts`, `lakebase.ts` + `upsertUser`, and `GET /api/health`.
+Verified locally: warehouse `RUNNING` (280 events, all six UC Functions), protected pages redirect, protected
+APIs return 401.
 
-Next: **P1 Foundations** (design tokens, landing page, Auth.js + Google, `src/proxy.ts`, `lakebase.ts` + `upsertUser`,
-`sql.ts` + `functions.ts`, `GET /api/health`, first Vercel deploy).
+Lakebase is now live (project `hokiepath-db`, branch `production`, endpoint `primary`; both SQL files applied;
+`/api/health` reports `lakebase: true`). The app is still **not deployed to Vercel** (12.2). `DATABRICKS_LLM_ENDPOINT` is also still empty; it is needed from P2 (11.5).
+
+Next: **P2 Profile + dashboard** (F2 resume upload + extraction, F3 questionnaire + `scoring.ts`,
+F4 For You dashboard, `/api/dashboard`, `/api/items/batch`, DEMO_MODE fixtures).
 
 ## What we're building
 
@@ -38,7 +43,8 @@ Browser (Next.js UI) --HTTPS--> Vercel: pages (RSC) + /api/* Route Handlers + ag
 - **Unity Catalog / Delta** = shared catalog + analytics (events, clubs, companies, visits, opportunities, gold tables).
   Built by `databricks/01_setup_hokiepath_lakehouse.py`. Mock events span **Aug 24 - Dec 11, 2026**; tools filter on
   `current_date()`.
-- **Lakebase** = per-user app state: `app_users`, `student_profiles`, `chat_sessions`, `chat_messages`,
+- **Lakebase** = an autoscaling Postgres **project** (not a database instance): credentials come from
+  `POST /api/2.0/postgres/credentials` with an endpoint resource name. Per-user app state: `app_users`, `student_profiles`, `chat_sessions`, `chat_messages`,
   `dashboard_state`, `saved_items`, `roadmap_items`, `event_prep`, `readiness_snapshots`, `agent_turns`.
 - **UC Functions** (agent tools; `student_skills` is a comma-separated canonical skill list; `''` means "any"):
   `list_career_paths()`, `get_skill_gap(target_path, student_skills)`,
@@ -97,6 +103,8 @@ Browser (Next.js UI) --HTTPS--> Vercel: pages (RSC) + /api/* Route Handlers + ag
 | `pnpm format` / `pnpm format:check` | Prettier                                                            |
 | `pnpm demo:record`                  | (P2) record DEMO_MODE fixtures from live responses                  |
 
+Health check: `curl localhost:3000/api/health` (add `?warm=1` to start a cold warehouse before a demo).
+
 ## Repo layout
 
 ```
@@ -123,25 +131,25 @@ legacy/python-prototype superseded stubs, excluded from build
 
 ## Environment variables (spec 13; see `.env.example`)
 
-| Var                                                         | Secret | Notes                                                 |
-| ----------------------------------------------------------- | ------ | ----------------------------------------------------- |
-| `AUTH_SECRET`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`       | yes    | Auth.js v5 + Google (12.1)                            |
-| `ALLOWED_EMAIL_DOMAINS`                                     | no     | empty = any Google account; `vt.edu` to restrict      |
-| `ADMIN_EMAILS`                                              | no     | comma-separated; gates `/admin`                       |
-| `DATABRICKS_HOST`                                           | no     | workspace URL, no trailing slash                      |
-| `DATABRICKS_TOKEN`                                          | yes    | PAT (11.4); also mints Lakebase creds and calls Genie |
-| `DATABRICKS_WAREHOUSE_ID`                                   | no     | SQL Warehouse connection details                      |
-| `DATABRICKS_CATALOG` / `DATABRICKS_SCHEMA`                  | no     | `workspace` / `hokiepath`                             |
-| `DATABRICKS_LLM_ENDPOINT` / `DATABRICKS_EMBEDDING_ENDPOINT` | no     | from the Serving page; never hard-code                |
-| `DATABRICKS_VS_EVENTS_INDEX` / `DATABRICKS_VS_OPPS_INDEX`   | no     | optional; ILIKE fallback                              |
-| `DATABRICKS_GENIE_SPACE_ID`                                 | no     | optional                                              |
-| `LAKEBASE_HOST` / `LAKEBASE_DB` / `LAKEBASE_USER`           | no     | Lakebase connection details                           |
-| `LAKEBASE_INSTANCE`                                         | no     | OAuth credential generation (option a)                |
-| `LAKEBASE_PASSWORD`                                         | yes    | native Postgres role (option b)                       |
-| `NEXT_PUBLIC_AIBI_DASHBOARD_URL`                            | no     | link on /admin                                        |
-| `DEMO_MODE`                                                 | no     | `true` serves `fixtures/demo/*.json`                  |
-| `CRON_SECRET`                                               | yes    | Vercel Cron ingestion fallback                        |
-| secret scope `hokiepath`: `onet_key`, `bls_key`             | yes    | Databricks-side, not env vars                         |
+| Var                                                         | Secret | Notes                                                            |
+| ----------------------------------------------------------- | ------ | ---------------------------------------------------------------- |
+| `AUTH_SECRET`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`       | yes    | Auth.js v5 + Google (12.1)                                       |
+| `ALLOWED_EMAIL_DOMAINS`                                     | no     | empty = any Google account; `vt.edu` to restrict                 |
+| `ADMIN_EMAILS`                                              | no     | comma-separated; gates `/admin`                                  |
+| `DATABRICKS_HOST`                                           | no     | workspace URL, no trailing slash                                 |
+| `DATABRICKS_TOKEN`                                          | yes    | PAT (11.4); also mints Lakebase creds and calls Genie            |
+| `DATABRICKS_WAREHOUSE_ID`                                   | no     | SQL Warehouse connection details                                 |
+| `DATABRICKS_CATALOG` / `DATABRICKS_SCHEMA`                  | no     | `workspace` / `hokiepath`                                        |
+| `DATABRICKS_LLM_ENDPOINT` / `DATABRICKS_EMBEDDING_ENDPOINT` | no     | from the Serving page; never hard-code                           |
+| `DATABRICKS_VS_EVENTS_INDEX` / `DATABRICKS_VS_OPPS_INDEX`   | no     | optional; ILIKE fallback                                         |
+| `DATABRICKS_GENIE_SPACE_ID`                                 | no     | optional                                                         |
+| `LAKEBASE_HOST` / `LAKEBASE_DB` / `LAKEBASE_USER`           | no     | Lakebase connection details                                      |
+| `LAKEBASE_ENDPOINT`                                         | no     | `projects/<p>/branches/<b>/endpoints/<e>`; credential generation |
+| `LAKEBASE_PASSWORD`                                         | yes    | native Postgres role (option b)                                  |
+| `NEXT_PUBLIC_AIBI_DASHBOARD_URL`                            | no     | link on /admin                                                   |
+| `DEMO_MODE`                                                 | no     | `true` serves `fixtures/demo/*.json`                             |
+| `CRON_SECRET`                                               | yes    | Vercel Cron ingestion fallback                                   |
+| secret scope `hokiepath`: `onet_key`, `bls_key`             | yes    | Databricks-side, not env vars                                    |
 
 ## Phase plan (spec 16.2)
 
@@ -171,4 +179,5 @@ Never cut: sign-in, resume parsing, dashboard, chat, pivot tab, roadmap.
 
 ## Fallbacks in use
 
-None yet.
+None yet. Model serving is not configured; it is guarded by `requireEnv` rather than the global env schema,
+so unrelated routes keep working until P2 lands.
