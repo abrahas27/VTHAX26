@@ -17,7 +17,7 @@ calls, not faster ones. Shipped: a shared `ttlCache` (`src/lib/cache.ts`) behind
 (30 min), profile, goal-tab layout and dashboard payload (60 s each, invalidated by every write);
 `/api/dashboard?sections=core|roadmap` so the slowest UC Function stops gating first paint; Lakebase
 `search_path` on the connection instead of per query; `syncRoadmapItems` in one statement instead of
-1 + 2N; Event Prep in one joined query; `reasoning_effort: "low"` on every model call; and
+1 + 2N (measured live: 2,362 ms -> 42 ms for a 30-item plan); Event Prep in one joined query; `reasoning_effort: "low"` on every model call; and
 `plan_for_path`, one agent tool that replaces the five-call pivot sequence and opens the goal tab
 itself. Warm dashboard data **2.5-2.8 s -> ~1.6 s**; a pivot turn **~11 s and 5-6 tool calls -> 5.5 s
 and 1**. A cold warehouse still costs ~14 s on the first query, which is what the warm-up ping

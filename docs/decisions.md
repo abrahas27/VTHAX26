@@ -356,7 +356,8 @@ WHEN NOT MATCHED THEN INSERT *` instead of `append`.
   `SET search_path` per query, and `syncRoadmapItems` does its delete/update/insert in a single
   statement with three CTEs over `jsonb_to_recordset`.
 - **Why:** `q()` was two round trips instead of one, on every Lakebase query in the app; and a
-  30-item roadmap cost 61 sequential round trips to us-east-2. Verified live that the connection
+  30-item roadmap cost 61 sequential round trips to us-east-2 — measured live at **2,362 ms against
+  42 ms** for the single statement, writing the same 30 rows. Verified live that the connection
   option takes: `SHOW search_path` returns `app,public`, and `SELECT ... FROM app_users` resolves
   with no per-query `SET`.
 - **Alternative considered:** issuing the `SET` from the pool's `connect` handler. It works, but it
