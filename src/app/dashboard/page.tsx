@@ -2,7 +2,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { AppShell } from "@/components/app-shell";
-import { DashboardView } from "@/components/dashboard/dashboard-view";
+import { DashboardWorkspace } from "@/components/dashboard/dashboard-workspace";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +17,7 @@ export default async function Dashboard({ searchParams }: PageProps<"/dashboard"
       <p className="text-muted-foreground mb-4 hidden text-sm lg:block">
         Hey {firstName(session.user?.name)}
       </p>
-      <DashboardView tab={activeTab} />
+      <DashboardWorkspace initialTab={activeTab} />
     </AppShell>
   );
 }

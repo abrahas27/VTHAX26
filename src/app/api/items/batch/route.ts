@@ -3,7 +3,14 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { parseBody, requireUser, settle } from "@/lib/api";
 import { sql, T } from "@/lib/databricks/sql";
-import { toClub, toEvent, type ClubRow, type EventRow } from "@/lib/dashboard";
+import {
+  toClub,
+  toEvent,
+  toOpportunity,
+  type ClubRow,
+  type EventRow,
+  type OpportunityRow,
+} from "@/lib/dashboard";
 
 export const runtime = "nodejs";
 
@@ -79,16 +86,17 @@ export async function POST(req: Request) {
     settle(
       "opportunities",
       opportunities?.length
-        ? sql(
-            inList(
-              "opportunity_id",
-              "opportunities",
-              "opportunity_id, title, opportunity_type, company_name, path_id, required_skills, class_years, location, deadline, apply_url",
-            ),
+        ? // The table stores path_id; the drawer shows the readable path name.
+          sql<OpportunityRow>(
+            `SELECT o.opportunity_id, o.title, o.opportunity_type, o.company_name, p.path_name,
+                    o.required_skills, o.class_years, o.location, o.deadline, o.apply_url
+               FROM ${T("opportunities")} o
+               LEFT JOIN ${T("career_paths")} p ON p.path_id = o.path_id
+              WHERE o.opportunity_id IN (SELECT explode(from_json(:ids, 'array<string>')))`,
             { ids: JSON.stringify(opportunities) },
           )
-        : Promise.resolve([]),
-      [] as Record<string, unknown>[],
+        : Promise.resolve([] as OpportunityRow[]),
+      [] as OpportunityRow[],
     ),
     settle(
       "courses",
@@ -113,7 +121,9 @@ export async function POST(req: Request) {
     events: Object.fromEntries(eventRows.value.map((r) => [r.event_id, toEvent(r)])),
     clubs: Object.fromEntries(clubRows.value.map((r) => [r.club_id, toClub(r)])),
     companies: Object.fromEntries(companyRows.value.map((r) => [String(r.company_id), r])),
-    opportunities: Object.fromEntries(oppRows.value.map((r) => [String(r.opportunity_id), r])),
+    opportunities: Object.fromEntries(
+      oppRows.value.map((r) => [r.opportunity_id, toOpportunity(r)]),
+    ),
     courses: Object.fromEntries(courseRows.value.map((r) => [String(r.course_code), r])),
   });
 }

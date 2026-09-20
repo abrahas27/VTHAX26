@@ -129,6 +129,9 @@ export async function parseResume(
     today.toISOString().slice(0, 10),
   );
 
+  // A dense two-page resume can produce more JSON than a small budget allows; a truncated
+  // response fails schema validation, which reads like "the model could not read this resume".
+  // The retry asks for less content rather than repeating the same request.
   let extracted: ExtractedResume;
   try {
     ({ object: extracted } = await generateObject({
@@ -136,19 +139,31 @@ export async function parseResume(
       schema: ExtractedResumeSchema,
       prompt,
       temperature: 0,
-      maxOutputTokens: 3000,
+      maxOutputTokens: 8000,
     }));
   } catch (err) {
-    console.error("[resume] extraction failed, retrying once", err);
+    console.error(
+      `[resume] extraction failed (chars=${resumeText.length}), retrying with a trimmed request`,
+      describeError(err),
+    );
     try {
       ({ object: extracted } = await generateObject({
         model: chatModel(),
         schema: ExtractedResumeSchema,
-        prompt: `${prompt}\n\nReturn valid JSON for every required field, using null or [] when the resume does not say.`,
+        prompt: `${prompt}
+
+Keep the output small: at most 6 experiences with at most 2 short bullets each, at most 4 projects,
+and at most 25 skills. Return valid JSON for every required field, using null or [] when the resume
+does not say.`,
         temperature: 0,
-        maxOutputTokens: 3000,
+        maxOutputTokens: 8000,
       }));
-    } catch {
+    } catch (retryErr) {
+      // Surface enough detail to debug from a server log without ever logging resume content.
+      console.error(
+        `[resume] extraction failed after retry (chars=${resumeText.length})`,
+        describeError(retryErr),
+      );
       throw new ResumeError(
         "The model could not read this resume. Try again or enter your details manually.",
         "extraction_failed",
@@ -171,6 +186,32 @@ export async function parseResume(
     unmatchedSkills: unmatched,
     majorCode: matchMajor(extracted.major, majorsList),
     classYear: classYearFrom(extracted.expected_graduation, today) ?? extracted.class_year,
+  };
+}
+
+/**
+ * Summarize an AI SDK failure for the server log: the cause matters (truncated output, schema
+ * mismatch, rate limit) and the message alone usually hides it. Never includes resume text.
+ */
+function describeError(err: unknown): Record<string, unknown> {
+  if (!(err instanceof Error)) return { error: String(err) };
+  const extra = err as Error & {
+    cause?: unknown;
+    finishReason?: string;
+    usage?: unknown;
+    text?: string;
+    responseBody?: string;
+  };
+  return {
+    name: err.name,
+    message: err.message,
+    finishReason: extra.finishReason,
+    usage: extra.usage,
+    // `text` is the model's raw output that failed to parse; truncate it, it can be long.
+    rawOutput: typeof extra.text === "string" ? `${extra.text.slice(0, 400)}...` : undefined,
+    responseBody:
+      typeof extra.responseBody === "string" ? `${extra.responseBody.slice(0, 400)}...` : undefined,
+    cause: extra.cause instanceof Error ? extra.cause.message : extra.cause,
   };
 }
 

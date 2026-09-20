@@ -7,20 +7,20 @@ Update the **Current phase** and **Fallbacks in use** sections at the end of eve
 
 ## Current phase
 
-**P2 Profile + dashboard: code complete (2026-09-19).** Resume upload and AI parsing (F2), the 8-question
-questionnaire with fit scoring (F3), and the For You dashboard (F4), plus DEMO_MODE with recorded fixtures.
-Model serving is live (`databricks-gpt-oss-120b` + `databricks-gte-large-en`), as is Lakebase.
+**P3 Agent + morphing UI: code complete (2026-09-19).** The streaming agent (`/api/chat`) with the six UC
+Function tools plus `render_dashboard`, DashboardSpec validation, goal tabs that persist in `dashboard_state`,
+the chat panel with tool chips and clickable [ID] chips, and the roadmap page with optimistic completion.
 
-Verified live: all three fixture resumes parse in 6-9 s with correct major and class year; 19 paths scored;
-the For You tab fills from Unity Catalog with ranked events; the CP04 tab clears the F6 bar (>= 5 events,
+Verified live (`RUN_LIVE=1 pnpm test`): the pivot question calls get_skill_gap -> build_gap_roadmap ->
+companies_visiting -> render_dashboard, opens a CP04 tab with 6-7 sections in 12-15 s, and answers in
+~1,100 characters citing 3-5 real ids with zero invalid ones. Golden questions 1, 2, 3 and 8 pass, and
+asking about the same path again refreshes the tab instead of duplicating it.
 
-> = 2 clubs, >= 3 visits, >= 6 roadmap items) with readiness under 30 for a CS student.
+Still outstanding: a human click-through of chat in the browser, the **Vercel deploy** (12.2), and the
+resume bug under Known issues.
 
-Remaining before P3: a human still needs to click through sign-in -> onboarding -> dashboard in a browser
-(OAuth cannot be driven from here), and the app is **not deployed to Vercel** yet (12.2).
-
-Next: **P3 Agent + morphing UI** (`/api/chat`, tools 10.3 with server-injected skills, DashboardSpec 10.6,
-goal tabs, roadmap page, Recruiter Radar).
+Next: **P4 Databricks depth** (Event Prep F9, Vector Search + /api/search F10, .ics export, Genie admin F11,
+the ingestion notebook, and the MLflow eval).
 
 ## What we're building
 
@@ -91,6 +91,11 @@ Browser (Next.js UI) --HTTPS--> Vercel: pages (RSC) + /api/* Route Handlers + ag
   Charts: Recharts. Dark-first design tokens (spec 5.1) as CSS variables in `src/app/globals.css` (P1).
 - Deterministic scoring lives in `src/lib/scoring.ts` with unit tests (spec 10.7). Anything a model could
   get wrong by arithmetic (class year, readiness, ranking) is computed in TypeScript, not prompted for.
+- One mapper per catalog table (`toEvent`, `toClub`, `toOpportunity` in `src/lib/dashboard.ts`). Anything
+  that turns a row into a UI item goes through them, so `/api/dashboard` and `/api/items/batch` cannot drift.
+- The agent's tool budget is the difference between a full answer and an empty one: every wasted call
+  (a repeat, or one rejected by zod) costs a step. Tool descriptions spell out exact argument shapes, and
+  the system prompt carries the path catalog so the agent need not look it up.
 - Any goal string that came from a model goes through `resolvePath()` (`src/lib/catalog.ts`) before it
   reaches a UC Function: the functions filter on the exact path name, so a near-miss silently returns 0 rows.
 - Scripts in `scripts/` run under `node --experimental-strip-types` via `scripts/register.mjs`, which
@@ -188,6 +193,17 @@ Never cut: sign-in, resume parsing, dashboard, chat, pivot tab, roadmap.
 - Statement API `JSON_ARRAY` returns every value as a string; arrays/structs arrive as JSON text (coerce by
   `manifest.schema.columns[].type_name`). A cold warehouse needs polling; pre-warm before demos.
 - Free Edition quotas on serving, Vector Search, Lakebase, and serverless egress (ingestion may need the Vercel Cron fallback).
+
+## Known issues
+
+- **Resume extraction fails on some real resumes (open, P2).** A teammate's upload returned
+  "The model could not read this resume" (`ResumeError` code `extraction_failed`, i.e. both the first
+  attempt and the retry threw). Not reproduced: the three fixtures and a dense 7-role synthetic resume all
+  parse, even at the old 3000-token budget, so output truncation is ruled out. Remaining suspects: PDF text
+  extraction on multi-column or scanned files, a 429 rate limit, or a model refusal on a real person's PII.
+  `parseResume` now logs `finishReason`, `usage`, truncated raw output, and the cause (never resume text) —
+  reproduce, then read the `[resume]` lines from the server log. Note the failure message offers manual
+  entry, but **the wizard has no manual-entry path yet**; either build one or change the copy.
 
 ## Fallbacks in use
 

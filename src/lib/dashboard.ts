@@ -9,6 +9,7 @@ import type {
   ClubItem,
   DashboardPayload,
   EventItem,
+  OpportunityItem,
   RoadmapItem,
   SkillGap,
   SkillProfile,
@@ -36,7 +37,7 @@ interface VisitRow {
   vt_alumni_attending: boolean;
   on_campus_interviews: boolean;
 }
-interface OpportunityRow {
+export interface OpportunityRow {
   opportunity_id: string;
   title: string;
   opportunity_type: string;
@@ -46,8 +47,9 @@ interface OpportunityRow {
   class_years: string[] | null;
   location: string | null;
   deadline: string | null;
+  apply_url?: string | null;
 }
-interface RoadmapRow {
+export interface RoadmapRow {
   item_type: string;
   item_id: string | null;
   name: string;
@@ -82,6 +84,23 @@ export const toEvent = (row: EventRow): EventItem => ({
   pathNames: row.path_names ?? [],
   skills: row.related_skills ?? [],
   isVirtual: (row.location ?? "").toLowerCase().includes("virtual"),
+});
+
+/**
+ * The opportunities table uses `opportunity_type`/`company_name`; the UI uses `type`/`companyName`.
+ * Both the dashboard fan-out and /api/items/batch map through here so the two cannot drift.
+ */
+export const toOpportunity = (row: OpportunityRow): OpportunityItem => ({
+  id: row.opportunity_id,
+  title: row.title,
+  type: row.opportunity_type,
+  companyName: row.company_name,
+  pathName: row.path_name ?? null,
+  requiredSkills: row.required_skills ?? [],
+  classYears: row.class_years ?? [],
+  location: row.location,
+  deadline: row.deadline,
+  applyUrl: row.apply_url ?? null,
 });
 
 export interface DashboardOptions {
@@ -201,17 +220,7 @@ export async function buildDashboard({
       matchesGoal: pathName ? (v.roles_recruiting ?? []).includes(pathName) : false,
     })),
     clubs: clubsRes.value.map(toClub),
-    opportunities: oppsRes.value.map((o) => ({
-      id: o.opportunity_id,
-      title: o.title,
-      type: o.opportunity_type,
-      companyName: o.company_name,
-      pathName: o.path_name,
-      requiredSkills: o.required_skills ?? [],
-      classYears: o.class_years ?? [],
-      location: o.location,
-      deadline: o.deadline,
-    })),
+    opportunities: oppsRes.value.map(toOpportunity),
     roadmapPreview: roadmapRes.value.map(toRoadmapItem),
     ...(errors.length > 0 ? { errors } : {}),
   };

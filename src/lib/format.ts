@@ -55,9 +55,21 @@ const EVENT_TYPE_LABELS: Record<string, string> = {
   research_talk: "Research talk",
 };
 
-export const eventTypeLabel = (type: string) =>
-  EVENT_TYPE_LABELS[type] ?? type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+/**
+ * Tolerates a missing type: a row that arrives without one should show a neutral label, not take
+ * the whole page down with it.
+ */
+export const eventTypeLabel = (type: string | null | undefined) => {
+  if (!type) return "Event";
+  return (
+    EVENT_TYPE_LABELS[type] ?? type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+  );
+};
 
-export const opportunityTypeLabel = (type: string) =>
-  ({ internship: "Internship", full_time: "Full-time", research: "Research" })[type] ??
-  eventTypeLabel(type);
+export const opportunityTypeLabel = (type: string | null | undefined) => {
+  if (!type) return "Opportunity";
+  return (
+    { internship: "Internship", full_time: "Full-time", research: "Research" }[type] ??
+    eventTypeLabel(type)
+  );
+};

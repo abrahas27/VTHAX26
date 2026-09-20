@@ -104,3 +104,41 @@ Format: date, decision, why, consequences. Newest at the bottom.
 - **Decision:** `pnpm fixtures:resumes` writes the three PDFs from text in `scripts/make-fixture-resumes.mts`.
 - **Why:** Keeps the repo diffable and lets anyone tweak a resume to re-test extraction. The students are
   fictional.
+
+## 2026-09-19 (P3): The agent needs step headroom beyond the 6 tool calls
+
+- **Decision:** `stopWhen: stepCountIs(8)` in `/api/chat`, keeping the spec's 6 tool steps but leaving room
+  for the model to write its reply.
+- **Why:** With a budget of exactly 6, every observed pivot run spent all six steps on tools and returned
+  `finishReason: "tool-calls"` with **empty text** — the tab appeared but the student got no answer.
+
+## 2026-09-19 (P3): Tool descriptions spell out exact section shapes
+
+- **Decision:** `render_dashboard`'s description lists every section type with a literal JSON example, and
+  the zod fields carry `.describe()` text.
+- **Why:** The model's first call consistently guessed `"event"`, `"clubs"`, `"markdown"` instead of
+  `event_list`, `club_grid`, `insight`. Zod rejected it, the model retried, and the wasted steps starved the
+  final answer — one run produced no tab at all. With explicit examples: 4/4 runs, zero tool errors.
+
+## 2026-09-19 (P3): The path catalog lives in the system prompt
+
+- **Decision:** All 19 `CPxx` ids and names are listed in the system prompt.
+- **Why:** The agent called `list_career_paths` on nearly every turn just to map "investment banking" to
+  CP04, spending a step it needed for the answer.
+
+## 2026-09-19 (P3): The output guard validates course codes too
+
+- **Decision:** The `[ID]` pattern also matches course codes (`FIN 4114`), which `build_gap_roadmap` returns
+  as roadmap item ids.
+- **Why:** The agent cites courses the same way it cites events. Without this they bypassed the guard
+  entirely, so an invented course number would have rendered as fact.
+
+## 2026-09-19 (P3): One mapper per catalog table, shared by every reader
+
+- **Decision:** `toEvent`, `toClub` and `toOpportunity` in `src/lib/dashboard.ts` are the only places a
+  Unity Catalog row becomes a UI item. Both the dashboard fan-out and `/api/items/batch` go through them.
+- **Why:** `/api/items/batch` returned raw opportunity rows (`opportunity_type`, `company_name`) while the
+  cards read `type`/`companyName`, so `type` was `undefined` and the goal tab crashed the whole page with
+  "Cannot read properties of undefined". The dashboard path had its own inline copy of the mapping and was
+  fine, which is exactly how the two drifted. Label helpers now also tolerate a missing type, so one absent
+  field degrades a single chip instead of the page.

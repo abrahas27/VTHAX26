@@ -1,0 +1,261 @@
+"use client";
+
+import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport } from "ai";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowUp, Loader2, Plus, Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { SUGGESTED_PROMPTS } from "@/lib/agent/system-prompt";
+
+/** Friendly labels for the status chips shown while tools run (spec F5). */
+const TOOL_LABELS: Record<string, string> = {
+  get_skill_gap: "Checking your skill gaps",
+  build_gap_roadmap: "Building your roadmap",
+  find_events: "Finding events",
+  companies_visiting: "Checking who is coming to VT",
+  find_opportunities: "Looking for open roles",
+  find_clubs: "Finding clubs",
+  list_career_paths: "Matching your goal to a path",
+  get_path_outlook: "Looking up pay and outlook",
+  render_dashboard: "Opening your goal tab",
+};
+
+export interface TabSummary {
+  tab_id: string;
+  title: string;
+  source_question: string;
+}
+
+export function ChatPanel({
+  onTabsCreated,
+  onItemClick,
+}: {
+  onTabsCreated?: (tabs: TabSummary[]) => void;
+  onItemClick?: (id: string) => void;
+}) {
+  const [input, setInput] = useState("");
+  const [sessionId, setSessionId] = useState<string | undefined>();
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const endRef = useRef<HTMLDivElement>(null);
+
+  const transport = useMemo(
+    () => new DefaultChatTransport({ api: "/api/chat", body: () => ({ sessionId }) }),
+    [sessionId],
+  );
+
+  const { messages, sendMessage, status, error, setMessages } = useChat({
+    transport,
+    onFinish: ({ message }) => {
+      const meta = message.metadata as { sessionId?: string; tabs?: TabSummary[] } | undefined;
+      if (meta?.sessionId) setSessionId(meta.sessionId);
+      if (meta?.tabs?.length) onTabsCreated?.(meta.tabs);
+    },
+  });
+
+  const busy = status === "submitted" || status === "streaming";
+
+  // Cmd/Ctrl+K focuses the chat from anywhere (spec F5).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        inputRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages]);
+
+  const submit = () => {
+    const text = input.trim();
+    if (!text || busy) return;
+    setInput("");
+    void sendMessage({ text });
+  };
+
+  return (
+    <div className="card-elevated flex h-full min-h-[420px] flex-col">
+      <header className="border-border flex items-center justify-between border-b px-4 py-3">
+        <span className="flex items-center gap-2 text-sm font-medium">
+          <Sparkles className="text-accent size-4" aria-hidden="true" />
+          HokiePath AI
+        </span>
+        {messages.length > 0 && (
+          <Button
+            variant="ghost"
+            size="xs"
+            onClick={() => {
+              setMessages([]);
+              setSessionId(undefined);
+            }}
+          >
+            <Plus className="size-3" aria-hidden="true" />
+            New chat
+          </Button>
+        )}
+      </header>
+
+      <div className="flex-1 space-y-4 overflow-y-auto p-4" aria-live="polite">
+        {messages.length === 0 && (
+          <div className="space-y-2">
+            <p className="text-muted-foreground text-sm">
+              Ask about a goal and I will rebuild your dashboard around it.
+            </p>
+            {SUGGESTED_PROMPTS.map((prompt) => (
+              <button
+                key={prompt}
+                type="button"
+                onClick={() => void sendMessage({ text: prompt })}
+                className="border-border hover:bg-surface-2 block w-full rounded-xl border px-3 py-2 text-left text-xs transition-colors"
+              >
+                {prompt}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {messages.map((message) => (
+          <Message key={message.id} message={message} onItemClick={onItemClick} />
+        ))}
+
+        {status === "submitted" && (
+          <p className="text-muted-foreground flex items-center gap-2 text-xs">
+            <Loader2 className="size-3 animate-spin" aria-hidden="true" />
+            Thinking...
+          </p>
+        )}
+        {error && (
+          <p className="border-danger/40 text-danger rounded-xl border px-3 py-2 text-xs">
+            {error.message || "Something went wrong. Try asking again."}
+          </p>
+        )}
+        <div ref={endRef} />
+      </div>
+
+      <div className="border-border border-t p-3">
+        <div className="bg-surface-2 flex items-end gap-2 rounded-xl px-3 py-2">
+          <textarea
+            ref={inputRef}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                submit();
+              }
+            }}
+            rows={1}
+            maxLength={2000}
+            placeholder="Ask about your career... (Ctrl+K)"
+            aria-label="Ask about your career"
+            className="max-h-32 flex-1 resize-none bg-transparent text-sm outline-none"
+          />
+          <Button
+            size="icon-sm"
+            onClick={submit}
+            disabled={busy || !input.trim()}
+            aria-label="Send"
+          >
+            <ArrowUp className="size-3.5" aria-hidden="true" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface UIPart {
+  type: string;
+  text?: string;
+  state?: string;
+}
+
+function Message({
+  message,
+  onItemClick,
+}: {
+  message: { role: string; parts: UIPart[] };
+  onItemClick?: (id: string) => void;
+}) {
+  if (message.role === "user") {
+    return (
+      <p className="bg-primary text-primary-foreground ml-auto w-fit max-w-[85%] rounded-2xl px-3 py-2 text-sm">
+        {message.parts
+          .filter((p) => p.type === "text")
+          .map((p) => p.text)
+          .join(" ")}
+      </p>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      {message.parts.map((part, i) => {
+        if (part.type === "text" && part.text) {
+          return (
+            <p key={i} className="text-sm leading-relaxed whitespace-pre-wrap">
+              <WithItemChips text={part.text} onItemClick={onItemClick} />
+            </p>
+          );
+        }
+        if (part.type.startsWith("tool-")) {
+          const name = part.type.slice("tool-".length);
+          const done = part.state === "output-available";
+          return <ToolStatusChip key={i} label={TOOL_LABELS[name] ?? name} done={done} />;
+        }
+        return null;
+      })}
+    </div>
+  );
+}
+
+export function ToolStatusChip({ label, done }: { label: string; done: boolean }) {
+  return (
+    <span className="bg-surface-2 text-muted-foreground flex w-fit items-center gap-1.5 rounded-full px-2.5 py-1 text-xs">
+      {done ? (
+        <span className="bg-success size-1.5 rounded-full" aria-hidden="true" />
+      ) : (
+        <Loader2 className="size-3 animate-spin" aria-hidden="true" />
+      )}
+      {label}
+      {done ? <span className="sr-only"> (done)</span> : null}
+    </span>
+  );
+}
+
+const ID_PATTERN = /\[([A-Z]{2}\d{3,4})\]/g;
+
+/** Render [EV0037] as a clickable chip that opens the item drawer (spec F5). */
+function WithItemChips({
+  text,
+  onItemClick,
+}: {
+  text: string;
+  onItemClick?: (id: string) => void;
+}) {
+  const nodes: React.ReactNode[] = [];
+  let lastIndex = 0;
+
+  for (const match of text.matchAll(ID_PATTERN)) {
+    const id = match[1] as string;
+    const start = match.index ?? 0;
+    if (start > lastIndex) nodes.push(text.slice(lastIndex, start));
+    nodes.push(
+      <button
+        key={`${id}-${start}`}
+        type="button"
+        onClick={() => onItemClick?.(id)}
+        className="bg-surface-2 text-accent hover:bg-surface mx-0.5 rounded-full px-2 py-0.5 font-mono text-[11px] transition-colors"
+      >
+        {id}
+      </button>,
+    );
+    lastIndex = start + match[0].length;
+  }
+  if (lastIndex < text.length) nodes.push(text.slice(lastIndex));
+  return <>{nodes}</>;
+}
