@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { Check, Loader2, Upload } from "lucide-react";
@@ -8,6 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { BUILD_STEPS, ENERGIZERS, FLAGS, HOURS, INDUSTRIES, LOCATIONS, SEEKING } from "./questions";
+import { dashboardKey, fetchDashboard } from "@/components/dashboard/dashboard-view";
+import { apiFetch } from "@/lib/client/api";
 import {
   SKILL_LEVEL_LABELS,
   type CareerPath,
@@ -31,6 +34,25 @@ interface ResumeResult {
   fileName: string;
 }
 
+/**
+ * The wizard used to tell a student to "enter your details manually" with nowhere to do it. This
+ * is that path: an empty draft they fill in on the review step, used both when the model cannot
+ * read a resume and when they do not have one to hand (see CLAUDE.md, Known issues).
+ */
+const emptyDraft = (): ResumeResult => ({
+  profileDraft: {
+    displayName: "",
+    majorCode: null,
+    classYear: null,
+    skills: [],
+    clubs: [],
+    experiences: [],
+    projects: [],
+  },
+  unmatchedSkills: [],
+  fileName: "",
+});
+
 const STEP_LABELS: Record<Step, string> = {
   resume: "Resume",
   review: "Review",
@@ -40,6 +62,7 @@ const STEP_LABELS: Record<Step, string> = {
 
 export function OnboardingWizard({ paths }: { paths: CareerPath[] }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [step, setStep] = useState<Step>("resume");
   const [result, setResult] = useState<ResumeResult | null>(null);
   const [skills, setSkills] = useState<ProfileSkill[]>([]);
@@ -60,9 +83,7 @@ export function OnboardingWizard({ paths }: { paths: CareerPath[] }) {
     try {
       const form = new FormData();
       form.append("file", file);
-      const res = await fetch("/api/resume", { method: "POST", body: form });
-      const body = (await res.json()) as ResumeResult & { error?: { message: string } };
-      if (!res.ok) throw new Error(body.error?.message ?? "Could not read that file.");
+      const body = await apiFetch<ResumeResult>("/api/resume", { method: "POST", body: form });
       setResult(body);
       setSkills(body.profileDraft.skills);
       setStep("review");
@@ -71,6 +92,26 @@ export function OnboardingWizard({ paths }: { paths: CareerPath[] }) {
     } finally {
       setBusy(false);
     }
+  }, []);
+
+  // The build animation runs for about two seconds; spending them fetching the dashboard means
+  // it is already in the cache when the route changes, instead of starting a cold fan-out the
+  // moment the student arrives (spec 6.4).
+  const prefetchDashboard = useCallback(() => {
+    for (const sections of ["core", "roadmap"] as const) {
+      void queryClient.prefetchQuery({
+        queryKey: dashboardKey("for-you", 30, sections),
+        queryFn: () => fetchDashboard("for-you", 30, sections),
+        staleTime: 60_000,
+      });
+    }
+  }, [queryClient]);
+
+  const skipResume = useCallback(() => {
+    setError(null);
+    setResult(emptyDraft());
+    setSkills([]);
+    setStep("review");
   }, []);
 
   const submit = useCallback(async () => {
@@ -116,12 +157,17 @@ export function OnboardingWizard({ paths }: { paths: CareerPath[] }) {
       <Stepper current={step} />
 
       {error && (
-        <p className="border-danger/40 text-danger mt-6 rounded-xl border px-3 py-2 text-sm">
-          {error}
-        </p>
+        <div className="border-danger/40 mt-6 space-y-2 rounded-xl border px-3 py-2">
+          <p className="text-danger text-sm">{error}</p>
+          {step === "resume" && (
+            <Button variant="secondary" size="sm" onClick={skipResume}>
+              Continue without a resume
+            </Button>
+          )}
+        </div>
       )}
 
-      {step === "resume" && <ResumeStep busy={busy} onFile={upload} />}
+      {step === "resume" && <ResumeStep busy={busy} onFile={upload} onSkip={skipResume} />}
 
       {step === "review" && result && (
         <ReviewStep
@@ -158,7 +204,9 @@ export function OnboardingWizard({ paths }: { paths: CareerPath[] }) {
         />
       )}
 
-      {step === "build" && <BuildStep onDone={() => router.push("/dashboard?welcome=1")} />}
+      {step === "build" && (
+        <BuildStep onReady={prefetchDashboard} onDone={() => router.push("/dashboard?welcome=1")} />
+      )}
     </div>
   );
 }
@@ -190,8 +238,35 @@ function Stepper({ current }: { current: Step }) {
   );
 }
 
-function ResumeStep({ busy, onFile }: { busy: boolean; onFile: (file: File) => void }) {
+const READING_STAGES = [
+  "Reading your resume...",
+  "Pulling out your experience...",
+  "Matching your skills to the VT catalog...",
+  "Almost there...",
+];
+
+function ResumeStep({
+  busy,
+  onFile,
+  onSkip,
+}: {
+  busy: boolean;
+  onFile: (file: File) => void;
+  onSkip: () => void;
+}) {
   const [dragging, setDragging] = useState(false);
+  const [stage, setStage] = useState(0);
+
+  // Parsing a resume is a model call and takes several seconds. A spinner that never changes
+  // reads as stuck; naming what is happening reads as progress (spec 5.2).
+  useEffect(() => {
+    if (!busy) return;
+    const timer = setInterval(
+      () => setStage((s) => Math.min(s + 1, READING_STAGES.length - 1)),
+      2_500,
+    );
+    return () => clearInterval(timer);
+  }, [busy]);
   return (
     <section className="mt-8">
       <h1 className="text-xl">Upload your resume</h1>
@@ -228,18 +303,28 @@ function ResumeStep({ busy, onFile }: { busy: boolean; onFile: (file: File) => v
         {busy ? (
           <>
             <Loader2 className="text-accent size-6 animate-spin" aria-hidden="true" />
-            <span className="text-sm">Reading your resume...</span>
+            <span className="text-sm" role="status">
+              {READING_STAGES[stage]}
+            </span>
           </>
         ) : (
           <>
             <Upload className="text-accent size-6" strokeWidth={1.75} aria-hidden="true" />
             <span className="text-sm font-medium">Drop your resume here, or click to choose</span>
             <span className="text-muted-foreground text-xs">
-              No resume handy? You can add skills by hand after this step.
+              No resume handy? Skip this and add your skills by hand.
             </span>
           </>
         )}
       </label>
+
+      {!busy && (
+        <div className="mt-4 flex justify-center">
+          <Button variant="ghost" size="sm" onClick={onSkip}>
+            Skip and add skills by hand
+          </Button>
+        </div>
+      )}
     </section>
   );
 }
@@ -515,9 +600,13 @@ function ChipGroup({
 }
 
 /** Build sequence: ticks through the real work while the profile is computed (spec 5.7). */
-function BuildStep({ onDone }: { onDone: () => void }) {
+function BuildStep({ onDone, onReady }: { onDone: () => void; onReady: () => void }) {
   const [done, setDone] = useState(0);
   const reduceMotion = useReducedMotion();
+
+  useEffect(() => {
+    onReady();
+  }, [onReady]);
 
   useEffect(() => {
     if (done >= BUILD_STEPS.length) {

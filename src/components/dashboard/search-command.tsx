@@ -10,6 +10,8 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { Skeleton } from "@/components/ui/skeleton";
+import { apiFetch } from "@/lib/client/api";
 import { formatEventTime } from "@/lib/format";
 import type { ClubItem, EventItem, OpportunityItem } from "@/lib/types";
 import type { DrawerItem } from "./item-drawer";
@@ -47,14 +49,22 @@ export function SearchCommand({ onOpen }: { onOpen: (item: DrawerItem) => void }
   const trimmed = query.trim();
   useEffect(() => {
     if (!trimmed) return;
+    // One request per pause in typing, and an aborted one the moment the query moves on, so a
+    // slow warehouse cannot deliver stale results over newer ones.
+    const controller = new AbortController();
     const timer = setTimeout(() => {
       setLoading(true);
-      fetch(`/api/search?q=${encodeURIComponent(trimmed)}`)
-        .then((res) => (res.ok ? (res.json() as Promise<SearchResponse>) : null))
+      apiFetch<SearchResponse>(`/api/search?q=${encodeURIComponent(trimmed)}`, {
+        signal: controller.signal,
+      })
         .then(setResults)
+        .catch(() => undefined)
         .finally(() => setLoading(false));
     }, 250);
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
   }, [trimmed]);
 
   // Query cleared: show nothing rather than the last search's results.
@@ -90,6 +100,13 @@ export function SearchCommand({ onOpen }: { onOpen: (item: DrawerItem) => void }
           placeholder="Search events, clubs, opportunities... (e.g. learn valuation)"
         />
         <CommandList>
+          {loading && (
+            <div className="space-y-2 p-2" role="status" aria-label="Searching">
+              {[0, 1, 2].map((i) => (
+                <Skeleton key={i} className="h-8 rounded-lg" />
+              ))}
+            </div>
+          )}
           {!loading && trimmed && <CommandEmpty>No results. Try a broader term.</CommandEmpty>}
           {visible && visible.events.length > 0 && (
             <CommandGroup heading="Events">

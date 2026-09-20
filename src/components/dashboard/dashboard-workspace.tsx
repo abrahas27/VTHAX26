@@ -54,6 +54,14 @@ export function DashboardWorkspace({ initialTab = "for-you" }: { initialTab?: st
     enabled: Boolean(activeSpec),
   });
 
+  // Its own request, for the same reason the For You tab splits it out: build_gap_roadmap is the
+  // slowest UC Function and the rest of the tab should not wait behind it.
+  const roadmap = useQuery({
+    queryKey: dashboardKey(active, 60, "roadmap"),
+    queryFn: () => fetchDashboard(active, 60, "roadmap"),
+    enabled: Boolean(activeSpec),
+  });
+
   /** Warm a goal tab while the pointer is still travelling towards it (spec 5.2). */
   const prefetchTab = useCallback(
     (tabId: string) => {
@@ -153,7 +161,12 @@ export function DashboardWorkspace({ initialTab = "for-you" }: { initialTab?: st
         )}
 
         {activeSpec ? (
-          <SectionRenderer spec={activeSpec} computed={computed} onOpen={setSelected} />
+          <SectionRenderer
+            spec={activeSpec}
+            computed={computed}
+            roadmap={{ data: roadmap.data, isPending: roadmap.isPending }}
+            onOpen={setSelected}
+          />
         ) : (
           <DashboardView tab="for-you" />
         )}

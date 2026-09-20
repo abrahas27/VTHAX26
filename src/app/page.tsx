@@ -67,14 +67,52 @@ export default async function Landing() {
             ) : (
               <SignInButton />
             )}
+            <p className="text-muted-foreground text-xs">
+              Every event, club and recruiter visit comes from Virginia Tech data in Unity Catalog.
+              Nothing on your dashboard is invented.
+            </p>
           </div>
 
-          <div
-            className="card-elevated flex aspect-[16/10] items-center justify-center"
-            aria-hidden="true"
-          >
-            {/* Product preview (screenshot or pivot clip) lands here before the demo. */}
-            <span className="text-muted-foreground text-sm">product preview</span>
+          {/* A sketch of the real thing, in the real tokens: the goal tabs, a readiness ring and
+              two cards. Cheap to render, and far better than the words "product preview" if the
+              live screenshot does not land before the demo. */}
+          <div className="card-elevated flex aspect-[16/10] flex-col gap-3 p-5" aria-hidden="true">
+            <div className="flex gap-2">
+              <span className="bg-primary text-primary-foreground rounded-full px-3 py-1 text-[11px]">
+                For You
+              </span>
+              <span className="bg-accent text-accent-foreground rounded-full px-3 py-1 text-[11px]">
+                Investment Banking
+              </span>
+              <span className="bg-surface-2 text-muted-foreground rounded-full px-3 py-1 text-[11px]">
+                + asked by AI
+              </span>
+            </div>
+            <div className="grid flex-1 grid-cols-[auto_1fr] gap-3">
+              <div className="border-border flex flex-col items-center justify-center gap-2 rounded-xl border px-6">
+                <div className="border-accent flex size-16 items-center justify-center rounded-full border-4">
+                  <span className="text-base">62</span>
+                </div>
+                <span className="text-muted-foreground text-[10px]">Readiness</span>
+              </div>
+              <div className="flex flex-col gap-2">
+                {[
+                  "J.P. Morgan info session",
+                  "DCF modeling workshop",
+                  "SEO Career fall deadline",
+                ].map((label) => (
+                  <div
+                    key={label}
+                    className="border-border flex-1 rounded-xl border px-3 py-2 text-[11px]"
+                  >
+                    {label}
+                    <span className="bg-surface-2 text-muted-foreground ml-2 rounded-full px-1.5 py-0.5 text-[9px]">
+                      closes a gap
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </section>
 

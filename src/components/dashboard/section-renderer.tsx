@@ -4,7 +4,9 @@ import { useQuery } from "@tanstack/react-query";
 import { motion, useReducedMotion } from "motion/react";
 import { ClubCard, EventCard, OpportunityCard, RoadmapPreview } from "./cards";
 import { ReadinessRing } from "./readiness-ring";
+import { CardListSkeleton, Empty } from "./states";
 import { Skeleton } from "@/components/ui/skeleton";
+import { apiFetch } from "@/lib/client/api";
 import { collectIds, type DashboardSpec, type Section } from "@/lib/agent/dashboard-spec";
 import type { ClubItem, DashboardPayload, EventItem, OpportunityItem } from "@/lib/types";
 import type { DrawerItem } from "./item-drawer";
@@ -15,16 +17,12 @@ interface HydratedItems {
   opportunities: Record<string, OpportunityItem>;
 }
 
-async function hydrate(spec: DashboardSpec): Promise<HydratedItems> {
-  const ids = collectIds(spec);
-  const res = await fetch("/api/items/batch", {
+const hydrate = (spec: DashboardSpec): Promise<HydratedItems> =>
+  apiFetch<HydratedItems>("/api/items/batch", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(ids),
+    body: JSON.stringify(collectIds(spec)),
   });
-  if (!res.ok) throw new Error("Could not load the items for this tab.");
-  return (await res.json()) as HydratedItems;
-}
 
 /**
  * Renders a goal tab from its DashboardSpec (spec 10.6). The spec supplies IDs and section order;
@@ -34,11 +32,14 @@ async function hydrate(spec: DashboardSpec): Promise<HydratedItems> {
 export function SectionRenderer({
   spec,
   computed,
+  roadmap,
   onOpen,
 }: {
   spec: DashboardSpec;
-  /** Server-computed readiness, gaps and roadmap for this path. */
+  /** Server-computed readiness and gaps for this path (the "core" dashboard payload). */
   computed?: DashboardPayload;
+  /** The roadmap arrives in its own request, so the slowest UC Function cannot gate this tab. */
+  roadmap?: { data?: DashboardPayload; isPending: boolean };
   onOpen: (item: DrawerItem) => void;
 }) {
   const reduceMotion = useReducedMotion();
@@ -80,6 +81,7 @@ export function SectionRenderer({
             <SectionBody
               section={section}
               computed={computed}
+              roadmap={roadmap}
               items={data}
               loading={isPending}
               onOpen={onOpen}
@@ -94,12 +96,14 @@ export function SectionRenderer({
 function SectionBody({
   section,
   computed,
+  roadmap,
   items,
   loading,
   onOpen,
 }: {
   section: Section;
   computed?: DashboardPayload;
+  roadmap?: { data?: DashboardPayload; isPending: boolean };
   items?: HydratedItems;
   loading: boolean;
   onOpen: (item: DrawerItem) => void;
@@ -143,7 +147,11 @@ function SectionBody({
       return (
         <>
           <h2 className="mb-3 text-base">Gap-to-Goal roadmap</h2>
-          <RoadmapPreview items={(computed?.roadmapPreview ?? []).slice(0, 6)} />
+          {roadmap?.isPending ? (
+            <CardListSkeleton count={3} />
+          ) : (
+            <RoadmapPreview items={(roadmap?.data?.roadmapPreview ?? []).slice(0, 6)} />
+          )}
         </>
       );
 
@@ -261,7 +269,7 @@ function ItemList({
   }
   const rendered = ids.map(render).filter(Boolean);
   if (rendered.length === 0) {
-    return <p className="text-muted-foreground text-sm">Nothing to show here yet.</p>;
+    return <Empty message="Nothing here yet. Ask the chat to widen the search." />;
   }
   return <div className="space-y-2">{rendered}</div>;
 }
