@@ -1,0 +1,67 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+5 0 obj
+<< /Length 1618 >>
+stream
+BT
+/F1 10 Tf
+12 TL
+54 760 Td
+(PRIYA RAMAN) Tj T*
+(Blacksburg, VA | priya.raman@vt.edu | github.com/priyaraman) Tj T*
+() Tj T*
+(EDUCATION) Tj T*
+(Virginia Tech, Blacksburg VA) Tj T*
+(B.S. Computer Science, Minor in Mathematics. Expected graduation May 2029.) Tj T*
+(GPA 3.6/4.0. Relevant coursework: Data Structures and Algorithms, Computer Systems,) Tj T*
+(Discrete Mathematics, Intro to Software Design.) Tj T*
+() Tj T*
+(EXPERIENCE) Tj T*
+(Undergraduate Teaching Assistant, VT Department of Computer Science \(Aug 2026 - Present\)) Tj T*
+(- Lead weekly lab sections of 30 students for Data Structures and Algorithms in Java.) Tj T*
+(- Built an autograder in Python that cut grading time for the course staff by 60 percent.) Tj T*
+() Tj T*
+(Software Engineering Intern, Blacksburg Transit Data Team \(Jun 2026 - Aug 2026\)) Tj T*
+(- Wrote Python ETL jobs that loaded ridership data into a PostgreSQL warehouse.) Tj T*
+(- Created SQL reporting views used by three analysts for weekly route planning.) Tj T*
+(- Used Git and GitHub pull requests for all code review.) Tj T*
+() Tj T*
+(PROJECTS) Tj T*
+(HokieRides \(Python, Flask, SQL\) - Carpool matching app for students; built the matching) Tj T*
+(algorithm and the REST API. Placed top 10 at VTHacks.) Tj T*
+(Maze Solver Visualizer \(Java\) - Interactive visualizer for BFS, DFS and A* search.) Tj T*
+() Tj T*
+(SKILLS) Tj T*
+(Programming: Python, Java, SQL, JavaScript) Tj T*
+(Tools: Git, Linux, VS Code) Tj T*
+(Concepts: Data Structures and Algorithms, Object Oriented Design) Tj T*
+() Tj T*
+(ACTIVITIES) Tj T*
+(ACM at VT, Association for Women in Computing) Tj T*
+ET
+endstream
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000000311 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+1980
+%%EOF

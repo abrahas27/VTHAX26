@@ -7,16 +7,20 @@ Update the **Current phase** and **Fallbacks in use** sections at the end of eve
 
 ## Current phase
 
-**P1 Foundations: code complete (2026-09-19).** Design tokens, landing page (F1), Auth.js + Google with
-`src/proxy.ts` route protection, `sql.ts` / `functions.ts`, `lakebase.ts` + `upsertUser`, and `GET /api/health`.
-Verified locally: warehouse `RUNNING` (280 events, all six UC Functions), protected pages redirect, protected
-APIs return 401.
+**P2 Profile + dashboard: code complete (2026-09-19).** Resume upload and AI parsing (F2), the 8-question
+questionnaire with fit scoring (F3), and the For You dashboard (F4), plus DEMO_MODE with recorded fixtures.
+Model serving is live (`databricks-gpt-oss-120b` + `databricks-gte-large-en`), as is Lakebase.
 
-Lakebase is now live (project `hokiepath-db`, branch `production`, endpoint `primary`; both SQL files applied;
-`/api/health` reports `lakebase: true`). The app is still **not deployed to Vercel** (12.2). `DATABRICKS_LLM_ENDPOINT` is also still empty; it is needed from P2 (11.5).
+Verified live: all three fixture resumes parse in 6-9 s with correct major and class year; 19 paths scored;
+the For You tab fills from Unity Catalog with ranked events; the CP04 tab clears the F6 bar (>= 5 events,
 
-Next: **P2 Profile + dashboard** (F2 resume upload + extraction, F3 questionnaire + `scoring.ts`,
-F4 For You dashboard, `/api/dashboard`, `/api/items/batch`, DEMO_MODE fixtures).
+> = 2 clubs, >= 3 visits, >= 6 roadmap items) with readiness under 30 for a CS student.
+
+Remaining before P3: a human still needs to click through sign-in -> onboarding -> dashboard in a browser
+(OAuth cannot be driven from here), and the app is **not deployed to Vercel** yet (12.2).
+
+Next: **P3 Agent + morphing UI** (`/api/chat`, tools 10.3 with server-injected skills, DashboardSpec 10.6,
+goal tabs, roadmap page, Recruiter Radar).
 
 ## What we're building
 
@@ -85,7 +89,13 @@ Browser (Next.js UI) --HTTPS--> Vercel: pages (RSC) + /api/* Route Handlers + ag
 - UI: shadcn/ui components in `src/components/ui/` (Base UI primitives, `base-nova` style; check the generated
   component's props rather than assuming Radix APIs). Icons: `lucide-react`. Motion: `motion` (Framer Motion).
   Charts: Recharts. Dark-first design tokens (spec 5.1) as CSS variables in `src/app/globals.css` (P1).
-- Deterministic scoring lives in `src/lib/scoring.ts` with unit tests (spec 10.7).
+- Deterministic scoring lives in `src/lib/scoring.ts` with unit tests (spec 10.7). Anything a model could
+  get wrong by arithmetic (class year, readiness, ranking) is computed in TypeScript, not prompted for.
+- Any goal string that came from a model goes through `resolvePath()` (`src/lib/catalog.ts`) before it
+  reaches a UC Function: the functions filter on the exact path name, so a near-miss silently returns 0 rows.
+- Scripts in `scripts/` run under `node --experimental-strip-types` via `scripts/register.mjs`, which
+  resolves `@/` and stubs `server-only`. Those modules must avoid TypeScript features that need codegen
+  (no parameter properties, enums, or namespaces).
 - Tests: Vitest in `tests/unit/` (node env; `server-only` is stubbed). Live Databricks tests are opt-in via
   `RUN_LIVE=1`. Playwright smoke in `tests/e2e/` (P5).
 - Prettier (100 cols, tailwind plugin) + ESLint (next core-web-vitals + TS + prettier). `_`-prefixed vars may be unused.
@@ -101,7 +111,9 @@ Browser (Next.js UI) --HTTPS--> Vercel: pages (RSC) + /api/* Route Handlers + ag
 | `pnpm typecheck`                    | `next typegen` (route types like `LayoutProps`) then `tsc --noEmit` |
 | `pnpm test` / `pnpm test:watch`     | Vitest                                                              |
 | `pnpm format` / `pnpm format:check` | Prettier                                                            |
-| `pnpm demo:record`                  | (P2) record DEMO_MODE fixtures from live responses                  |
+| `pnpm demo:record`                  | record DEMO_MODE fixtures from live responses                       |
+| `pnpm fixtures:resumes`             | regenerate the three sample resume PDFs                             |
+| `RUN_LIVE=1 pnpm test`              | also run the live Databricks integration tests                      |
 
 Health check: `curl localhost:3000/api/health` (add `?warm=1` to start a cold warehouse before a demo).
 
@@ -179,5 +191,8 @@ Never cut: sign-in, resume parsing, dashboard, chat, pivot tab, roadmap.
 
 ## Fallbacks in use
 
-None yet. Model serving is not configured; it is guarded by `requireEnv` rather than the global env schema,
-so unrelated routes keep working until P2 lands.
+- **Reasoning-model content blocks.** `databricks-gpt-oss-120b` returns `message.content` as typed blocks
+  (`reasoning` + `text`) instead of a string, which the AI SDK cannot parse. `src/lib/databricks/llm.ts`
+  normalizes every response in a `fetch` middleware and drops reasoning. `databricks-llama-4-maverick` needs
+  none of this and is the drop-in alternative if gpt-oss misbehaves.
+- Vector Search, Genie, and the ingestion job are not set up yet (P4); each is guarded by `requireEnv`.

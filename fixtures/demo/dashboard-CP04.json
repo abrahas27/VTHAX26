@@ -1,0 +1,899 @@
+{
+  "tab": "CP04",
+  "goal": {
+    "pathId": "CP04",
+    "pathName": "Investment Banking",
+    "medianSalary": 110000
+  },
+  "readiness": {
+    "pathId": "CP04",
+    "pathName": "Investment Banking",
+    "score": 0,
+    "topGaps": ["Financial Modeling", "DCF Valuation", "LBO Modeling"]
+  },
+  "gaps": [
+    {
+      "skillName": "Financial Modeling",
+      "importance": 1,
+      "hasSkill": false
+    },
+    {
+      "skillName": "DCF Valuation",
+      "importance": 0.92,
+      "hasSkill": false
+    },
+    {
+      "skillName": "LBO Modeling",
+      "importance": 0.84,
+      "hasSkill": false
+    },
+    {
+      "skillName": "M&A Concepts",
+      "importance": 0.76,
+      "hasSkill": false
+    },
+    {
+      "skillName": "Accounting Fundamentals",
+      "importance": 0.68,
+      "hasSkill": false
+    },
+    {
+      "skillName": "Excel Modeling",
+      "importance": 0.6,
+      "hasSkill": false
+    },
+    {
+      "skillName": "Networking",
+      "importance": 0.52,
+      "hasSkill": false
+    },
+    {
+      "skillName": "Behavioral Interviewing",
+      "importance": 0.44,
+      "hasSkill": false
+    }
+  ],
+  "events": [
+    {
+      "id": "EV0037",
+      "title": "J.P. Morgan Workshop: Investment Banking",
+      "type": "technical_workshop",
+      "start": "2026-09-21T17:00:00.000Z",
+      "location": "Owens Banquet Hall",
+      "host": "J.P. Morgan",
+      "companyName": "J.P. Morgan",
+      "pathNames": ["Investment Banking"],
+      "skills": ["DCF Valuation", "Financial Modeling", "LBO Modeling", "M&A Concepts"],
+      "isVirtual": false,
+      "score": 0.821,
+      "why": ["Builds Financial Modeling", "Builds DCF Valuation"]
+    },
+    {
+      "id": "EV0036",
+      "title": "J.P. Morgan Info Session: Software Engineering & Investment Banking",
+      "type": "info_session",
+      "start": "2026-10-05T18:00:00.000Z",
+      "location": "Graduate Life Center",
+      "host": "J.P. Morgan",
+      "companyName": "J.P. Morgan",
+      "pathNames": ["Software Engineering", "Investment Banking"],
+      "skills": [
+        "DCF Valuation",
+        "Data Structures & Algorithms",
+        "Financial Modeling",
+        "Git",
+        "Java",
+        "LBO Modeling",
+        "M&A Concepts",
+        "Python"
+      ],
+      "isVirtual": false,
+      "score": 0.79,
+      "why": ["Builds Financial Modeling", "Builds DCF Valuation"]
+    },
+    {
+      "id": "EV0038",
+      "title": "Morgan Stanley Networking Night: Investment Banking",
+      "type": "networking",
+      "start": "2026-10-05T18:30:00.000Z",
+      "location": "McBryde Hall",
+      "host": "Morgan Stanley",
+      "companyName": "Morgan Stanley",
+      "pathNames": ["Investment Banking"],
+      "skills": ["DCF Valuation", "Financial Modeling", "LBO Modeling", "M&A Concepts"],
+      "isVirtual": false,
+      "score": 0.79,
+      "why": ["Builds Financial Modeling", "Builds DCF Valuation"]
+    },
+    {
+      "id": "EV0041",
+      "title": "Bank of America Info Session: Investment Banking & Software Engineering",
+      "type": "info_session",
+      "start": "2026-10-09T18:00:00.000Z",
+      "location": "Pamplin Hall",
+      "host": "Bank of America",
+      "companyName": "Bank of America",
+      "pathNames": ["Investment Banking", "Software Engineering"],
+      "skills": [
+        "DCF Valuation",
+        "Data Structures & Algorithms",
+        "Financial Modeling",
+        "Git",
+        "Java",
+        "LBO Modeling",
+        "M&A Concepts",
+        "Python"
+      ],
+      "isVirtual": false,
+      "score": 0.781,
+      "why": ["Builds Financial Modeling", "Builds DCF Valuation"]
+    },
+    {
+      "id": "EV0044",
+      "title": "Wells Fargo Info Session: Investment Banking",
+      "type": "info_session",
+      "start": "2026-10-22T18:00:00.000Z",
+      "location": "McBryde Hall",
+      "host": "Wells Fargo",
+      "companyName": "Wells Fargo",
+      "pathNames": ["Investment Banking"],
+      "skills": ["DCF Valuation", "Financial Modeling", "LBO Modeling", "M&A Concepts"],
+      "isVirtual": false,
+      "score": 0.752,
+      "why": ["Builds Financial Modeling", "Builds DCF Valuation"]
+    },
+    {
+      "id": "EV0035",
+      "title": "Goldman Sachs Resume Reviews: Software Engineering & Investment Banking",
+      "type": "resume_review",
+      "start": "2026-11-02T13:00:00.000Z",
+      "location": "Holden Hall",
+      "host": "Goldman Sachs",
+      "companyName": "Goldman Sachs",
+      "pathNames": ["Software Engineering", "Investment Banking"],
+      "skills": [
+        "DCF Valuation",
+        "Data Structures & Algorithms",
+        "Financial Modeling",
+        "Git",
+        "Java",
+        "LBO Modeling",
+        "M&A Concepts",
+        "Python"
+      ],
+      "isVirtual": false,
+      "score": 0.728,
+      "why": ["Builds Financial Modeling", "Builds DCF Valuation"]
+    },
+    {
+      "id": "EV0108",
+      "title": "COINS: Technical Interview Drill: Financial Modeling",
+      "type": "workshop",
+      "start": "2026-10-01T19:30:00.000Z",
+      "location": "Holden Hall",
+      "host": "COINS",
+      "pathNames": ["Investment Banking", "Sales & Trading / Markets"],
+      "skills": ["DCF Valuation", "Financial Modeling"],
+      "isVirtual": false,
+      "score": 0.624,
+      "why": ["Builds Financial Modeling", "Builds DCF Valuation"]
+    },
+    {
+      "id": "EV0115",
+      "title": "Investment Banking Club: Stock Pitch Night",
+      "type": "club_meeting",
+      "start": "2026-10-21T19:00:00.000Z",
+      "location": "Squires Student Center",
+      "host": "Investment Banking Club",
+      "pathNames": ["Investment Banking"],
+      "skills": ["DCF Valuation", "Financial Modeling"],
+      "isVirtual": false,
+      "score": 0.579,
+      "why": ["Builds Financial Modeling", "Builds DCF Valuation"]
+    },
+    {
+      "id": "EV0113",
+      "title": "Investment Banking Club: Technical Interview Drill: Financial Modeling",
+      "type": "workshop",
+      "start": "2026-10-23T19:00:00.000Z",
+      "location": "Virtual (Zoom)",
+      "host": "Investment Banking Club",
+      "pathNames": ["Investment Banking"],
+      "skills": ["Financial Modeling", "LBO Modeling"],
+      "isVirtual": true,
+      "score": 0.569,
+      "why": ["Builds Financial Modeling", "Builds LBO Modeling"]
+    },
+    {
+      "id": "EV0132",
+      "title": "Alpha Kappa Psi: Professional Development Night: DCF Valuation",
+      "type": "club_meeting",
+      "start": "2026-09-24T19:30:00.000Z",
+      "location": "McBryde Hall",
+      "host": "Alpha Kappa Psi",
+      "pathNames": ["Management Consulting", "Investment Banking", "Marketing & Brand Management"],
+      "skills": ["Business Strategy", "DCF Valuation"],
+      "isVirtual": false,
+      "score": 0.561,
+      "why": ["Builds DCF Valuation"]
+    },
+    {
+      "id": "EV0112",
+      "title": "SEED: Alumni Panel: Breaking into Investment Banking",
+      "type": "speaker",
+      "start": "2026-09-25T19:30:00.000Z",
+      "location": "Owens Banquet Hall",
+      "host": "SEED (Student-managed Endowment for Educational Development)",
+      "pathNames": ["Investment Banking", "Sales & Trading / Markets", "Quantitative Finance"],
+      "skills": ["LBO Modeling"],
+      "isVirtual": false,
+      "score": 0.553,
+      "why": ["Builds LBO Modeling"]
+    },
+    {
+      "id": "EV0002",
+      "title": "Fall Career and Internship Fair (Day 2: Business & All Majors)",
+      "type": "career_fair",
+      "start": "2026-09-30T11:00:00.000Z",
+      "location": "Cassell Coliseum",
+      "host": "Career and Professional Development",
+      "pathNames": [
+        "Investment Banking",
+        "Sales & Trading / Markets",
+        "Management Consulting",
+        "Technology Consulting",
+        "Audit & Assurance",
+        "Supply Chain & Operations",
+        "Marketing & Brand Management",
+        "Public Policy & Government"
+      ],
+      "skills": ["Networking", "Behavioral Interviewing", "Public Speaking"],
+      "isVirtual": false,
+      "score": 0.552,
+      "why": ["Builds Networking", "Builds Behavioral Interviewing"]
+    },
+    {
+      "id": "EV0131",
+      "title": "Alpha Kappa Psi: Alumni Mixer",
+      "type": "club_meeting",
+      "start": "2026-10-02T19:30:00.000Z",
+      "location": "McBryde Hall",
+      "host": "Alpha Kappa Psi",
+      "pathNames": ["Management Consulting", "Investment Banking", "Marketing & Brand Management"],
+      "skills": ["Case Interviewing", "Financial Modeling"],
+      "isVirtual": false,
+      "score": 0.55,
+      "why": ["Builds Financial Modeling"]
+    },
+    {
+      "id": "EV0269",
+      "title": "Networking for Introverts",
+      "type": "workshop",
+      "start": "2026-09-24T16:00:00.000Z",
+      "location": "Newman Library",
+      "host": "Career and Professional Development",
+      "pathNames": ["Investment Banking", "Sales & Trading / Markets"],
+      "skills": ["Networking"],
+      "isVirtual": false,
+      "score": 0.53,
+      "why": ["Builds Networking"]
+    },
+    {
+      "id": "EV0271",
+      "title": "Networking for Introverts",
+      "type": "workshop",
+      "start": "2026-10-05T16:00:00.000Z",
+      "location": "Newman Library",
+      "host": "Career and Professional Development",
+      "pathNames": ["Investment Banking", "Sales & Trading / Markets"],
+      "skills": ["Networking"],
+      "isVirtual": false,
+      "score": 0.506,
+      "why": ["Builds Networking"]
+    },
+    {
+      "id": "EV0279",
+      "title": "Python for Finance",
+      "type": "workshop",
+      "start": "2026-10-23T17:30:00.000Z",
+      "location": "Squires Student Center",
+      "host": "Career and Professional Development",
+      "pathNames": [
+        "Software Engineering",
+        "Data Science & Analytics",
+        "AI / Machine Learning Engineering",
+        "Investment Banking",
+        "Sales & Trading / Markets",
+        "Quantitative Finance",
+        "Cybersecurity",
+        "Biomedical Research & Engineering"
+      ],
+      "skills": ["Python", "Financial Modeling"],
+      "isVirtual": false,
+      "score": 0.503,
+      "why": ["Builds Financial Modeling"]
+    },
+    {
+      "id": "EV0106",
+      "title": "COINS: Stock Pitch Night",
+      "type": "club_meeting",
+      "start": "2026-10-23T19:30:00.000Z",
+      "location": "Squires Student Center",
+      "host": "COINS",
+      "pathNames": ["Investment Banking", "Sales & Trading / Markets"],
+      "skills": ["Financial Modeling", "Statistics"],
+      "isVirtual": false,
+      "score": 0.503,
+      "why": ["Builds Financial Modeling"]
+    },
+    {
+      "id": "EV0110",
+      "title": "SEED: Alumni Panel: Breaking into Sales & Trading / Markets",
+      "type": "speaker",
+      "start": "2026-10-26T19:30:00.000Z",
+      "location": "Virtual (Zoom)",
+      "host": "SEED (Student-managed Endowment for Educational Development)",
+      "pathNames": ["Investment Banking", "Sales & Trading / Markets", "Quantitative Finance"],
+      "skills": ["DCF Valuation", "Python"],
+      "isVirtual": true,
+      "score": 0.49,
+      "why": ["Builds DCF Valuation"]
+    },
+    {
+      "id": "EV0107",
+      "title": "COINS: Technical Interview Drill: Financial Statement Analysis",
+      "type": "workshop",
+      "start": "2026-10-02T19:30:00.000Z",
+      "location": "Pamplin Hall",
+      "host": "COINS",
+      "pathNames": ["Investment Banking", "Sales & Trading / Markets"],
+      "skills": ["Financial Statement Analysis", "Statistics"],
+      "isVirtual": false,
+      "score": 0.472,
+      "why": ["Matches your goal"]
+    },
+    {
+      "id": "EV0264",
+      "title": "Behavioral Interview Workshop",
+      "type": "workshop",
+      "start": "2026-10-21T17:30:00.000Z",
+      "location": "Newman Library",
+      "host": "Career and Professional Development",
+      "pathNames": ["Software Engineering", "Investment Banking"],
+      "skills": ["Behavioral Interviewing"],
+      "isVirtual": false,
+      "score": 0.464,
+      "why": ["Builds Behavioral Interviewing"]
+    },
+    {
+      "id": "EV0262",
+      "title": "LinkedIn Photo & Profile Day",
+      "type": "workshop",
+      "start": "2026-10-27T17:30:00.000Z",
+      "location": "Virtual (Zoom)",
+      "host": "Career and Professional Development",
+      "pathNames": ["Investment Banking", "Sales & Trading / Markets"],
+      "skills": ["Networking"],
+      "isVirtual": true,
+      "score": 0.457,
+      "why": ["Builds Networking"]
+    },
+    {
+      "id": "EV0130",
+      "title": "Alpha Kappa Psi: Professional Development Night: Business Strategy",
+      "type": "club_meeting",
+      "start": "2026-10-30T19:30:00.000Z",
+      "location": "Kelly Hall",
+      "host": "Alpha Kappa Psi",
+      "pathNames": ["Management Consulting", "Investment Banking", "Marketing & Brand Management"],
+      "skills": ["Business Strategy", "Market Research"],
+      "isVirtual": false,
+      "score": 0.409,
+      "why": ["Matches your goal"]
+    }
+  ],
+  "visits": [
+    {
+      "id": "EV0037",
+      "companyName": "J.P. Morgan",
+      "industry": "Investment Banking",
+      "visitDate": "2026-09-21",
+      "visitType": "technical_workshop",
+      "rolesRecruiting": ["Investment Banking"],
+      "alumniAttending": true,
+      "onCampusInterviews": true,
+      "matchesGoal": true
+    },
+    {
+      "id": "EV0002",
+      "companyName": "Morgan Stanley",
+      "industry": "Investment Banking",
+      "visitDate": "2026-09-30",
+      "visitType": "career_fair_booth",
+      "rolesRecruiting": ["Investment Banking", "Sales & Trading / Markets"],
+      "alumniAttending": true,
+      "onCampusInterviews": true,
+      "matchesGoal": true
+    },
+    {
+      "id": "EV0002",
+      "companyName": "Wells Fargo",
+      "industry": "Banking",
+      "visitDate": "2026-09-30",
+      "visitType": "career_fair_booth",
+      "rolesRecruiting": ["Investment Banking"],
+      "alumniAttending": true,
+      "onCampusInterviews": false,
+      "matchesGoal": true
+    },
+    {
+      "id": "EV0002",
+      "companyName": "Truist",
+      "industry": "Banking",
+      "visitDate": "2026-09-30",
+      "visitType": "career_fair_booth",
+      "rolesRecruiting": ["Investment Banking", "Audit & Assurance"],
+      "alumniAttending": true,
+      "onCampusInterviews": true,
+      "matchesGoal": true
+    },
+    {
+      "id": "EV0002",
+      "companyName": "Bank of America",
+      "industry": "Banking",
+      "visitDate": "2026-09-30",
+      "visitType": "career_fair_booth",
+      "rolesRecruiting": ["Investment Banking", "Sales & Trading / Markets"],
+      "alumniAttending": true,
+      "onCampusInterviews": true,
+      "matchesGoal": true
+    },
+    {
+      "id": "EV0002",
+      "companyName": "Goldman Sachs",
+      "industry": "Investment Banking",
+      "visitDate": "2026-09-30",
+      "visitType": "career_fair_booth",
+      "rolesRecruiting": ["Investment Banking", "Sales & Trading / Markets"],
+      "alumniAttending": true,
+      "onCampusInterviews": true,
+      "matchesGoal": true
+    },
+    {
+      "id": "EV0036",
+      "companyName": "J.P. Morgan",
+      "industry": "Investment Banking",
+      "visitDate": "2026-10-05",
+      "visitType": "info_session",
+      "rolesRecruiting": ["Software Engineering", "Investment Banking"],
+      "alumniAttending": true,
+      "onCampusInterviews": false,
+      "matchesGoal": true
+    },
+    {
+      "id": "EV0038",
+      "companyName": "Morgan Stanley",
+      "industry": "Investment Banking",
+      "visitDate": "2026-10-05",
+      "visitType": "networking",
+      "rolesRecruiting": ["Investment Banking"],
+      "alumniAttending": false,
+      "onCampusInterviews": false,
+      "matchesGoal": true
+    },
+    {
+      "id": "EV0041",
+      "companyName": "Bank of America",
+      "industry": "Banking",
+      "visitDate": "2026-10-09",
+      "visitType": "info_session",
+      "rolesRecruiting": ["Investment Banking", "Software Engineering"],
+      "alumniAttending": true,
+      "onCampusInterviews": false,
+      "matchesGoal": true
+    },
+    {
+      "id": "EV0044",
+      "companyName": "Wells Fargo",
+      "industry": "Banking",
+      "visitDate": "2026-10-22",
+      "visitType": "info_session",
+      "rolesRecruiting": ["Investment Banking"],
+      "alumniAttending": false,
+      "onCampusInterviews": false,
+      "matchesGoal": true
+    },
+    {
+      "id": "EV0035",
+      "companyName": "Goldman Sachs",
+      "industry": "Investment Banking",
+      "visitDate": "2026-11-02",
+      "visitType": "resume_review",
+      "rolesRecruiting": ["Software Engineering", "Investment Banking"],
+      "alumniAttending": true,
+      "onCampusInterviews": true,
+      "matchesGoal": true
+    }
+  ],
+  "clubs": [
+    {
+      "id": "CL003",
+      "name": "Investment Banking Club",
+      "category": "Finance",
+      "meetingDay": "Thursday",
+      "meetingTime": "19:00",
+      "skills": ["DCF Valuation", "Financial Modeling", "LBO Modeling"],
+      "description": "Technical interview prep, modeling workshops, and banker networking.",
+      "url": "https://gobblerconnect.vt.edu/",
+      "applicationRequired": false
+    },
+    {
+      "id": "CL002",
+      "name": "SEED (Student-managed Endowment for Educational Development)",
+      "category": "Finance",
+      "meetingDay": "Thursday",
+      "meetingTime": "19:30",
+      "skills": [
+        "C/C++",
+        "DCF Valuation",
+        "Excel Modeling",
+        "Financial Modeling",
+        "Financial Statement Analysis",
+        "LBO Modeling",
+        "Python",
+        "Statistics"
+      ],
+      "description": "Student-managed portion of the university endowment.",
+      "url": "https://gobblerconnect.vt.edu/",
+      "applicationRequired": false
+    },
+    {
+      "id": "CL006",
+      "name": "Alpha Kappa Psi",
+      "category": "Business",
+      "meetingDay": "Tuesday",
+      "meetingTime": "19:30",
+      "skills": [
+        "Business Strategy",
+        "Case Interviewing",
+        "DCF Valuation",
+        "Data Visualization",
+        "Digital Marketing",
+        "Financial Modeling",
+        "LBO Modeling",
+        "Market Research",
+        "Market Sizing"
+      ],
+      "description": "Co-ed professional business fraternity.",
+      "url": "https://gobblerconnect.vt.edu/",
+      "applicationRequired": false
+    },
+    {
+      "id": "CL001",
+      "name": "COINS",
+      "category": "Finance",
+      "meetingDay": "Tuesday",
+      "meetingTime": "19:30",
+      "skills": [
+        "DCF Valuation",
+        "Excel Modeling",
+        "Financial Modeling",
+        "Financial Statement Analysis",
+        "LBO Modeling",
+        "Statistics"
+      ],
+      "description": "Student investment group focused on equity research and markets.",
+      "url": "https://gobblerconnect.vt.edu/",
+      "applicationRequired": true
+    }
+  ],
+  "opportunities": [
+    {
+      "id": "OP0059",
+      "title": "IB Analyst (Full-time)",
+      "type": "full_time",
+      "companyName": "Bank of America",
+      "pathName": "Investment Banking",
+      "requiredSkills": ["Financial Modeling", "DCF Valuation", "LBO Modeling", "M&A Concepts"],
+      "classYears": ["Senior"],
+      "location": "Charlotte, NC",
+      "deadline": "2026-10-05"
+    },
+    {
+      "id": "OP0058",
+      "title": "Investment Banking Summer Analyst",
+      "type": "internship",
+      "companyName": "Bank of America",
+      "pathName": "Investment Banking",
+      "requiredSkills": ["Financial Modeling", "DCF Valuation", "LBO Modeling", "M&A Concepts"],
+      "classYears": ["Sophomore", "Junior"],
+      "location": "Charlotte, NC",
+      "deadline": "2026-10-13"
+    },
+    {
+      "id": "OP0054",
+      "title": "Investment Banking Summer Analyst",
+      "type": "internship",
+      "companyName": "Morgan Stanley",
+      "pathName": "Investment Banking",
+      "requiredSkills": ["Financial Modeling", "DCF Valuation", "LBO Modeling", "M&A Concepts"],
+      "classYears": ["Freshman", "Sophomore"],
+      "location": "Richmond, VA",
+      "deadline": "2026-11-02"
+    },
+    {
+      "id": "OP0044",
+      "title": "Investment Banking Summer Analyst",
+      "type": "internship",
+      "companyName": "Goldman Sachs",
+      "pathName": "Investment Banking",
+      "requiredSkills": ["Financial Modeling", "DCF Valuation", "LBO Modeling", "M&A Concepts"],
+      "classYears": ["Sophomore", "Junior"],
+      "location": "Richmond, VA",
+      "deadline": "2026-11-12"
+    },
+    {
+      "id": "OP0050",
+      "title": "Investment Banking Summer Analyst",
+      "type": "internship",
+      "companyName": "J.P. Morgan",
+      "pathName": "Investment Banking",
+      "requiredSkills": ["Financial Modeling", "DCF Valuation", "LBO Modeling", "M&A Concepts"],
+      "classYears": ["Junior"],
+      "location": "New York, NY",
+      "deadline": "2026-11-13"
+    },
+    {
+      "id": "OP0063",
+      "title": "Sophomore IB Insight Program",
+      "type": "full_time",
+      "companyName": "Wells Fargo",
+      "pathName": "Investment Banking",
+      "requiredSkills": ["Financial Modeling", "DCF Valuation", "LBO Modeling", "M&A Concepts"],
+      "classYears": ["Senior"],
+      "location": "San Francisco, CA",
+      "deadline": "2026-12-04"
+    },
+    {
+      "id": "OP0067",
+      "title": "Sophomore IB Insight Program",
+      "type": "full_time",
+      "companyName": "Truist",
+      "pathName": "Investment Banking",
+      "requiredSkills": ["Financial Modeling", "DCF Valuation", "LBO Modeling", "M&A Concepts"],
+      "classYears": ["Senior"],
+      "location": "McLean, VA",
+      "deadline": "2026-12-15"
+    }
+  ],
+  "roadmapPreview": [
+    {
+      "itemType": "event",
+      "itemId": "EV0042",
+      "name": "Bank of America Networking Night: Sales & Trading / Markets & Investment Banking",
+      "whenText": "Fri Nov 6, 6:30 PM",
+      "closesGaps": [
+        "DCF Valuation",
+        "Excel Modeling",
+        "Financial Modeling",
+        "LBO Modeling",
+        "M&A Concepts"
+      ]
+    },
+    {
+      "itemType": "event",
+      "itemId": "EV0039",
+      "name": "Morgan Stanley Coffee Chats: Investment Banking & Sales & Trading / Markets",
+      "whenText": "Mon Nov 23, 12:00 PM",
+      "closesGaps": [
+        "DCF Valuation",
+        "Excel Modeling",
+        "Financial Modeling",
+        "LBO Modeling",
+        "M&A Concepts"
+      ]
+    },
+    {
+      "itemType": "event",
+      "itemId": "EV0043",
+      "name": "Bank of America Networking Night: Sales & Trading / Markets & Investment Banking",
+      "whenText": "Fri Dec 11, 6:30 PM",
+      "closesGaps": [
+        "DCF Valuation",
+        "Excel Modeling",
+        "Financial Modeling",
+        "LBO Modeling",
+        "M&A Concepts"
+      ]
+    },
+    {
+      "itemType": "event",
+      "itemId": "EV0037",
+      "name": "J.P. Morgan Workshop: Investment Banking",
+      "whenText": "Mon Sep 21, 5:00 PM",
+      "closesGaps": ["DCF Valuation", "Financial Modeling", "LBO Modeling", "M&A Concepts"]
+    },
+    {
+      "itemType": "event",
+      "itemId": "EV0036",
+      "name": "J.P. Morgan Info Session: Software Engineering & Investment Banking",
+      "whenText": "Mon Oct 5, 6:00 PM",
+      "closesGaps": ["DCF Valuation", "Financial Modeling", "LBO Modeling", "M&A Concepts"]
+    },
+    {
+      "itemType": "event",
+      "itemId": "EV0038",
+      "name": "Morgan Stanley Networking Night: Investment Banking",
+      "whenText": "Mon Oct 5, 6:30 PM",
+      "closesGaps": ["DCF Valuation", "Financial Modeling", "LBO Modeling", "M&A Concepts"]
+    },
+    {
+      "itemType": "event",
+      "itemId": "EV0041",
+      "name": "Bank of America Info Session: Investment Banking & Software Engineering",
+      "whenText": "Fri Oct 9, 6:00 PM",
+      "closesGaps": ["DCF Valuation", "Financial Modeling", "LBO Modeling", "M&A Concepts"]
+    },
+    {
+      "itemType": "event",
+      "itemId": "EV0044",
+      "name": "Wells Fargo Info Session: Investment Banking",
+      "whenText": "Thu Oct 22, 6:00 PM",
+      "closesGaps": ["DCF Valuation", "Financial Modeling", "LBO Modeling", "M&A Concepts"]
+    },
+    {
+      "itemType": "event",
+      "itemId": "EV0035",
+      "name": "Goldman Sachs Resume Reviews: Software Engineering & Investment Banking",
+      "whenText": "Mon Nov 2, 1:00 PM",
+      "closesGaps": ["DCF Valuation", "Financial Modeling", "LBO Modeling", "M&A Concepts"]
+    },
+    {
+      "itemType": "club",
+      "itemId": "CL002",
+      "name": "SEED (Student-managed Endowment for Educational Development)",
+      "whenText": "Weekly, Thursday 19:30",
+      "closesGaps": ["DCF Valuation", "Excel Modeling", "Financial Modeling", "LBO Modeling"]
+    },
+    {
+      "itemType": "club",
+      "itemId": "CL001",
+      "name": "COINS",
+      "whenText": "Weekly, Tuesday 19:30",
+      "closesGaps": ["DCF Valuation", "Excel Modeling", "Financial Modeling", "LBO Modeling"]
+    },
+    {
+      "itemType": "club",
+      "itemId": "CL003",
+      "name": "Investment Banking Club",
+      "whenText": "Weekly, Thursday 19:00",
+      "closesGaps": ["DCF Valuation", "Financial Modeling", "LBO Modeling"]
+    },
+    {
+      "itemType": "course",
+      "itemId": "FIN 4114",
+      "name": "FIN 4114: Financial Modeling",
+      "whenText": "Offered Fall",
+      "closesGaps": ["Financial Modeling", "Excel Modeling", "LBO Modeling"]
+    },
+    {
+      "itemType": "club",
+      "itemId": "CL006",
+      "name": "Alpha Kappa Psi",
+      "whenText": "Weekly, Tuesday 19:30",
+      "closesGaps": ["DCF Valuation", "Financial Modeling", "LBO Modeling"]
+    },
+    {
+      "itemType": "event",
+      "itemId": "EV0019",
+      "name": "PwC Coffee Chats: Audit & Assurance",
+      "whenText": "Mon Sep 28, 12:00 PM",
+      "closesGaps": ["Accounting Fundamentals", "Excel Modeling"]
+    },
+    {
+      "itemType": "event",
+      "itemId": "EV0001",
+      "name": "Fall Career and Internship Fair (Day 1: Engineering & Tech)",
+      "whenText": "Tue Sep 29, 11:00 AM",
+      "closesGaps": ["Networking", "Behavioral Interviewing"]
+    },
+    {
+      "itemType": "event",
+      "itemId": "EV0002",
+      "name": "Fall Career and Internship Fair (Day 2: Business & All Majors)",
+      "whenText": "Wed Sep 30, 11:00 AM",
+      "closesGaps": ["Networking", "Behavioral Interviewing"]
+    },
+    {
+      "itemType": "event",
+      "itemId": "EV0108",
+      "name": "COINS: Technical Interview Drill: Financial Modeling",
+      "whenText": "Thu Oct 1, 7:30 PM",
+      "closesGaps": ["DCF Valuation", "Financial Modeling"]
+    },
+    {
+      "itemType": "event",
+      "itemId": "EV0115",
+      "name": "Investment Banking Club: Stock Pitch Night",
+      "whenText": "Wed Oct 21, 7:00 PM",
+      "closesGaps": ["DCF Valuation", "Financial Modeling"]
+    },
+    {
+      "itemType": "event",
+      "itemId": "EV0113",
+      "name": "Investment Banking Club: Technical Interview Drill: Financial Modeling",
+      "whenText": "Fri Oct 23, 7:00 PM",
+      "closesGaps": ["Financial Modeling", "LBO Modeling"]
+    },
+    {
+      "itemType": "event",
+      "itemId": "EV0020",
+      "name": "PwC Coffee Chats: Audit & Assurance",
+      "whenText": "Mon Nov 2, 12:00 PM",
+      "closesGaps": ["Accounting Fundamentals", "Excel Modeling"]
+    },
+    {
+      "itemType": "event",
+      "itemId": "EV0102",
+      "name": "U.S. Government Accountability Office Networking Night: Audit & Assurance",
+      "whenText": "Mon Nov 2, 6:30 PM",
+      "closesGaps": ["Accounting Fundamentals", "Excel Modeling"]
+    },
+    {
+      "itemType": "event",
+      "itemId": "EV0011",
+      "name": "Deloitte Workshop: Audit & Assurance",
+      "whenText": "Wed Nov 4, 5:00 PM",
+      "closesGaps": ["Accounting Fundamentals", "Excel Modeling"]
+    },
+    {
+      "itemType": "event",
+      "itemId": "EV0048",
+      "name": "Truist Coffee Chats: Audit & Assurance",
+      "whenText": "Wed Nov 11, 12:00 PM",
+      "closesGaps": ["Accounting Fundamentals", "Excel Modeling"]
+    },
+    {
+      "itemType": "event",
+      "itemId": "EV0105",
+      "name": "COINS: Technical Interview Drill: DCF Valuation",
+      "whenText": "Wed Nov 11, 7:30 PM",
+      "closesGaps": ["DCF Valuation", "LBO Modeling"]
+    },
+    {
+      "itemType": "event",
+      "itemId": "EV0023",
+      "name": "KPMG Workshop: Audit & Assurance",
+      "whenText": "Thu Nov 12, 5:00 PM",
+      "closesGaps": ["Accounting Fundamentals", "Excel Modeling"]
+    },
+    {
+      "itemType": "event",
+      "itemId": "EV0018",
+      "name": "EY Resume Reviews: Audit & Assurance & Technology Consulting",
+      "whenText": "Mon Nov 16, 1:00 PM",
+      "closesGaps": ["Accounting Fundamentals", "Excel Modeling"]
+    },
+    {
+      "itemType": "event",
+      "itemId": "EV0092",
+      "name": "Altria Resume Reviews: Audit & Assurance & Supply Chain & Operations",
+      "whenText": "Wed Nov 18, 1:00 PM",
+      "closesGaps": ["Accounting Fundamentals", "Excel Modeling"]
+    },
+    {
+      "itemType": "event",
+      "itemId": "EV0104",
+      "name": "U.S. Government Accountability Office Coffee Chats: Audit & Assurance",
+      "whenText": "Thu Nov 19, 12:00 PM",
+      "closesGaps": ["Accounting Fundamentals", "Excel Modeling"]
+    },
+    {
+      "itemType": "event",
+      "itemId": "EV0123",
+      "name": "Beta Alpha Psi: Accounting Fundamentals Study Session",
+      "whenText": "Thu Nov 19, 7:00 PM",
+      "closesGaps": ["Accounting Fundamentals", "Excel Modeling"]
+    }
+  ]
+}

@@ -1,16 +1,23 @@
-// Placeholder: the real wizard (F2 resume upload, F3 questionnaire) is built in P2.
+// F2 + F3: resume upload, review, questionnaire, build sequence.
+import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
+import { careerPaths } from "@/lib/catalog";
+import { OnboardingWizard } from "@/components/onboarding/wizard";
+import type { CareerPath } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 export default async function Onboarding() {
   const session = await auth();
-  return (
-    <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center gap-3 p-8">
-      <h1 className="text-xl">Welcome{session?.user?.name ? `, ${session.user.name}` : ""}</h1>
-      <p className="text-muted-foreground text-sm">
-        Resume upload and the career questionnaire arrive in phase P2.
-      </p>
-    </main>
-  );
+  if (!session) redirect("/");
+
+  // The path list drives Q2; if the catalog is unreachable the wizard still runs without it.
+  let paths: CareerPath[] = [];
+  try {
+    paths = await careerPaths();
+  } catch (err) {
+    console.error("[onboarding] could not load career paths", err);
+  }
+
+  return <OnboardingWizard paths={paths} />;
 }

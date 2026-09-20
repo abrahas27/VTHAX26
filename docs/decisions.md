@@ -69,3 +69,38 @@ Format: date, decision, why, consequences. Newest at the bottom.
 - **Gotchas:** the API addresses projects by **name** (`hokiepath-db`), not by UID; the response field is
   `expire_time`; credentials last ~60 minutes. This project has `enable_pg_native_login: false`, so option
   (b) is unavailable until native login is turned on.
+
+## 2026-09-19 (P2): Normalize reasoning-model responses in the LLM client
+
+- **Decision:** `src/lib/databricks/llm.ts` wraps `fetch` and rewrites chat completions so `content` is
+  always a string, dropping `reasoning` blocks, for both JSON and SSE responses.
+- **Why:** `databricks-gpt-oss-120b` returns content as typed blocks, which the OpenAI-compatible provider
+  cannot parse; without this, answers come back empty. Reasoning is scratchpad text and must never be shown
+  or stored as an answer. Verified with live tests against both gpt-oss and Llama 4 Maverick.
+
+## 2026-09-19 (P2): Model-supplied goal names go through resolvePath()
+
+- **Decision:** `resolvePath()` maps any free-text goal ("IB", "investment-banking", "CP04") onto a real
+  career path before it reaches a UC Function.
+- **Why:** The functions filter on exact path names. gpt-oss guessed `"investment-banking"` in the tool-call
+  smoke test, which returns 0 rows where `"investment banking"` returns 12 — a silent, plausible-looking
+  empty dashboard, which is exactly the failure the grounding rule exists to prevent.
+
+## 2026-09-19 (P2): Class year is computed, not prompted
+
+- **Decision:** The model reports `expected_graduation` verbatim; `classYearFrom()` derives the standing.
+- **Why:** Asked to infer standing, the model put a May 2029 graduate in the wrong year twice (Freshman,
+  then Junior, where Sophomore is right). Date arithmetic is deterministic and belongs in tested code.
+
+## 2026-09-19 (P2): Catalog reads use a per-instance TTL cache
+
+- **Decision:** `src/lib/catalog.ts` caches paths, skills, majors, and path_skills for 10 minutes in module
+  state, de-duplicating concurrent loads, instead of Next's `unstable_cache`.
+- **Why:** Simple, predictable, and works identically in Route Handlers, scripts, and tests. Catalog data
+  changes at most daily.
+
+## 2026-09-19 (P2): Fixture resumes are generated, not binary blobs
+
+- **Decision:** `pnpm fixtures:resumes` writes the three PDFs from text in `scripts/make-fixture-resumes.mts`.
+- **Why:** Keeps the repo diffable and lets anyone tweak a resume to re-test extraction. The students are
+  fictional.

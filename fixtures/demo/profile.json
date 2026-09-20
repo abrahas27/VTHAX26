@@ -1,0 +1,55 @@
+{
+  "userId": "00000000-0000-0000-0000-000000000000",
+  "displayName": "Priya",
+  "majorCode": "CS",
+  "classYear": "Sophomore",
+  "skills": [
+    {
+      "name": "Python",
+      "level": 3,
+      "source": "resume",
+      "canonical": true
+    },
+    {
+      "name": "Java",
+      "level": 3,
+      "source": "resume",
+      "canonical": true
+    },
+    {
+      "name": "Data Structures & Algorithms",
+      "level": 3,
+      "source": "resume",
+      "canonical": true
+    },
+    {
+      "name": "Git",
+      "level": 3,
+      "source": "resume",
+      "canonical": true
+    },
+    {
+      "name": "SQL",
+      "level": 2,
+      "source": "resume",
+      "canonical": true
+    },
+    {
+      "name": "Teamwork",
+      "level": 3,
+      "source": "resume",
+      "canonical": true
+    }
+  ],
+  "preferences": {
+    "seeking": ["internship"],
+    "interestedPaths": ["CP01", "CP04"],
+    "energizers": ["Analyzing data", "Solving puzzles"],
+    "industries": ["Tech", "Finance"],
+    "locations": ["NoVA/DC", "NYC"],
+    "hoursPerWeek": "3-5",
+    "flags": {}
+  },
+  "fitScores": {},
+  "primaryGoal": "CP01"
+}

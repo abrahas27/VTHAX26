@@ -15,12 +15,14 @@ const typeOf = (v: SqlValue): string =>
       : "STRING";
 
 export class DatabricksError extends Error {
-  constructor(
-    message: string,
-    readonly status?: number,
-  ) {
+  // Plain fields rather than TypeScript parameter properties, so the scripts in scripts/ can run
+  // these modules under Node's strip-only TypeScript support.
+  readonly status?: number;
+
+  constructor(message: string, status?: number) {
     super(message);
     this.name = "DatabricksError";
+    this.status = status;
   }
 }
 

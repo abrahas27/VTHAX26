@@ -1,0 +1,1322 @@
+{
+  "tab": "for-you",
+  "goal": {
+    "pathId": "CP01",
+    "pathName": "Software Engineering",
+    "medianSalary": 132270
+  },
+  "readiness": {
+    "pathId": "CP01",
+    "pathName": "Software Engineering",
+    "score": 66,
+    "topGaps": ["System Design", "Cloud (AWS/Azure/GCP)", "Behavioral Interviewing"]
+  },
+  "gaps": [
+    {
+      "skillName": "System Design",
+      "importance": 0.68,
+      "hasSkill": false
+    },
+    {
+      "skillName": "Cloud (AWS/Azure/GCP)",
+      "importance": 0.6,
+      "hasSkill": false
+    },
+    {
+      "skillName": "Behavioral Interviewing",
+      "importance": 0.52,
+      "hasSkill": false
+    },
+    {
+      "skillName": "Data Structures & Algorithms",
+      "importance": 1,
+      "hasSkill": true
+    },
+    {
+      "skillName": "Python",
+      "importance": 0.92,
+      "hasSkill": true
+    },
+    {
+      "skillName": "Java",
+      "importance": 0.84,
+      "hasSkill": true
+    },
+    {
+      "skillName": "Git",
+      "importance": 0.76,
+      "hasSkill": true
+    }
+  ],
+  "events": [
+    {
+      "id": "EV0016",
+      "title": "Accenture Workshop: Software Engineering & Technology Consulting",
+      "type": "technical_workshop",
+      "start": "2026-10-01T17:00:00.000Z",
+      "location": "Durham Hall",
+      "host": "Accenture",
+      "companyName": "Accenture",
+      "pathNames": ["Software Engineering", "Technology Consulting"],
+      "skills": [
+        "Cloud (AWS/Azure/GCP)",
+        "Data Structures & Algorithms",
+        "Git",
+        "Java",
+        "Project Management",
+        "Python",
+        "SQL",
+        "Spark / Databricks"
+      ],
+      "isVirtual": false,
+      "score": 0.674,
+      "why": ["Builds Cloud (AWS/Azure/GCP)"]
+    },
+    {
+      "id": "EV0067",
+      "title": "IBM Networking Night: Technology Consulting & Software Engineering",
+      "type": "networking",
+      "start": "2026-10-22T18:30:00.000Z",
+      "location": "Goodwin Hall",
+      "host": "IBM",
+      "companyName": "IBM",
+      "pathNames": ["Technology Consulting", "Software Engineering"],
+      "skills": [
+        "Cloud (AWS/Azure/GCP)",
+        "Data Structures & Algorithms",
+        "Git",
+        "Java",
+        "Project Management",
+        "Python",
+        "SQL",
+        "Spark / Databricks"
+      ],
+      "isVirtual": false,
+      "score": 0.627,
+      "why": ["Builds Cloud (AWS/Azure/GCP)"]
+    },
+    {
+      "id": "EV0001",
+      "title": "Fall Career and Internship Fair (Day 1: Engineering & Tech)",
+      "type": "career_fair",
+      "start": "2026-09-29T11:00:00.000Z",
+      "location": "Cassell Coliseum",
+      "host": "Career and Professional Development",
+      "pathNames": [
+        "Software Engineering",
+        "Data Science & Analytics",
+        "AI / Machine Learning Engineering",
+        "Cybersecurity",
+        "Mechanical / Aerospace Engineering",
+        "Electrical & Embedded Engineering",
+        "Civil & Infrastructure Engineering"
+      ],
+      "skills": ["Networking", "Behavioral Interviewing", "Public Speaking"],
+      "isVirtual": false,
+      "score": 0.609,
+      "why": ["Builds Behavioral Interviewing"]
+    },
+    {
+      "id": "EV0264",
+      "title": "Behavioral Interview Workshop",
+      "type": "workshop",
+      "start": "2026-10-21T17:30:00.000Z",
+      "location": "Newman Library",
+      "host": "Career and Professional Development",
+      "pathNames": ["Software Engineering", "Investment Banking"],
+      "skills": ["Behavioral Interviewing"],
+      "isVirtual": false,
+      "score": 0.56,
+      "why": ["Builds Behavioral Interviewing"]
+    },
+    {
+      "id": "EV0013",
+      "title": "Databricks Info Session: Software Engineering",
+      "type": "info_session",
+      "start": "2026-09-23T18:00:00.000Z",
+      "location": "Squires Student Center",
+      "host": "Databricks",
+      "companyName": "Databricks",
+      "pathNames": ["Software Engineering"],
+      "skills": ["Data Structures & Algorithms", "Git", "Java", "Python"],
+      "isVirtual": false,
+      "score": 0.542,
+      "why": ["Matches your goal"]
+    },
+    {
+      "id": "EV0062",
+      "title": "Google Info Session: UX / Product Design & Software Engineering",
+      "type": "info_session",
+      "start": "2026-09-24T18:00:00.000Z",
+      "location": "McBryde Hall",
+      "host": "Google",
+      "companyName": "Google",
+      "pathNames": ["UX / Product Design", "Software Engineering"],
+      "skills": [
+        "Data Structures & Algorithms",
+        "Figma",
+        "Git",
+        "Java",
+        "JavaScript",
+        "Public Speaking",
+        "Python",
+        "User Research"
+      ],
+      "isVirtual": false,
+      "score": 0.539,
+      "why": ["Matches your goal"]
+    },
+    {
+      "id": "EV0055",
+      "title": "Jane Street Resume Reviews: Quantitative Finance & Software Engineering",
+      "type": "resume_review",
+      "start": "2026-09-25T13:00:00.000Z",
+      "location": "Owens Banquet Hall",
+      "host": "Jane Street",
+      "companyName": "Jane Street",
+      "pathNames": ["Quantitative Finance", "Software Engineering"],
+      "skills": [
+        "C/C++",
+        "Data Structures & Algorithms",
+        "Git",
+        "Java",
+        "Python",
+        "Statistics",
+        "Stochastic Calculus"
+      ],
+      "isVirtual": false,
+      "score": 0.538,
+      "why": ["Matches your goal"]
+    },
+    {
+      "id": "EV0056",
+      "title": "Jane Street Networking Night: Software Engineering",
+      "type": "networking",
+      "start": "2026-09-30T18:30:00.000Z",
+      "location": "Squires Student Center",
+      "host": "Jane Street",
+      "companyName": "Jane Street",
+      "pathNames": ["Software Engineering"],
+      "skills": ["Data Structures & Algorithms", "Git", "Java", "Python"],
+      "isVirtual": false,
+      "score": 0.526,
+      "why": ["Matches your goal"]
+    },
+    {
+      "id": "EV0036",
+      "title": "J.P. Morgan Info Session: Software Engineering & Investment Banking",
+      "type": "info_session",
+      "start": "2026-10-05T18:00:00.000Z",
+      "location": "Graduate Life Center",
+      "host": "J.P. Morgan",
+      "companyName": "J.P. Morgan",
+      "pathNames": ["Software Engineering", "Investment Banking"],
+      "skills": [
+        "DCF Valuation",
+        "Data Structures & Algorithms",
+        "Financial Modeling",
+        "Git",
+        "Java",
+        "LBO Modeling",
+        "M&A Concepts",
+        "Python"
+      ],
+      "isVirtual": false,
+      "score": 0.515,
+      "why": ["Matches your goal"]
+    },
+    {
+      "id": "EV0015",
+      "title": "Accenture Networking Night: Management Consulting & Software Engineering",
+      "type": "networking",
+      "start": "2026-10-08T18:30:00.000Z",
+      "location": "Squires Student Center",
+      "host": "Accenture",
+      "companyName": "Accenture",
+      "pathNames": ["Management Consulting", "Software Engineering"],
+      "skills": [
+        "Business Strategy",
+        "Case Interviewing",
+        "Data Structures & Algorithms",
+        "Excel Modeling",
+        "Git",
+        "Java",
+        "Market Sizing",
+        "Python"
+      ],
+      "isVirtual": false,
+      "score": 0.508,
+      "why": ["Matches your goal"]
+    },
+    {
+      "id": "EV0041",
+      "title": "Bank of America Info Session: Investment Banking & Software Engineering",
+      "type": "info_session",
+      "start": "2026-10-09T18:00:00.000Z",
+      "location": "Pamplin Hall",
+      "host": "Bank of America",
+      "companyName": "Bank of America",
+      "pathNames": ["Investment Banking", "Software Engineering"],
+      "skills": [
+        "DCF Valuation",
+        "Data Structures & Algorithms",
+        "Financial Modeling",
+        "Git",
+        "Java",
+        "LBO Modeling",
+        "M&A Concepts",
+        "Python"
+      ],
+      "isVirtual": false,
+      "score": 0.506,
+      "why": ["Matches your goal"]
+    },
+    {
+      "id": "EV0168",
+      "title": "ACM at Virginia Tech: Tech Talk: AI / Machine Learning Engineering",
+      "type": "speaker",
+      "start": "2026-09-21T18:00:00.000Z",
+      "location": "McBryde Hall",
+      "host": "ACM at Virginia Tech",
+      "pathNames": ["Software Engineering", "AI / Machine Learning Engineering"],
+      "skills": ["Machine Learning", "Python"],
+      "isVirtual": false,
+      "score": 0.496,
+      "why": ["Matches your goal"]
+    },
+    {
+      "id": "EV0171",
+      "title": "VTHacks: Tech Talk: Product Management",
+      "type": "speaker",
+      "start": "2026-09-24T18:30:00.000Z",
+      "location": "Virtual (Zoom)",
+      "host": "VTHacks",
+      "pathNames": [
+        "Software Engineering",
+        "AI / Machine Learning Engineering",
+        "Product Management"
+      ],
+      "skills": ["SQL"],
+      "isVirtual": true,
+      "score": 0.489,
+      "why": ["Matches your goal"]
+    },
+    {
+      "id": "EV0207",
+      "title": "IEEE Student Branch: Design Team Build Session",
+      "type": "club_meeting",
+      "start": "2026-09-28T19:00:00.000Z",
+      "location": "Kelly Hall",
+      "host": "IEEE Student Branch",
+      "pathNames": ["Electrical & Embedded Engineering", "Software Engineering"],
+      "skills": ["C/C++", "Embedded Systems"],
+      "isVirtual": false,
+      "score": 0.48,
+      "why": ["Matches your goal"]
+    },
+    {
+      "id": "EV0280",
+      "title": "AI Agents with Databricks (Hands-on)",
+      "type": "workshop",
+      "start": "2026-10-02T12:30:00.000Z",
+      "location": "Virtual (Zoom)",
+      "host": "Career and Professional Development",
+      "pathNames": [
+        "Software Engineering",
+        "Data Science & Analytics",
+        "AI / Machine Learning Engineering",
+        "Sales & Trading / Markets",
+        "Quantitative Finance",
+        "Technology Consulting",
+        "Cybersecurity",
+        "Biomedical Research & Engineering"
+      ],
+      "skills": ["LLMs & AI Agents", "Spark / Databricks", "Python"],
+      "isVirtual": true,
+      "score": 0.472,
+      "why": ["Matches your goal"]
+    },
+    {
+      "id": "EV0170",
+      "title": "VTHacks: Tech Talk: Product Management",
+      "type": "speaker",
+      "start": "2026-10-02T18:30:00.000Z",
+      "location": "McBryde Hall",
+      "host": "VTHacks",
+      "pathNames": [
+        "Software Engineering",
+        "AI / Machine Learning Engineering",
+        "Product Management"
+      ],
+      "skills": ["SQL", "User Research"],
+      "isVirtual": false,
+      "score": 0.472,
+      "why": ["Matches your goal"]
+    },
+    {
+      "id": "EV0236",
+      "title": "National Society of Black Engineers: Design Team Build Session",
+      "type": "club_meeting",
+      "start": "2026-10-08T18:00:00.000Z",
+      "location": "Graduate Life Center",
+      "host": "National Society of Black Engineers",
+      "pathNames": [
+        "Mechanical / Aerospace Engineering",
+        "Electrical & Embedded Engineering",
+        "Software Engineering",
+        "Civil & Infrastructure Engineering"
+      ],
+      "skills": ["C/C++", "Java"],
+      "isVirtual": false,
+      "score": 0.458,
+      "why": ["Matches your goal"]
+    },
+    {
+      "id": "EV0167",
+      "title": "ACM at Virginia Tech: Tech Talk: AI / Machine Learning Engineering",
+      "type": "speaker",
+      "start": "2026-10-09T18:00:00.000Z",
+      "location": "Squires Student Center",
+      "host": "ACM at Virginia Tech",
+      "pathNames": ["Software Engineering", "AI / Machine Learning Engineering"],
+      "skills": ["Python"],
+      "isVirtual": false,
+      "score": 0.456,
+      "why": ["Matches your goal"]
+    },
+    {
+      "id": "EV0166",
+      "title": "ACM at Virginia Tech: LeetCode Night",
+      "type": "club_meeting",
+      "start": "2026-10-13T18:00:00.000Z",
+      "location": "Squires Student Center",
+      "host": "ACM at Virginia Tech",
+      "pathNames": ["Software Engineering", "AI / Machine Learning Engineering"],
+      "skills": ["Java", "Python"],
+      "isVirtual": false,
+      "score": 0.447,
+      "why": ["Matches your goal"]
+    },
+    {
+      "id": "EV0165",
+      "title": "ACM at Virginia Tech: Tech Talk: AI / Machine Learning Engineering",
+      "type": "speaker",
+      "start": "2026-10-14T18:00:00.000Z",
+      "location": "Squires Student Center",
+      "host": "ACM at Virginia Tech",
+      "pathNames": ["Software Engineering", "AI / Machine Learning Engineering"],
+      "skills": ["Java"],
+      "isVirtual": false,
+      "score": 0.445,
+      "why": ["Matches your goal"]
+    },
+    {
+      "id": "EV0004",
+      "title": "VTHacks",
+      "type": "hackathon",
+      "start": "2026-10-16T18:00:00.000Z",
+      "location": "Goodwin Hall",
+      "host": "VTHacks",
+      "pathNames": [
+        "Software Engineering",
+        "AI / Machine Learning Engineering",
+        "Product Management",
+        "UX / Product Design"
+      ],
+      "skills": ["Python", "JavaScript", "LLMs & AI Agents", "Teamwork", "Public Speaking"],
+      "isVirtual": false,
+      "score": 0.441,
+      "why": ["Matches your goal"]
+    },
+    {
+      "id": "EV0205",
+      "title": "IEEE Student Branch: Industry Night",
+      "type": "club_meeting",
+      "start": "2026-10-16T19:00:00.000Z",
+      "location": "Johnston Student Center",
+      "host": "IEEE Student Branch",
+      "pathNames": ["Electrical & Embedded Engineering", "Software Engineering"],
+      "skills": ["Java", "Python"],
+      "isVirtual": false,
+      "score": 0.44,
+      "why": ["Matches your goal"]
+    },
+    {
+      "id": "EV0243",
+      "title": "Society of Hispanic Professional Engineers: Design Team Build Session",
+      "type": "club_meeting",
+      "start": "2026-10-19T19:00:00.000Z",
+      "location": "Newman Library",
+      "host": "Society of Hispanic Professional Engineers",
+      "pathNames": [
+        "Mechanical / Aerospace Engineering",
+        "Electrical & Embedded Engineering",
+        "Software Engineering"
+      ],
+      "skills": ["Circuit Design", "Data Structures & Algorithms"],
+      "isVirtual": false,
+      "score": 0.434,
+      "why": ["Matches your goal"]
+    },
+    {
+      "id": "EV0164",
+      "title": "ACM at Virginia Tech: LeetCode Night",
+      "type": "club_meeting",
+      "start": "2026-10-20T18:00:00.000Z",
+      "location": "Pamplin Hall",
+      "host": "ACM at Virginia Tech",
+      "pathNames": ["Software Engineering", "AI / Machine Learning Engineering"],
+      "skills": ["Data Structures & Algorithms", "Java"],
+      "isVirtual": false,
+      "score": 0.432,
+      "why": ["Matches your goal"]
+    },
+    {
+      "id": "EV0071",
+      "title": "Lockheed Martin Info Session: Electrical & Embedded Engineering & Software Engineering",
+      "type": "info_session",
+      "start": "2026-10-21T18:00:00.000Z",
+      "location": "Graduate Life Center",
+      "host": "Lockheed Martin",
+      "companyName": "Lockheed Martin",
+      "pathNames": ["Electrical & Embedded Engineering", "Software Engineering"],
+      "skills": [
+        "C/C++",
+        "Circuit Design",
+        "Data Structures & Algorithms",
+        "Embedded Systems",
+        "Git",
+        "Java",
+        "MATLAB",
+        "Python"
+      ],
+      "isVirtual": false,
+      "score": 0.429,
+      "why": ["Matches your goal"]
+    }
+  ],
+  "visits": [
+    {
+      "id": "EV0013",
+      "companyName": "Databricks",
+      "industry": "Technology",
+      "visitDate": "2026-09-23",
+      "visitType": "info_session",
+      "rolesRecruiting": ["Software Engineering"],
+      "alumniAttending": true,
+      "onCampusInterviews": false,
+      "matchesGoal": true
+    },
+    {
+      "id": "EV0062",
+      "companyName": "Google",
+      "industry": "Technology",
+      "visitDate": "2026-09-24",
+      "visitType": "info_session",
+      "rolesRecruiting": ["UX / Product Design", "Software Engineering"],
+      "alumniAttending": true,
+      "onCampusInterviews": false,
+      "matchesGoal": true
+    },
+    {
+      "id": "EV0055",
+      "companyName": "Jane Street",
+      "industry": "Quantitative Trading",
+      "visitDate": "2026-09-25",
+      "visitType": "resume_review",
+      "rolesRecruiting": ["Quantitative Finance", "Software Engineering"],
+      "alumniAttending": true,
+      "onCampusInterviews": false,
+      "matchesGoal": true
+    },
+    {
+      "id": "EV0001",
+      "companyName": "Leidos",
+      "industry": "Defense & IT",
+      "visitDate": "2026-09-29",
+      "visitType": "career_fair_booth",
+      "rolesRecruiting": ["Software Engineering", "Data Science & Analytics", "Cybersecurity"],
+      "alumniAttending": true,
+      "onCampusInterviews": false,
+      "matchesGoal": true
+    },
+    {
+      "id": "EV0001",
+      "companyName": "Palantir",
+      "industry": "Technology",
+      "visitDate": "2026-09-29",
+      "visitType": "career_fair_booth",
+      "rolesRecruiting": ["Software Engineering", "Data Science & Analytics"],
+      "alumniAttending": true,
+      "onCampusInterviews": true,
+      "matchesGoal": true
+    },
+    {
+      "id": "EV0001",
+      "companyName": "IBM",
+      "industry": "Technology",
+      "visitDate": "2026-09-29",
+      "visitType": "career_fair_booth",
+      "rolesRecruiting": ["Software Engineering", "AI / Machine Learning Engineering"],
+      "alumniAttending": true,
+      "onCampusInterviews": false,
+      "matchesGoal": true
+    },
+    {
+      "id": "EV0001",
+      "companyName": "Meta",
+      "industry": "Technology",
+      "visitDate": "2026-09-29",
+      "visitType": "career_fair_booth",
+      "rolesRecruiting": ["Software Engineering", "AI / Machine Learning Engineering"],
+      "alumniAttending": true,
+      "onCampusInterviews": false,
+      "matchesGoal": true
+    },
+    {
+      "id": "EV0001",
+      "companyName": "Cisco",
+      "industry": "Technology",
+      "visitDate": "2026-09-29",
+      "visitType": "career_fair_booth",
+      "rolesRecruiting": [
+        "Software Engineering",
+        "Cybersecurity",
+        "Electrical & Embedded Engineering"
+      ],
+      "alumniAttending": true,
+      "onCampusInterviews": false,
+      "matchesGoal": true
+    },
+    {
+      "id": "EV0001",
+      "companyName": "Amazon",
+      "industry": "Technology",
+      "visitDate": "2026-09-29",
+      "visitType": "career_fair_booth",
+      "rolesRecruiting": ["Software Engineering", "AI / Machine Learning Engineering"],
+      "alumniAttending": true,
+      "onCampusInterviews": false,
+      "matchesGoal": true
+    },
+    {
+      "id": "EV0001",
+      "companyName": "Microsoft",
+      "industry": "Technology",
+      "visitDate": "2026-09-29",
+      "visitType": "career_fair_booth",
+      "rolesRecruiting": [
+        "Software Engineering",
+        "AI / Machine Learning Engineering",
+        "Cybersecurity"
+      ],
+      "alumniAttending": true,
+      "onCampusInterviews": true,
+      "matchesGoal": true
+    },
+    {
+      "id": "EV0001",
+      "companyName": "RTX",
+      "industry": "Aerospace & Defense",
+      "visitDate": "2026-09-29",
+      "visitType": "career_fair_booth",
+      "rolesRecruiting": [
+        "Software Engineering",
+        "Mechanical / Aerospace Engineering",
+        "Electrical & Embedded Engineering"
+      ],
+      "alumniAttending": true,
+      "onCampusInterviews": false,
+      "matchesGoal": true
+    },
+    {
+      "id": "EV0001",
+      "companyName": "Bank of America",
+      "industry": "Banking",
+      "visitDate": "2026-09-29",
+      "visitType": "career_fair_booth",
+      "rolesRecruiting": ["Software Engineering"],
+      "alumniAttending": true,
+      "onCampusInterviews": true,
+      "matchesGoal": true
+    },
+    {
+      "id": "EV0001",
+      "companyName": "Google",
+      "industry": "Technology",
+      "visitDate": "2026-09-29",
+      "visitType": "career_fair_booth",
+      "rolesRecruiting": ["Software Engineering", "AI / Machine Learning Engineering"],
+      "alumniAttending": true,
+      "onCampusInterviews": true,
+      "matchesGoal": true
+    },
+    {
+      "id": "EV0001",
+      "companyName": "Capital One",
+      "industry": "Financial Services",
+      "visitDate": "2026-09-29",
+      "visitType": "career_fair_booth",
+      "rolesRecruiting": ["Software Engineering", "Data Science & Analytics"],
+      "alumniAttending": true,
+      "onCampusInterviews": true,
+      "matchesGoal": true
+    },
+    {
+      "id": "EV0001",
+      "companyName": "Citadel",
+      "industry": "Quantitative Trading",
+      "visitDate": "2026-09-29",
+      "visitType": "career_fair_booth",
+      "rolesRecruiting": ["Software Engineering"],
+      "alumniAttending": true,
+      "onCampusInterviews": true,
+      "matchesGoal": true
+    },
+    {
+      "id": "EV0001",
+      "companyName": "Wells Fargo",
+      "industry": "Banking",
+      "visitDate": "2026-09-29",
+      "visitType": "career_fair_booth",
+      "rolesRecruiting": ["Software Engineering", "Data Science & Analytics"],
+      "alumniAttending": true,
+      "onCampusInterviews": true,
+      "matchesGoal": true
+    },
+    {
+      "id": "EV0001",
+      "companyName": "Databricks",
+      "industry": "Technology",
+      "visitDate": "2026-09-29",
+      "visitType": "career_fair_booth",
+      "rolesRecruiting": [
+        "Software Engineering",
+        "Data Science & Analytics",
+        "AI / Machine Learning Engineering"
+      ],
+      "alumniAttending": true,
+      "onCampusInterviews": false,
+      "matchesGoal": true
+    },
+    {
+      "id": "EV0001",
+      "companyName": "Goldman Sachs",
+      "industry": "Investment Banking",
+      "visitDate": "2026-09-29",
+      "visitType": "career_fair_booth",
+      "rolesRecruiting": ["Software Engineering"],
+      "alumniAttending": true,
+      "onCampusInterviews": true,
+      "matchesGoal": true
+    },
+    {
+      "id": "EV0001",
+      "companyName": "Accenture",
+      "industry": "Consulting",
+      "visitDate": "2026-09-29",
+      "visitType": "career_fair_booth",
+      "rolesRecruiting": ["Software Engineering"],
+      "alumniAttending": true,
+      "onCampusInterviews": true,
+      "matchesGoal": true
+    },
+    {
+      "id": "EV0001",
+      "companyName": "Freddie Mac",
+      "industry": "Financial Services",
+      "visitDate": "2026-09-29",
+      "visitType": "career_fair_booth",
+      "rolesRecruiting": ["Software Engineering", "Data Science & Analytics"],
+      "alumniAttending": true,
+      "onCampusInterviews": false,
+      "matchesGoal": true
+    },
+    {
+      "id": "EV0001",
+      "companyName": "Morgan Stanley",
+      "industry": "Investment Banking",
+      "visitDate": "2026-09-29",
+      "visitType": "career_fair_booth",
+      "rolesRecruiting": ["Software Engineering"],
+      "alumniAttending": true,
+      "onCampusInterviews": true,
+      "matchesGoal": true
+    },
+    {
+      "id": "EV0056",
+      "companyName": "Jane Street",
+      "industry": "Quantitative Trading",
+      "visitDate": "2026-09-30",
+      "visitType": "networking",
+      "rolesRecruiting": ["Software Engineering"],
+      "alumniAttending": true,
+      "onCampusInterviews": false,
+      "matchesGoal": true
+    },
+    {
+      "id": "EV0016",
+      "companyName": "Accenture",
+      "industry": "Consulting",
+      "visitDate": "2026-10-01",
+      "visitType": "technical_workshop",
+      "rolesRecruiting": ["Software Engineering", "Technology Consulting"],
+      "alumniAttending": false,
+      "onCampusInterviews": true,
+      "matchesGoal": true
+    },
+    {
+      "id": "EV0036",
+      "companyName": "J.P. Morgan",
+      "industry": "Investment Banking",
+      "visitDate": "2026-10-05",
+      "visitType": "info_session",
+      "rolesRecruiting": ["Software Engineering", "Investment Banking"],
+      "alumniAttending": true,
+      "onCampusInterviews": false,
+      "matchesGoal": true
+    },
+    {
+      "id": "EV0015",
+      "companyName": "Accenture",
+      "industry": "Consulting",
+      "visitDate": "2026-10-08",
+      "visitType": "networking",
+      "rolesRecruiting": ["Management Consulting", "Software Engineering"],
+      "alumniAttending": true,
+      "onCampusInterviews": false,
+      "matchesGoal": true
+    }
+  ],
+  "clubs": [
+    {
+      "id": "CL018",
+      "name": "Women in Computing",
+      "category": "Computing",
+      "meetingDay": "Monday",
+      "meetingTime": "19:00",
+      "skills": [
+        "Data Structures & Algorithms",
+        "Java",
+        "Product Roadmapping",
+        "Python",
+        "SQL",
+        "Statistics",
+        "User Research"
+      ],
+      "description": "Community, mentorship, and GHC travel support.",
+      "url": "https://gobblerconnect.vt.edu/",
+      "applicationRequired": false
+    },
+    {
+      "id": "CL014",
+      "name": "VTHacks",
+      "category": "Computing",
+      "meetingDay": "Thursday",
+      "meetingTime": "18:30",
+      "skills": [
+        "Data Structures & Algorithms",
+        "Deep Learning",
+        "Java",
+        "Machine Learning",
+        "Product Roadmapping",
+        "Python",
+        "SQL",
+        "User Research"
+      ],
+      "description": "Organizes Virginia Tech's major hackathon.",
+      "url": "https://gobblerconnect.vt.edu/",
+      "applicationRequired": true
+    },
+    {
+      "id": "CL026",
+      "name": "Society of Hispanic Professional Engineers",
+      "category": "Engineering",
+      "meetingDay": "Thursday",
+      "meetingTime": "19:00",
+      "skills": [
+        "C/C++",
+        "CAD (SolidWorks)",
+        "Circuit Design",
+        "Data Structures & Algorithms",
+        "Embedded Systems",
+        "Java",
+        "MATLAB",
+        "Python",
+        "Structural Analysis"
+      ],
+      "description": "Professional development and national convention.",
+      "url": "https://gobblerconnect.vt.edu/",
+      "applicationRequired": false
+    },
+    {
+      "id": "CL013",
+      "name": "ACM at Virginia Tech",
+      "category": "Computing",
+      "meetingDay": "Wednesday",
+      "meetingTime": "18:00",
+      "skills": [
+        "Data Structures & Algorithms",
+        "Deep Learning",
+        "Java",
+        "Machine Learning",
+        "Python"
+      ],
+      "description": "Programming contests, tech talks, and interview prep.",
+      "url": "https://gobblerconnect.vt.edu/",
+      "applicationRequired": false
+    },
+    {
+      "id": "CL020",
+      "name": "IEEE Student Branch",
+      "category": "Engineering",
+      "meetingDay": "Tuesday",
+      "meetingTime": "19:00",
+      "skills": [
+        "C/C++",
+        "Circuit Design",
+        "Data Structures & Algorithms",
+        "Embedded Systems",
+        "Java",
+        "Python"
+      ],
+      "description": "Hardware projects and industry nights.",
+      "url": "https://gobblerconnect.vt.edu/",
+      "applicationRequired": false
+    },
+    {
+      "id": "CL024",
+      "name": "Society of Women Engineers",
+      "category": "Engineering",
+      "meetingDay": "Thursday",
+      "meetingTime": "18:00",
+      "skills": [
+        "C/C++",
+        "CAD (SolidWorks)",
+        "Circuit Design",
+        "Data Structures & Algorithms",
+        "Embedded Systems",
+        "Java",
+        "MATLAB",
+        "Project Management",
+        "Python",
+        "Structural Analysis"
+      ],
+      "description": "Professional development for women in engineering.",
+      "url": "https://gobblerconnect.vt.edu/",
+      "applicationRequired": false
+    }
+  ],
+  "opportunities": [
+    {
+      "id": "OP0062",
+      "title": "Software Engineer Intern",
+      "type": "internship",
+      "companyName": "Bank of America",
+      "pathName": "Software Engineering",
+      "requiredSkills": ["Data Structures & Algorithms", "Python", "Java", "Git"],
+      "classYears": ["Sophomore", "Junior"],
+      "location": "Charlotte, NC",
+      "deadline": "2026-10-04"
+    },
+    {
+      "id": "OP0142",
+      "title": "Software Engineer Intern",
+      "type": "internship",
+      "companyName": "RTX",
+      "pathName": "Software Engineering",
+      "requiredSkills": ["Data Structures & Algorithms", "Python", "Java", "Git"],
+      "classYears": ["Freshman", "Sophomore"],
+      "location": "New York, NY",
+      "deadline": "2026-10-07"
+    },
+    {
+      "id": "OP0037",
+      "title": "Backend Engineer Intern",
+      "type": "internship",
+      "companyName": "Booz Allen Hamilton",
+      "pathName": "Software Engineering",
+      "requiredSkills": ["Data Structures & Algorithms", "Python", "Java", "Git"],
+      "classYears": ["Junior"],
+      "location": "McLean, VA",
+      "deadline": "2026-10-12"
+    },
+    {
+      "id": "OP0116",
+      "title": "Software Engineer I",
+      "type": "full_time",
+      "companyName": "IBM",
+      "pathName": "Software Engineering",
+      "requiredSkills": ["Data Structures & Algorithms", "Python", "Java", "Git"],
+      "classYears": ["Senior"],
+      "location": "New York, NY",
+      "deadline": "2026-10-12"
+    },
+    {
+      "id": "OP0120",
+      "title": "Backend Engineer Intern",
+      "type": "internship",
+      "companyName": "Cisco",
+      "pathName": "Software Engineering",
+      "requiredSkills": ["Data Structures & Algorithms", "Python", "Java", "Git"],
+      "classYears": ["Sophomore", "Junior"],
+      "location": "Remote",
+      "deadline": "2026-10-13"
+    },
+    {
+      "id": "OP0094",
+      "title": "Software Engineer I",
+      "type": "full_time",
+      "companyName": "Microsoft",
+      "pathName": "Software Engineering",
+      "requiredSkills": ["Data Structures & Algorithms", "Python", "Java", "Git"],
+      "classYears": ["Senior"],
+      "location": "McLean, VA",
+      "deadline": "2026-10-14"
+    },
+    {
+      "id": "OP0197",
+      "title": "Undergraduate Researcher: Human-Computer Interaction Lab",
+      "type": "research",
+      "companyName": "Department of Computer Science",
+      "pathName": "Software Engineering",
+      "requiredSkills": ["Data Structures & Algorithms", "Python", "Java"],
+      "classYears": ["Sophomore", "Junior", "Senior"],
+      "location": "Blacksburg, VA",
+      "deadline": "2026-10-15"
+    },
+    {
+      "id": "OP0017",
+      "title": "Software Engineer I",
+      "type": "full_time",
+      "companyName": "Accenture",
+      "pathName": "Software Engineering",
+      "requiredSkills": ["Data Structures & Algorithms", "Python", "Java", "Git"],
+      "classYears": ["Senior"],
+      "location": "Dublin, IE",
+      "deadline": "2026-10-16"
+    },
+    {
+      "id": "OP0052",
+      "title": "Backend Engineer Intern",
+      "type": "internship",
+      "companyName": "J.P. Morgan",
+      "pathName": "Software Engineering",
+      "requiredSkills": ["Data Structures & Algorithms", "Python", "Java", "Git"],
+      "classYears": ["Sophomore", "Junior"],
+      "location": "Remote",
+      "deadline": "2026-10-19"
+    },
+    {
+      "id": "OP0084",
+      "title": "Software Engineer Intern",
+      "type": "internship",
+      "companyName": "Jane Street",
+      "pathName": "Software Engineering",
+      "requiredSkills": ["Data Structures & Algorithms", "Python", "Java", "Git"],
+      "classYears": ["Junior"],
+      "location": "Charlotte, NC",
+      "deadline": "2026-10-20"
+    },
+    {
+      "id": "OP0080",
+      "title": "Backend Engineer Intern",
+      "type": "internship",
+      "companyName": "Citadel",
+      "pathName": "Software Engineering",
+      "requiredSkills": ["Data Structures & Algorithms", "Python", "Java", "Git"],
+      "classYears": ["Junior"],
+      "location": "Richmond, VA",
+      "deadline": "2026-10-22"
+    },
+    {
+      "id": "OP0073",
+      "title": "Software Engineer Intern",
+      "type": "internship",
+      "companyName": "Capital One",
+      "pathName": "Software Engineering",
+      "requiredSkills": ["Data Structures & Algorithms", "Python", "Java", "Git"],
+      "classYears": ["Freshman", "Sophomore"],
+      "location": "Arlington, VA",
+      "deadline": "2026-10-26"
+    },
+    {
+      "id": "OP0056",
+      "title": "Backend Engineer Intern",
+      "type": "internship",
+      "companyName": "Morgan Stanley",
+      "pathName": "Software Engineering",
+      "requiredSkills": ["Data Structures & Algorithms", "Python", "Java", "Git"],
+      "classYears": ["Sophomore", "Junior"],
+      "location": "New York, NY",
+      "deadline": "2026-10-26"
+    },
+    {
+      "id": "OP0083",
+      "title": "Backend Engineer Intern",
+      "type": "internship",
+      "companyName": "Jane Street",
+      "pathName": "Software Engineering",
+      "requiredSkills": ["Data Structures & Algorithms", "Python", "Java", "Git"],
+      "classYears": ["Freshman", "Sophomore"],
+      "location": "New York, NY",
+      "deadline": "2026-10-26"
+    },
+    {
+      "id": "OP0101",
+      "title": "Backend Engineer Intern",
+      "type": "internship",
+      "companyName": "Google",
+      "pathName": "Software Engineering",
+      "requiredSkills": ["Data Structures & Algorithms", "Python", "Java", "Git"],
+      "classYears": ["Sophomore", "Junior"],
+      "location": "Charlotte, NC",
+      "deadline": "2026-10-31"
+    },
+    {
+      "id": "OP0146",
+      "title": "Software Engineer I",
+      "type": "full_time",
+      "companyName": "Leidos",
+      "pathName": "Software Engineering",
+      "requiredSkills": ["Data Structures & Algorithms", "Python", "Java", "Git"],
+      "classYears": ["Senior"],
+      "location": "McLean, VA",
+      "deadline": "2026-10-31"
+    },
+    {
+      "id": "OP0145",
+      "title": "Backend Engineer Intern",
+      "type": "internship",
+      "companyName": "Leidos",
+      "pathName": "Software Engineering",
+      "requiredSkills": ["Data Structures & Algorithms", "Python", "Java", "Git"],
+      "classYears": ["Junior"],
+      "location": "New York, NY",
+      "deadline": "2026-11-06"
+    },
+    {
+      "id": "OP0086",
+      "title": "Backend Engineer Intern",
+      "type": "internship",
+      "companyName": "Freddie Mac",
+      "pathName": "Software Engineering",
+      "requiredSkills": ["Data Structures & Algorithms", "Python", "Java", "Git"],
+      "classYears": ["Junior"],
+      "location": "McLean, VA",
+      "deadline": "2026-11-06"
+    },
+    {
+      "id": "OP0088",
+      "title": "Software Engineer Intern",
+      "type": "internship",
+      "companyName": "Amazon",
+      "pathName": "Software Engineering",
+      "requiredSkills": ["Data Structures & Algorithms", "Python", "Java", "Git"],
+      "classYears": ["Freshman", "Sophomore"],
+      "location": "McLean, VA",
+      "deadline": "2026-11-09"
+    },
+    {
+      "id": "OP0072",
+      "title": "Backend Engineer Intern",
+      "type": "internship",
+      "companyName": "Capital One",
+      "pathName": "Software Engineering",
+      "requiredSkills": ["Data Structures & Algorithms", "Python", "Java", "Git"],
+      "classYears": ["Junior"],
+      "location": "McLean, VA",
+      "deadline": "2026-11-13"
+    },
+    {
+      "id": "OP0102",
+      "title": "Software Engineer Intern",
+      "type": "internship",
+      "companyName": "Google",
+      "pathName": "Software Engineering",
+      "requiredSkills": ["Data Structures & Algorithms", "Python", "Java", "Git"],
+      "classYears": ["Freshman", "Sophomore"],
+      "location": "New York, NY",
+      "deadline": "2026-11-16"
+    },
+    {
+      "id": "OP0131",
+      "title": "Software Engineer I",
+      "type": "full_time",
+      "companyName": "Lockheed Martin",
+      "pathName": "Software Engineering",
+      "requiredSkills": ["Data Structures & Algorithms", "Python", "Java", "Git"],
+      "classYears": ["Senior"],
+      "location": "Charlotte, NC",
+      "deadline": "2026-11-18"
+    },
+    {
+      "id": "OP0048",
+      "title": "Software Engineer I",
+      "type": "full_time",
+      "companyName": "Goldman Sachs",
+      "pathName": "Software Engineering",
+      "requiredSkills": ["Data Structures & Algorithms", "Python", "Java", "Git"],
+      "classYears": ["Senior"],
+      "location": "Remote",
+      "deadline": "2026-11-18"
+    },
+    {
+      "id": "OP0008",
+      "title": "Software Engineer Intern",
+      "type": "internship",
+      "companyName": "Databricks",
+      "pathName": "Software Engineering",
+      "requiredSkills": ["Data Structures & Algorithms", "Python", "Java", "Git"],
+      "classYears": ["Sophomore", "Junior"],
+      "location": "Remote",
+      "deadline": "2026-11-20"
+    },
+    {
+      "id": "OP0061",
+      "title": "Software Engineer I",
+      "type": "full_time",
+      "companyName": "Bank of America",
+      "pathName": "Software Engineering",
+      "requiredSkills": ["Data Structures & Algorithms", "Python", "Java", "Git"],
+      "classYears": ["Senior"],
+      "location": "Charlotte, NC",
+      "deadline": "2026-11-23"
+    }
+  ],
+  "roadmapPreview": [
+    {
+      "itemType": "event",
+      "itemId": "EV0001",
+      "name": "Fall Career and Internship Fair (Day 1: Engineering & Tech)",
+      "whenText": "Tue Sep 29, 11:00 AM",
+      "closesGaps": ["Behavioral Interviewing"]
+    },
+    {
+      "itemType": "event",
+      "itemId": "EV0002",
+      "name": "Fall Career and Internship Fair (Day 2: Business & All Majors)",
+      "whenText": "Wed Sep 30, 11:00 AM",
+      "closesGaps": ["Behavioral Interviewing"]
+    },
+    {
+      "itemType": "event",
+      "itemId": "EV0016",
+      "name": "Accenture Workshop: Software Engineering & Technology Consulting",
+      "whenText": "Thu Oct 1, 5:00 PM",
+      "closesGaps": ["Cloud (AWS/Azure/GCP)"]
+    },
+    {
+      "itemType": "event",
+      "itemId": "EV0022",
+      "name": "KPMG Workshop: Technology Consulting",
+      "whenText": "Thu Oct 8, 5:00 PM",
+      "closesGaps": ["Cloud (AWS/Azure/GCP)"]
+    },
+    {
+      "itemType": "event",
+      "itemId": "EV0027",
+      "name": "Booz Allen Hamilton Networking Night: Technology Consulting & Cybersecurity",
+      "whenText": "Mon Oct 12, 6:30 PM",
+      "closesGaps": ["Cloud (AWS/Azure/GCP)"]
+    },
+    {
+      "itemType": "event",
+      "itemId": "EV0264",
+      "name": "Behavioral Interview Workshop",
+      "whenText": "Wed Oct 21, 5:30 PM",
+      "closesGaps": ["Behavioral Interviewing"]
+    },
+    {
+      "itemType": "event",
+      "itemId": "EV0067",
+      "name": "IBM Networking Night: Technology Consulting & Software Engineering",
+      "whenText": "Thu Oct 22, 6:30 PM",
+      "closesGaps": ["Cloud (AWS/Azure/GCP)"]
+    },
+    {
+      "itemType": "event",
+      "itemId": "EV0030",
+      "name": "Boston Consulting Group Networking Night: Management Consulting & Technology Consulting",
+      "whenText": "Fri Oct 23, 6:30 PM",
+      "closesGaps": ["Cloud (AWS/Azure/GCP)"]
+    },
+    {
+      "itemType": "event",
+      "itemId": "EV0139",
+      "name": "VT Consulting Group: Business Strategy Workshop",
+      "whenText": "Fri Oct 23, 7:30 PM",
+      "closesGaps": ["Cloud (AWS/Azure/GCP)"]
+    },
+    {
+      "itemType": "event",
+      "itemId": "EV0070",
+      "name": "Palantir Resume Reviews: Technology Consulting & Data Science & Analytics",
+      "whenText": "Wed Oct 28, 1:00 PM",
+      "closesGaps": ["Cloud (AWS/Azure/GCP)"]
+    },
+    {
+      "itemType": "event",
+      "itemId": "EV0273",
+      "name": "Mock Interview Day",
+      "whenText": "Fri Nov 13, 12:30 PM",
+      "closesGaps": ["Behavioral Interviewing"]
+    },
+    {
+      "itemType": "event",
+      "itemId": "EV0018",
+      "name": "EY Resume Reviews: Audit & Assurance & Technology Consulting",
+      "whenText": "Mon Nov 16, 1:00 PM",
+      "closesGaps": ["Cloud (AWS/Azure/GCP)"]
+    },
+    {
+      "itemType": "event",
+      "itemId": "EV0272",
+      "name": "Mock Interview Day",
+      "whenText": "Tue Nov 17, 12:30 PM",
+      "closesGaps": ["Behavioral Interviewing"]
+    },
+    {
+      "itemType": "event",
+      "itemId": "EV0026",
+      "name": "Booz Allen Hamilton Resume Reviews: Technology Consulting & Data Science & Analytics",
+      "whenText": "Thu Nov 26, 1:00 PM",
+      "closesGaps": ["Cloud (AWS/Azure/GCP)"]
+    },
+    {
+      "itemType": "event",
+      "itemId": "EV0031",
+      "name": "Boston Consulting Group Resume Reviews: Management Consulting & Technology Consulting",
+      "whenText": "Tue Dec 1, 1:00 PM",
+      "closesGaps": ["Cloud (AWS/Azure/GCP)"]
+    },
+    {
+      "itemType": "club",
+      "itemId": "CL008",
+      "name": "VT Consulting Group",
+      "whenText": "Weekly, Thursday 19:30",
+      "closesGaps": ["Cloud (AWS/Azure/GCP)"]
+    },
+    {
+      "itemType": "course",
+      "itemId": "CS 3214",
+      "name": "CS 3214: Computer Systems",
+      "whenText": "Offered Fall/Spring",
+      "closesGaps": ["System Design"]
+    },
+    {
+      "itemType": "course",
+      "itemId": "CS 4604",
+      "name": "CS 4604: Introduction to Database Management Systems",
+      "whenText": "Offered Fall/Spring/Summer",
+      "closesGaps": ["System Design"]
+    },
+    {
+      "itemType": "course",
+      "itemId": "BIT 4454",
+      "name": "BIT 4454: Cloud Computing for Business",
+      "whenText": "Offered Fall/Spring/Summer",
+      "closesGaps": ["Cloud (AWS/Azure/GCP)"]
+    }
+  ]
+}

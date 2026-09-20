@@ -1,0 +1,264 @@
+// src/lib/dashboard.ts : assemble a dashboard tab from Unity Catalog (spec F4, 9.1).
+import "server-only";
+import { settle } from "@/lib/settle";
+import { careerPaths, pathById, pathSkills } from "@/lib/catalog";
+import { ucFn } from "@/lib/databricks/functions";
+import { sql, T } from "@/lib/databricks/sql";
+import { missingSkills, readiness, scoreEvent } from "@/lib/scoring";
+import type {
+  ClubItem,
+  DashboardPayload,
+  EventItem,
+  RoadmapItem,
+  SkillGap,
+  SkillProfile,
+} from "@/lib/types";
+
+// Raw shapes returned by the UC Functions (verified against the live warehouse).
+export interface EventRow {
+  event_id: string;
+  title: string;
+  event_type: string;
+  start_ts: string;
+  location: string | null;
+  host_name: string | null;
+  company_name: string | null;
+  path_names: string[] | null;
+  related_skills: string[] | null;
+}
+interface VisitRow {
+  company_name: string;
+  industry: string | null;
+  visit_date: string;
+  visit_type: string;
+  event_id: string;
+  roles_recruiting: string[] | null;
+  vt_alumni_attending: boolean;
+  on_campus_interviews: boolean;
+}
+interface OpportunityRow {
+  opportunity_id: string;
+  title: string;
+  opportunity_type: string;
+  company_name: string;
+  path_name: string | null;
+  required_skills: string[] | null;
+  class_years: string[] | null;
+  location: string | null;
+  deadline: string | null;
+}
+interface RoadmapRow {
+  item_type: string;
+  item_id: string | null;
+  name: string;
+  when_text: string | null;
+  closes_gaps: string[] | null;
+}
+interface GapRow {
+  skill_name: string;
+  importance: number;
+  has_skill: boolean;
+}
+export interface ClubRow {
+  club_id: string;
+  club_name: string;
+  category: string;
+  meeting_day: string | null;
+  meeting_time: string | null;
+  skills_developed: string[] | null;
+  description: string | null;
+  gobblerconnect_url: string | null;
+  application_required: boolean;
+}
+
+export const toEvent = (row: EventRow): EventItem => ({
+  id: row.event_id,
+  title: row.title,
+  type: row.event_type,
+  start: row.start_ts,
+  location: row.location ?? "TBA",
+  host: row.host_name ?? row.company_name ?? "Virginia Tech",
+  companyName: row.company_name ?? undefined,
+  pathNames: row.path_names ?? [],
+  skills: row.related_skills ?? [],
+  isVirtual: (row.location ?? "").toLowerCase().includes("virtual"),
+});
+
+export interface DashboardOptions {
+  profile: SkillProfile;
+  /** "for-you" uses the primary goal; a CPxx id renders that goal's tab. */
+  tab: string;
+  days: number;
+}
+
+/**
+ * Fan out to the UC Functions in parallel, score results server-side, and shape one tab.
+ * A failed section degrades to empty with an entry in `errors`, so one dead tool cannot
+ * take down the page (spec 14.3).
+ */
+export async function buildDashboard({
+  profile,
+  tab,
+  days,
+}: DashboardOptions): Promise<DashboardPayload> {
+  const pathId = tab === "for-you" ? profile.primaryGoal : tab;
+  const path = pathId ? await pathById(pathId) : undefined;
+  const pathName = path?.path_name ?? null;
+  const studentSkills = profile.skills.map((s) => s.name).join(", ");
+
+  const [eventsRes, visitsRes, oppsRes, roadmapRes, clubsRes, gapsRes] = await Promise.all([
+    settle(
+      "events",
+      ucFn<EventRow>("find_events", { target_path: pathName ?? "", major: "", days_ahead: days }),
+      [] as EventRow[],
+    ),
+    settle(
+      "visits",
+      ucFn<VisitRow>("companies_visiting", { target_path: pathName ?? "", days_ahead: 45 }),
+      [] as VisitRow[],
+    ),
+    settle(
+      "opportunities",
+      ucFn<OpportunityRow>("find_opportunities", { target_path: pathName ?? "", opp_type: "" }),
+      [] as OpportunityRow[],
+    ),
+    settle(
+      "roadmap",
+      ucFn<RoadmapRow>("build_gap_roadmap", {
+        target_path: pathName ?? "",
+        student_skills: studentSkills,
+        days_ahead: 90,
+      }),
+      [] as RoadmapRow[],
+    ),
+    settle("clubs", clubsForPath(pathId), [] as ClubRow[]),
+    settle(
+      "gaps",
+      pathName
+        ? ucFn<GapRow>("get_skill_gap", { target_path: pathName, student_skills: studentSkills })
+        : Promise.resolve([] as GapRow[]),
+      [] as GapRow[],
+    ),
+  ]);
+
+  const errors = [eventsRes, visitsRes, oppsRes, roadmapRes, clubsRes, gapsRes]
+    .map((r) => r.error)
+    .filter((e): e is string => Boolean(e));
+
+  const requirements = pathId ? (await pathSkills()).filter((r) => r.path_id === pathId) : [];
+  const missing = missingSkills(profile.skills, requirements);
+  const families = await pathFamilies();
+
+  const companyRecruitsForGoal = new Set(visitsRes.value.map((v) => v.company_name));
+
+  const events = eventsRes.value
+    .map(toEvent)
+    .map((event) => {
+      const { score, why } = scoreEvent({
+        event,
+        missing,
+        goalPathName: pathName,
+        goalFamily: path?.career_family ?? null,
+        eventFamilies: event.pathNames.map((p) => families.get(p) ?? "").filter(Boolean),
+        majorCode: profile.majorCode,
+        eventMajors: ["ALL"], // find_events already filters by major when one is supplied
+        companyRecruitsForGoal: event.companyName
+          ? companyRecruitsForGoal.has(event.companyName)
+          : false,
+      });
+      return { ...event, score, why };
+    })
+    .sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+
+  const gaps: SkillGap[] = gapsRes.value.map((g) => ({
+    skillName: g.skill_name,
+    importance: g.importance,
+    hasSkill: g.has_skill,
+  }));
+
+  const score = readiness(profile.skills, requirements);
+
+  return {
+    tab,
+    goal: { pathId: pathId ?? null, pathName, medianSalary: path?.median_salary_usd_mock ?? null },
+    readiness: {
+      pathId: pathId ?? null,
+      pathName,
+      score,
+      topGaps: missing.slice(0, 3).map((m) => m.skill_name),
+    },
+    gaps,
+    events,
+    visits: visitsRes.value.map((v) => ({
+      id: v.event_id,
+      companyName: v.company_name,
+      industry: v.industry ?? "",
+      visitDate: v.visit_date,
+      visitType: v.visit_type,
+      rolesRecruiting: v.roles_recruiting ?? [],
+      alumniAttending: v.vt_alumni_attending,
+      onCampusInterviews: v.on_campus_interviews,
+      matchesGoal: pathName ? (v.roles_recruiting ?? []).includes(pathName) : false,
+    })),
+    clubs: clubsRes.value.map(toClub),
+    opportunities: oppsRes.value.map((o) => ({
+      id: o.opportunity_id,
+      title: o.title,
+      type: o.opportunity_type,
+      companyName: o.company_name,
+      pathName: o.path_name,
+      requiredSkills: o.required_skills ?? [],
+      classYears: o.class_years ?? [],
+      location: o.location,
+      deadline: o.deadline,
+    })),
+    roadmapPreview: roadmapRes.value.map(toRoadmapItem),
+    ...(errors.length > 0 ? { errors } : {}),
+  };
+}
+
+export const toRoadmapItem = (row: RoadmapRow): RoadmapItem => ({
+  itemType: (row.item_type as RoadmapItem["itemType"]) ?? "action",
+  itemId: row.item_id,
+  name: row.name,
+  whenText: row.when_text,
+  closesGaps: row.closes_gaps ?? [],
+});
+
+export const toClub = (row: ClubRow): ClubItem => ({
+  id: row.club_id,
+  name: row.club_name,
+  category: row.category,
+  meetingDay: row.meeting_day,
+  meetingTime: row.meeting_time,
+  skills: row.skills_developed ?? [],
+  description: row.description,
+  url: row.gobblerconnect_url,
+  applicationRequired: row.application_required,
+});
+
+/** clubs.career_paths holds path_ids (CP04), unlike events which carry path names. */
+async function clubsForPath(pathId: string | null): Promise<ClubRow[]> {
+  if (!pathId) {
+    return sql<ClubRow>(
+      `SELECT club_id, club_name, category, meeting_day, meeting_time, skills_developed,
+              description, gobblerconnect_url, application_required
+         FROM ${T("clubs")} ORDER BY members_mock DESC LIMIT 6`,
+    );
+  }
+  return sql<ClubRow>(
+    `SELECT club_id, club_name, category, meeting_day, meeting_time, skills_developed,
+            description, gobblerconnect_url, application_required
+       FROM ${T("clubs")}
+      WHERE array_contains(career_paths, :pid)
+      ORDER BY members_mock DESC
+      LIMIT 6`,
+    { pid: pathId },
+  );
+}
+
+/** path_name -> career_family, used for the "same family" partial credit in EVENT_SCORE. */
+async function pathFamilies(): Promise<Map<string, string>> {
+  const paths = await careerPaths();
+  return new Map(paths.map((p) => [p.path_name, p.career_family]));
+}
