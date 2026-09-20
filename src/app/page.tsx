@@ -79,14 +79,20 @@ export default async function Landing() {
             original: this is the largest element above the fold, so it is what Largest Contentful
             Paint measures. `priority` preloads it instead of waiting for the lazy-load observer,
             and the explicit dimensions reserve the box so nothing below it shifts when it lands.
+            `unoptimized`: the file is already hand-sized, and re-encoding it through next/image's
+            optimizer (no `sharp` in this project, so it falls back to the WASM codec path) flattens
+            its transparent background to a grey/white matte instead of the page background.
+            No `card-elevated` here on purpose: the art is meant to float directly on the page
+            background, not sit inside a bordered/shadowed card.
           */}
-          <div className="card-elevated relative aspect-[3/2] overflow-hidden">
+          <div className="relative aspect-[3/2] overflow-hidden">
             <Image
               src="/hero-resumes.webp"
               alt="The Virginia Tech HokieBird tossing out resumes to Google, Microsoft, Amazon, Apple, Meta, NVIDIA and Virginia Tech."
               width={1400}
               height={933}
               priority
+              unoptimized
               sizes="(min-width: 1024px) 45vw, 100vw"
               className="size-full object-cover"
             />
