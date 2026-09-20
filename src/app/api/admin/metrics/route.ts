@@ -4,6 +4,7 @@
 import { NextResponse } from "next/server";
 import { apiError, requireUser } from "@/lib/api";
 import { sql, T } from "@/lib/databricks/sql";
+import { withTiming } from "@/lib/timing";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -45,6 +46,14 @@ export async function GET() {
   if (!auth.ok) return auth.response;
   if (!auth.user.isAdmin) return apiError("forbidden", "Admin access required.");
 
+  const { result, serverTiming } = await withTiming("/api/admin/metrics", handle, {
+    userId: auth.user.userId,
+  });
+  result.headers.set("Server-Timing", serverTiming);
+  return result;
+}
+
+async function handle() {
   try {
     const [studentCounts, supplyDemand, attendance, gaps] = await Promise.all([
       sql<StudentCounts>(

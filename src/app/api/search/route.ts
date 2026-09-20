@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { apiError, parseQuery, requireUser } from "@/lib/api";
 import { search } from "@/lib/search";
+import { withTiming } from "@/lib/timing";
 
 export const runtime = "nodejs";
 
@@ -25,15 +26,23 @@ export async function GET(req: Request) {
   if (!parsed.ok) return parsed.response;
   const { q, types } = parsed.data;
 
-  try {
-    const result = await search(q, {
-      events: types.includes("events"),
-      opportunities: types.includes("opportunities"),
-      clubs: types.includes("clubs"),
-    });
-    return NextResponse.json(result);
-  } catch (err) {
-    console.error("[search] query failed", err);
-    return apiError("upstream_error", "Search is unavailable right now. Try again in a moment.");
-  }
+  const { result, serverTiming } = await withTiming(
+    "/api/search",
+    async () => {
+      try {
+        const found = await search(q, {
+          events: types.includes("events"),
+          opportunities: types.includes("opportunities"),
+          clubs: types.includes("clubs"),
+        });
+        return NextResponse.json(found);
+      } catch (err) {
+        console.error("[search] query failed", err);
+        return apiError("upstream_error", "Search is unavailable right now. Try again in a moment.");
+      }
+    },
+    { userId: auth.user.userId, q },
+  );
+  result.headers.set("Server-Timing", serverTiming);
+  return result;
 }

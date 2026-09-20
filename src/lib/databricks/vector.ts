@@ -5,6 +5,7 @@
 import "server-only";
 import { dbx } from "./sql";
 import { env } from "@/lib/env";
+import { timed } from "@/lib/timing";
 
 interface VectorSearchResponse {
   manifest?: { columns?: { name: string }[] };
@@ -29,12 +30,11 @@ export async function vsQuery<T = Record<string, unknown>>(
   columns: string[],
   k = 8,
 ): Promise<T[]> {
-  const res = await dbx<VectorSearchResponse>(
-    `/api/2.0/vector-search/indexes/${encodeURIComponent(index)}/query`,
-    {
+  const res = await timed(`vector:${index.split(".").pop()}`, () =>
+    dbx<VectorSearchResponse>(`/api/2.0/vector-search/indexes/${encodeURIComponent(index)}/query`, {
       method: "POST",
       body: JSON.stringify({ query_text: query, columns, num_results: k, query_type: "ANN" }),
-    },
+    }),
   );
   const names = (res.manifest?.columns ?? []).map((c) => c.name);
   return (res.result?.data_array ?? []).map(

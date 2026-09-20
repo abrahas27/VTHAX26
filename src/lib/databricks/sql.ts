@@ -1,6 +1,7 @@
 // src/lib/databricks/sql.ts : parameterized SQL over the Statement Execution API (spec 11.3).
 import "server-only";
 import { env } from "@/lib/env";
+import { sqlLabel, timed } from "@/lib/timing";
 
 export type SqlValue = string | number | boolean | null;
 
@@ -99,6 +100,14 @@ export async function sql<T = Record<string, unknown>>(
   statement: string,
   params: Record<string, SqlValue> = {},
   opts: { timeoutMs?: number } = {},
+): Promise<T[]> {
+  return timed(sqlLabel("sql", statement), () => sqlUntimed<T>(statement, params, opts));
+}
+
+async function sqlUntimed<T>(
+  statement: string,
+  params: Record<string, SqlValue>,
+  opts: { timeoutMs?: number },
 ): Promise<T[]> {
   const deadline = Date.now() + (opts.timeoutMs ?? 60_000);
   let res = await dbx<StatementResponse>("/api/2.0/sql/statements", {

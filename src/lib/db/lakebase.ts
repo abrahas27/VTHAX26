@@ -2,6 +2,7 @@
 import "server-only";
 import { Pool, type QueryResultRow } from "pg";
 import { env, requireEnv } from "@/lib/env";
+import { sqlLabel, timed } from "@/lib/timing";
 
 /** True once the human has finished spec 11.8; routes can degrade instead of throwing. */
 export const lakebaseConfigured = () =>
@@ -41,15 +42,17 @@ async function lakebasePassword(): Promise<string> {
   if (cachedToken && cachedToken.exp - Date.now() > 5 * 60_000) return cachedToken.token;
 
   const { LAKEBASE_ENDPOINT } = requireEnv(["LAKEBASE_ENDPOINT"], "Lakebase OAuth credentials");
-  const res = await fetch(`${env.DATABRICKS_HOST}/api/2.0/postgres/credentials`, {
-    method: "POST",
-    cache: "no-store",
-    headers: {
-      Authorization: `Bearer ${env.DATABRICKS_TOKEN}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ endpoint: normalizeEndpoint(LAKEBASE_ENDPOINT) }),
-  });
+  const res = await timed("lakebase:credential", () =>
+    fetch(`${env.DATABRICKS_HOST}/api/2.0/postgres/credentials`, {
+      method: "POST",
+      cache: "no-store",
+      headers: {
+        Authorization: `Bearer ${env.DATABRICKS_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ endpoint: normalizeEndpoint(LAKEBASE_ENDPOINT) }),
+    }),
+  );
   if (!res.ok) {
     throw new Error(`Lakebase credential request failed (${res.status}): ${await res.text()}`);
   }
@@ -96,14 +99,16 @@ export async function q<T extends QueryResultRow = QueryResultRow>(
   text: string,
   values: unknown[] = [],
 ): Promise<T[]> {
-  const client = await pool().connect();
-  try {
-    await client.query("SET search_path TO app, public");
-    const res = await client.query<T>(text, values);
-    return res.rows;
-  } finally {
-    client.release();
-  }
+  return timed(sqlLabel("pg", text), async () => {
+    const client = await pool().connect();
+    try {
+      await client.query("SET search_path TO app, public");
+      const res = await client.query<T>(text, values);
+      return res.rows;
+    } finally {
+      client.release();
+    }
+  });
 }
 
 export async function lakebaseReachable(): Promise<boolean> {

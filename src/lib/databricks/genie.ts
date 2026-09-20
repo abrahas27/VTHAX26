@@ -4,6 +4,7 @@
 import "server-only";
 import { dbx } from "./sql";
 import { requireEnv } from "@/lib/env";
+import { timed } from "@/lib/timing";
 
 const base = () => {
   const { DATABRICKS_GENIE_SPACE_ID } = requireEnv(
@@ -52,15 +53,17 @@ const TERMINAL_STATUSES = new Set(["COMPLETED", "FAILED", "CANCELLED", "ERROR"])
  * result table for any query attachment (spec 11.10).
  */
 export async function askGenie(question: string, conversationId?: string): Promise<GenieAnswer> {
-  const start = conversationId
-    ? await dbx<GenieStart>(`${base()}/conversations/${conversationId}/messages`, {
-        method: "POST",
-        body: JSON.stringify({ content: question }),
-      })
-    : await dbx<GenieStart>(`${base()}/start-conversation`, {
-        method: "POST",
-        body: JSON.stringify({ content: question }),
-      });
+  const start = await timed("genie:start", () =>
+    conversationId
+      ? dbx<GenieStart>(`${base()}/conversations/${conversationId}/messages`, {
+          method: "POST",
+          body: JSON.stringify({ content: question }),
+        })
+      : dbx<GenieStart>(`${base()}/start-conversation`, {
+          method: "POST",
+          body: JSON.stringify({ content: question }),
+        }),
+  );
 
   const convId = start.conversation_id ?? start.conversation?.id ?? conversationId;
   const msgId = start.message_id ?? start.message?.id ?? start.id;
@@ -69,12 +72,15 @@ export async function askGenie(question: string, conversationId?: string): Promi
     throw new Error("Genie did not return a conversation to poll.");
   }
 
-  let msg: GenieMessage = {};
-  for (let i = 0; i < 30; i++) {
-    msg = await dbx<GenieMessage>(`${base()}/conversations/${convId}/messages/${msgId}`);
-    if (msg.status && TERMINAL_STATUSES.has(msg.status)) break;
-    await new Promise((r) => setTimeout(r, 1000));
-  }
+  const msg = await timed("genie:poll", async () => {
+    let m: GenieMessage = {};
+    for (let i = 0; i < 30; i++) {
+      m = await dbx<GenieMessage>(`${base()}/conversations/${convId}/messages/${msgId}`);
+      if (m.status && TERMINAL_STATUSES.has(m.status)) break;
+      await new Promise((r) => setTimeout(r, 1000));
+    }
+    return m;
+  });
   if (msg.status !== "COMPLETED") {
     console.error("[genie] message did not complete", msg);
   }
@@ -86,8 +92,10 @@ export async function askGenie(question: string, conversationId?: string): Promi
   let rows: unknown[][] = [];
   if (qa?.attachment_id) {
     try {
-      const result = await dbx<GenieQueryResult>(
-        `${base()}/conversations/${convId}/messages/${msgId}/attachments/${qa.attachment_id}/query-result`,
+      const result = await timed("genie:query-result", () =>
+        dbx<GenieQueryResult>(
+          `${base()}/conversations/${convId}/messages/${msgId}/attachments/${qa.attachment_id}/query-result`,
+        ),
       );
       columns = (result.statement_response?.manifest?.schema?.columns ?? []).map((c) => c.name);
       rows = result.statement_response?.result?.data_array ?? [];

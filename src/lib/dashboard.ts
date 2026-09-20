@@ -127,46 +127,50 @@ export async function buildDashboard({
   const pathName = path?.path_name ?? null;
   const studentSkills = profile.skills.map((s) => s.name).join(", ");
 
-  const [eventsRes, visitsRes, oppsRes, roadmapRes, clubsRes, gapsRes] = await Promise.all([
-    settle(
-      "events",
-      ucFn<EventRow>("find_events", { target_path: pathName ?? "", major: "", days_ahead: days }),
-      [] as EventRow[],
-    ),
-    settle(
-      "visits",
-      ucFn<VisitRow>("companies_visiting", { target_path: pathName ?? "", days_ahead: 45 }),
-      [] as VisitRow[],
-    ),
-    settle(
-      "opportunities",
-      ucFn<OpportunityRow>("find_opportunities", { target_path: pathName ?? "", opp_type: "" }),
-      [] as OpportunityRow[],
-    ),
-    settle(
-      "roadmap",
-      ucFn<RoadmapRow>("build_gap_roadmap", {
-        target_path: pathName ?? "",
-        student_skills: studentSkills,
-        days_ahead: 90,
-      }),
-      [] as RoadmapRow[],
-    ),
-    settle("clubs", clubsForPath(pathId), [] as ClubRow[]),
-    settle(
-      "gaps",
-      pathName
-        ? ucFn<GapRow>("get_skill_gap", { target_path: pathName, student_skills: studentSkills })
-        : Promise.resolve([] as GapRow[]),
-      [] as GapRow[],
-    ),
-  ]);
+  // path_skills doesn't depend on any of the six UC calls below (or vice versa) -- fetch it
+  // alongside them instead of after, so a cold catalog cache doesn't add its latency on top.
+  const [eventsRes, visitsRes, oppsRes, roadmapRes, clubsRes, gapsRes, allPathSkills] =
+    await Promise.all([
+      settle(
+        "events",
+        ucFn<EventRow>("find_events", { target_path: pathName ?? "", major: "", days_ahead: days }),
+        [] as EventRow[],
+      ),
+      settle(
+        "visits",
+        ucFn<VisitRow>("companies_visiting", { target_path: pathName ?? "", days_ahead: 45 }),
+        [] as VisitRow[],
+      ),
+      settle(
+        "opportunities",
+        ucFn<OpportunityRow>("find_opportunities", { target_path: pathName ?? "", opp_type: "" }),
+        [] as OpportunityRow[],
+      ),
+      settle(
+        "roadmap",
+        ucFn<RoadmapRow>("build_gap_roadmap", {
+          target_path: pathName ?? "",
+          student_skills: studentSkills,
+          days_ahead: 90,
+        }),
+        [] as RoadmapRow[],
+      ),
+      settle("clubs", clubsForPath(pathId), [] as ClubRow[]),
+      settle(
+        "gaps",
+        pathName
+          ? ucFn<GapRow>("get_skill_gap", { target_path: pathName, student_skills: studentSkills })
+          : Promise.resolve([] as GapRow[]),
+        [] as GapRow[],
+      ),
+      pathSkills(),
+    ]);
 
   const errors = [eventsRes, visitsRes, oppsRes, roadmapRes, clubsRes, gapsRes]
     .map((r) => r.error)
     .filter((e): e is string => Boolean(e));
 
-  const requirements = pathId ? (await pathSkills()).filter((r) => r.path_id === pathId) : [];
+  const requirements = pathId ? allPathSkills.filter((r) => r.path_id === pathId) : [];
   const missing = missingSkills(profile.skills, requirements);
   const families = await pathFamilies();
 

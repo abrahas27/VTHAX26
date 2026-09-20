@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { apiError, parseBody, requireUser } from "@/lib/api";
 import { askGenie, genieConfigured } from "@/lib/databricks/genie";
+import { withTiming } from "@/lib/timing";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -26,11 +27,19 @@ export async function POST(req: Request) {
   const body = await parseBody(req, BodySchema);
   if (!body.ok) return body.response;
 
-  try {
-    const answer = await askGenie(body.data.question, body.data.conversationId);
-    return NextResponse.json(answer);
-  } catch (err) {
-    console.error("[admin/genie] failed", err);
-    return apiError("upstream_error", "Genie could not answer that right now. Try again.");
-  }
+  const { result, serverTiming } = await withTiming(
+    "/api/admin/genie",
+    async () => {
+      try {
+        const answer = await askGenie(body.data.question, body.data.conversationId);
+        return NextResponse.json(answer);
+      } catch (err) {
+        console.error("[admin/genie] failed", err);
+        return apiError("upstream_error", "Genie could not answer that right now. Try again.");
+      }
+    },
+    { userId: auth.user.userId },
+  );
+  result.headers.set("Server-Timing", serverTiming);
+  return result;
 }

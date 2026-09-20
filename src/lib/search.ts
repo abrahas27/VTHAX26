@@ -26,6 +26,11 @@ const EVENT_COLUMNS = [
   "path_names",
   "related_skills",
 ];
+// `deadline_estimated` and `apply_url` are on gold_opportunity_search_docs in
+// 01_setup_hokiepath_lakehouse.py's current source, but that table hasn't been rebuilt against
+// the live workspace since (confirmed live 2026-09-20 via DESCRIBE TABLE) -- selecting them here
+// would 400 the Vector Search query and fail the ILIKE fallback with UNRESOLVED_COLUMN. Add them
+// back once 01_setup's gold-table section has actually been rerun.
 const OPPORTUNITY_COLUMNS = [
   "opportunity_id",
   "title",
@@ -36,8 +41,6 @@ const OPPORTUNITY_COLUMNS = [
   "class_years",
   "location",
   "deadline",
-  "deadline_estimated",
-  "apply_url",
 ];
 
 // Common words that add noise to a match-count ranking without narrowing the result at all.

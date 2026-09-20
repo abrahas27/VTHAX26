@@ -4,6 +4,7 @@ import { generateObject } from "ai";
 import { z } from "zod";
 import { chatModel } from "@/lib/databricks/llm";
 import { normalizeSkills, type RawSkill } from "@/lib/skills-normalize";
+import { timed } from "@/lib/timing";
 import type { ClassYear, ProfileSkill, Skill } from "@/lib/types";
 
 export const MAX_RESUME_BYTES = 5 * 1024 * 1024; // 5 MB (F2)
@@ -134,30 +135,34 @@ export async function parseResume(
   // The retry asks for less content rather than repeating the same request.
   let extracted: ExtractedResume;
   try {
-    ({ object: extracted } = await generateObject({
-      model: chatModel(),
-      schema: ExtractedResumeSchema,
-      prompt,
-      temperature: 0,
-      maxOutputTokens: 8000,
-    }));
+    ({ object: extracted } = await timed("llm:resume-extract", () =>
+      generateObject({
+        model: chatModel(),
+        schema: ExtractedResumeSchema,
+        prompt,
+        temperature: 0,
+        maxOutputTokens: 8000,
+      }),
+    ));
   } catch (err) {
     console.error(
       `[resume] extraction failed (chars=${resumeText.length}), retrying with a trimmed request`,
       describeError(err),
     );
     try {
-      ({ object: extracted } = await generateObject({
-        model: chatModel(),
-        schema: ExtractedResumeSchema,
-        prompt: `${prompt}
+      ({ object: extracted } = await timed("llm:resume-extract-retry", () =>
+        generateObject({
+          model: chatModel(),
+          schema: ExtractedResumeSchema,
+          prompt: `${prompt}
 
 Keep the output small: at most 6 experiences with at most 2 short bullets each, at most 4 projects,
 and at most 25 skills. Return valid JSON for every required field, using null or [] when the resume
 does not say.`,
-        temperature: 0,
-        maxOutputTokens: 8000,
-      }));
+          temperature: 0,
+          maxOutputTokens: 8000,
+        }),
+      ));
     } catch (retryErr) {
       // Surface enough detail to debug from a server log without ever logging resume content.
       console.error(

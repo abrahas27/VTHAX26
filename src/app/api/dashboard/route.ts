@@ -5,6 +5,7 @@ import { apiError, parseQuery, requireUser } from "@/lib/api";
 import { buildDashboard } from "@/lib/dashboard";
 import { getProfile } from "@/lib/db/queries";
 import { demoDashboard, isDemoMode } from "@/lib/demo";
+import { withTiming } from "@/lib/timing";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -29,16 +30,24 @@ export async function GET(req: Request) {
   const auth = await requireUser();
   if (!auth.ok) return auth.response;
 
-  const profile = await getProfile(auth.user.userId);
-  if (!profile) return apiError("profile_required", "Finish onboarding to see your dashboard.");
+  const { result, serverTiming } = await withTiming(
+    "/api/dashboard",
+    async () => {
+      const profile = await getProfile(auth.user.userId);
+      if (!profile) return apiError("profile_required", "Finish onboarding to see your dashboard.");
 
-  try {
-    const payload = await buildDashboard({ profile, ...query.data });
-    return NextResponse.json(payload);
-  } catch (err) {
-    console.error("[dashboard] failed", err);
-    const demo = await demoDashboard(query.data.tab);
-    if (demo) return NextResponse.json({ ...demo, demoMode: true });
-    return apiError("upstream_error", "Could not load your dashboard from Databricks.");
-  }
+      try {
+        const payload = await buildDashboard({ profile, ...query.data });
+        return NextResponse.json(payload);
+      } catch (err) {
+        console.error("[dashboard] failed", err);
+        const demo = await demoDashboard(query.data.tab);
+        if (demo) return NextResponse.json({ ...demo, demoMode: true });
+        return apiError("upstream_error", "Could not load your dashboard from Databricks.");
+      }
+    },
+    { userId: auth.user.userId, tab: query.data.tab },
+  );
+  result.headers.set("Server-Timing", serverTiming);
+  return result;
 }

@@ -10,6 +10,7 @@ import { systemPrompt } from "@/lib/agent/system-prompt";
 import { buildTools, type ToolContext } from "@/lib/agent/tools";
 import type { DashboardSpec } from "@/lib/agent/dashboard-spec";
 import { ensureChatSession, getProfile, logAgentTurn, saveChatMessage } from "@/lib/db/queries";
+import { withTiming } from "@/lib/timing";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -42,20 +43,28 @@ export async function POST(req: Request) {
   const body = await parseBody(req, BodySchema);
   if (!body.ok) return body.response;
 
-  const profile = await getProfile(auth.user.userId);
-  if (!profile) return apiError("profile_required", "Finish onboarding before using the chat.");
-
   const messages = body.data.messages as UIMessage[];
   const question = sanitizeUserMessage(lastUserText(messages));
   if (!question) return apiError("bad_request", "Ask a question first.");
 
-  const sessionId = await ensureChatSession(auth.user.userId, body.data.sessionId);
-  const paths = await careerPaths();
+  const startedAt = Date.now();
+  // Independent reads (Lakebase profile, Lakebase session, Databricks catalog) -- no reason to
+  // await them one at a time before the model call can even start.
+  const { result: setup, serverTiming: setupTiming } = await withTiming("/api/chat:setup", () =>
+    Promise.all([
+      getProfile(auth.user.userId),
+      ensureChatSession(auth.user.userId, body.data.sessionId),
+      careerPaths(),
+    ]),
+  );
+  const [profile, sessionId, paths] = setup;
+  if (!profile) return apiError("profile_required", "Finish onboarding before using the chat.");
   const pathNames = Object.fromEntries(paths.map((p) => [p.path_id, p.path_name]));
+  console.log(JSON.stringify({ route: "/api/chat", event: "setup", serverTiming: setupTiming }));
 
   const modelMessages = await convertToModelMessages(messages);
   const ctx: ToolContext = { profile, seenIds: new Set(), renderedTabs: [] };
-  const startedAt = Date.now();
+  let ttfbLogged = false;
 
   const result = streamText({
     model: chatModel(),
@@ -66,9 +75,29 @@ export async function POST(req: Request) {
     temperature: 0.3,
     maxOutputTokens: 1500,
     onError: ({ error }) => console.error("[chat] stream error", error),
+    // A streaming response's headers go out before generation finishes, so this can't carry a
+    // Server-Timing header the way the JSON routes do -- structured logs are the measurement here.
+    // Only a text-delta is a token the student actually sees; a tool-call/step-start chunk can
+    // arrive almost instantly and would understate this if counted (spec 6.4: first token < 3s).
+    onChunk: ({ chunk }) => {
+      if (ttfbLogged || chunk.type !== "text-delta") return;
+      ttfbLogged = true;
+      console.log(
+        JSON.stringify({ route: "/api/chat", event: "ttfb", ms: Date.now() - startedAt }),
+      );
+    },
     onFinish: async ({ text, steps }) => {
       const toolCalls = steps.flatMap((step) =>
         step.toolCalls.map((call) => ({ name: call.toolName, input: call.input })),
+      );
+      console.log(
+        JSON.stringify({
+          route: "/api/chat",
+          event: "total",
+          ms: Date.now() - startedAt,
+          steps: steps.length,
+          toolCalls: toolCalls.length,
+        }),
       );
       // Spec 10.8: strip any [ID] that no tool returned this turn, then persist what the student saw.
       const guarded = applyOutputGuard(text, ctx.seenIds);

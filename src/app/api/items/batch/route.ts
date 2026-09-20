@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { parseBody, requireUser, settle } from "@/lib/api";
 import { sql, T } from "@/lib/databricks/sql";
+import { withTiming } from "@/lib/timing";
 import {
   toClub,
   toEvent,
@@ -40,6 +41,22 @@ export async function POST(req: Request) {
   if (!body.ok) return body.response;
   const { events, clubs, companies, opportunities, courses } = body.data;
 
+  const { result, serverTiming } = await withTiming(
+    "/api/items/batch",
+    () => hydrateItems({ events, clubs, companies, opportunities, courses }),
+    { userId: auth.user.userId },
+  );
+  result.headers.set("Server-Timing", serverTiming);
+  return result;
+}
+
+async function hydrateItems({
+  events,
+  clubs,
+  companies,
+  opportunities,
+  courses,
+}: z.infer<typeof BodySchema>) {
   const [eventRows, clubRows, companyRows, oppRows, courseRows] = await Promise.all([
     settle(
       "events",
@@ -87,10 +104,12 @@ export async function POST(req: Request) {
       "opportunities",
       opportunities?.length
         ? // The table stores path_id; the drawer shows the readable path name.
+          // `opportunities.deadline_estimated` is in 01_setup's current source but that table
+          // hasn't been rebuilt against the live workspace since (confirmed live 2026-09-20);
+          // add it back once it has. apply_url is already live.
           sql<OpportunityRow>(
             `SELECT o.opportunity_id, o.title, o.opportunity_type, o.company_name, p.path_name,
-                    o.required_skills, o.class_years, o.location, o.deadline,
-                    o.deadline_estimated, o.apply_url
+                    o.required_skills, o.class_years, o.location, o.deadline, o.apply_url
                FROM ${T("opportunities")} o
                LEFT JOIN ${T("career_paths")} p ON p.path_id = o.path_id
               WHERE o.opportunity_id IN (SELECT explode(from_json(:ids, 'array<string>')))`,
