@@ -3,9 +3,13 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { apiError, parseBody, requireUser } from "@/lib/api";
 import { pathNameFor } from "@/lib/catalog";
+import { invalidateDashboard } from "@/lib/dashboard-cache";
 import { getProfile, saveProfile } from "@/lib/db/queries";
 
 export const runtime = "nodejs";
+// Lakebase and the Databricks workspace both live in AWS us-east-2; iad1 is the closest Vercel
+// region, so the round trips this route makes are as short as they can be (spec 6.4).
+export const preferredRegion = ["iad1"];
 
 const SkillSchema = z.object({
   name: z.string().min(1).max(120),
@@ -48,6 +52,8 @@ export async function PUT(req: Request) {
     ...body.data,
     primaryGoalName: body.data.primaryGoal ? await pathNameFor(body.data.primaryGoal) : null,
   });
+  // The goal or the skill list may have changed, so anything already built from them is stale.
+  invalidateDashboard(auth.user.userId);
   const profile = await getProfile(auth.user.userId);
   return NextResponse.json(profile);
 }

@@ -3,12 +3,16 @@ import { NextResponse } from "next/server";
 import { apiError, requireUser } from "@/lib/api";
 import { majors, skills } from "@/lib/catalog";
 import { llmConfigured } from "@/lib/databricks/llm";
+import { invalidateDashboard } from "@/lib/dashboard-cache";
 import { saveProfile } from "@/lib/db/queries";
 import { extractText, MAX_RESUME_BYTES, parseResume, ResumeError } from "@/lib/resume";
 import { timed, withTiming } from "@/lib/timing";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
+// Lakebase and the Databricks workspace both live in AWS us-east-2; iad1 is the closest Vercel
+// region, so the round trips this route makes are as short as they can be (spec 6.4).
+export const preferredRegion = ["iad1"];
 
 export async function POST(req: Request) {
   const auth = await requireUser();
@@ -46,6 +50,7 @@ export async function POST(req: Request) {
           resumeFileName: (file as File).name,
           resumeText: text.slice(0, 50_000),
         });
+        invalidateDashboard(auth.user.userId);
 
         return NextResponse.json({
           profileDraft: {

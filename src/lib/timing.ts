@@ -61,9 +61,7 @@ export async function withTiming<T>(
   const result = await als.run(ctx, handler);
   const totalMs = Math.round(performance.now() - ctx.start);
   const serverTiming = [
-    ...ctx.entries.map(
-      (e, i) => `${e.name.replace(HEADER_UNSAFE, "_")}_${i};dur=${e.ms}`,
-    ),
+    ...ctx.entries.map((e, i) => `${e.name.replace(HEADER_UNSAFE, "_")}_${i};dur=${e.ms}`),
     `total;dur=${totalMs}`,
   ].join(", ");
   console.log(JSON.stringify({ route, totalMs, steps: ctx.entries, ...extra }));

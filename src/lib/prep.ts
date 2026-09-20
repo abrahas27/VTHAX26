@@ -38,26 +38,61 @@ interface CompanyForPrep {
   hires_vt_students: boolean | null;
 }
 
-async function loadEvent(eventId: string): Promise<EventForPrep> {
-  const rows = await sql<EventForPrep>(
-    `SELECT event_id, title, event_type, start_ts, location, host_name, company_id, company_name,
-            industry, related_skills, description
-       FROM ${T("gold_events_enriched")} WHERE event_id = :id`,
+interface EventWithCompanyRow extends EventForPrep {
+  c_company_id: string | null;
+  c_company_name: string | null;
+  c_industry: string | null;
+  c_career_paths: string[] | null;
+  c_sponsors_visa: boolean | null;
+  c_hires_vt_students: boolean | null;
+}
+
+/**
+ * One statement, not two. Every Statement Execution API call costs ~600-900 ms of round trip
+ * regardless of how little it reads, and the company row is only ever needed for this event --
+ * so the join belongs in the warehouse rather than in two awaits here (spec 6.4).
+ */
+async function loadEventAndCompany(
+  eventId: string,
+): Promise<{ event: EventForPrep; company: CompanyForPrep | null }> {
+  const rows = await sql<EventWithCompanyRow>(
+    `SELECT e.event_id, e.title, e.event_type, e.start_ts, e.location, e.host_name, e.company_id,
+            e.company_name, e.industry, e.related_skills, e.description,
+            c.company_id AS c_company_id, c.company_name AS c_company_name,
+            c.industry AS c_industry, c.career_paths AS c_career_paths,
+            c.sponsors_visa AS c_sponsors_visa, c.hires_vt_students AS c_hires_vt_students
+       FROM ${T("gold_events_enriched")} e
+       LEFT JOIN ${T("companies")} c ON c.company_id = e.company_id
+      WHERE e.event_id = :id`,
     { id: eventId },
   );
   const row = rows[0];
   if (!row) throw new EventNotFoundError(eventId);
-  return row;
-}
 
-async function loadCompany(companyId: string | null): Promise<CompanyForPrep | null> {
-  if (!companyId) return null;
-  const rows = await sql<CompanyForPrep>(
-    `SELECT company_id, company_name, industry, career_paths, sponsors_visa, hires_vt_students
-       FROM ${T("companies")} WHERE company_id = :id`,
-    { id: companyId },
-  );
-  return rows[0] ?? null;
+  const {
+    c_company_id,
+    c_company_name,
+    c_industry,
+    c_career_paths,
+    c_sponsors_visa,
+    c_hires_vt_students,
+    ...event
+  } = row;
+
+  return {
+    event,
+    company:
+      c_company_id && c_company_name
+        ? {
+            company_id: c_company_id,
+            company_name: c_company_name,
+            industry: c_industry,
+            career_paths: c_career_paths,
+            sponsors_visa: c_sponsors_visa,
+            hires_vt_students: c_hires_vt_students,
+          }
+        : null,
+  };
 }
 
 export const EventPrepSchema = z.object({
@@ -92,8 +127,7 @@ export async function generateEventPrep(
   profile: SkillProfile,
   pathNames: Record<string, string>,
 ): Promise<EventPrep> {
-  const event = await loadEvent(eventId);
-  const company = await loadCompany(event.company_id);
+  const { event, company } = await loadEventAndCompany(eventId);
 
   const { object } = await generateObject({
     model: chatModel(),

@@ -14,6 +14,9 @@ import {
 } from "@/lib/dashboard";
 
 export const runtime = "nodejs";
+// Lakebase and the Databricks workspace both live in AWS us-east-2; iad1 is the closest Vercel
+// region, so the round trips this route makes are as short as they can be (spec 6.4).
+export const preferredRegion = ["iad1"];
 
 const ID_LIMIT = 60;
 const ids = () =>

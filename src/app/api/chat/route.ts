@@ -14,6 +14,9 @@ import { withTiming } from "@/lib/timing";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
+// Lakebase and the Databricks workspace both live in AWS us-east-2; iad1 is the closest Vercel
+// region, so the round trips this route makes are as short as they can be (spec 6.4).
+export const preferredRegion = ["iad1"];
 
 // The spec caps tool steps at 6; the loop needs one more step to write the answer, otherwise a
 // turn that uses its whole budget on tools streams an empty message (observed on every pivot run).

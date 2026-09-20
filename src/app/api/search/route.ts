@@ -6,6 +6,9 @@ import { search } from "@/lib/search";
 import { withTiming } from "@/lib/timing";
 
 export const runtime = "nodejs";
+// Lakebase and the Databricks workspace both live in AWS us-east-2; iad1 is the closest Vercel
+// region, so the round trips this route makes are as short as they can be (spec 6.4).
+export const preferredRegion = ["iad1"];
 
 const KINDS = ["events", "opportunities", "clubs"] as const;
 
@@ -38,7 +41,10 @@ export async function GET(req: Request) {
         return NextResponse.json(found);
       } catch (err) {
         console.error("[search] query failed", err);
-        return apiError("upstream_error", "Search is unavailable right now. Try again in a moment.");
+        return apiError(
+          "upstream_error",
+          "Search is unavailable right now. Try again in a moment.",
+        );
       }
     },
     { userId: auth.user.userId, q },

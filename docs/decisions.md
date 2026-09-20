@@ -221,7 +221,7 @@ Format: date, decision, why, consequences. Newest at the bottom.
 - **Decision:** `stable_opportunity_id`/`stableOpportunityId` now hash `f"{source}:{job_id}"` with
   MD5 (not Python's/JS's non-cryptographic default) and truncate to a 5-digit `OPX#####` id. The
   Databricks notebook writes via `MERGE INTO {fq}.opportunities ... WHEN MATCHED THEN UPDATE SET *
-  WHEN NOT MATCHED THEN INSERT *` instead of `append`.
+WHEN NOT MATCHED THEN INSERT *` instead of `append`.
 - **Why:** Python's built-in `hash()` is randomized per process (`PYTHONHASHSEED`), so the previous
   version minted a new id for the same posting on every notebook run and, under `append` writes,
   duplicated every previously-ingested opportunity on each scheduled re-run. MD5 (a stable,

@@ -4,13 +4,16 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { apiError, parseQuery, requireUser } from "@/lib/api";
-import { pathById } from "@/lib/catalog";
+import { careerPaths } from "@/lib/catalog";
 import { ucFn } from "@/lib/databricks/functions";
 import { toRoadmapItem, type RoadmapRow } from "@/lib/dashboard";
 import { getProfile, listRoadmapItems, syncRoadmapItems } from "@/lib/db/queries";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
+// Lakebase and the Databricks workspace both live in AWS us-east-2; iad1 is the closest Vercel
+// region, so the round trips this route makes are as short as they can be (spec 6.4).
+export const preferredRegion = ["iad1"];
 
 const QuerySchema = z.object({
   goal: z
@@ -26,11 +29,12 @@ export async function GET(req: Request) {
   const query = parseQuery(req.url, QuerySchema);
   if (!query.ok) return query.response;
 
-  const profile = await getProfile(auth.user.userId);
+  // Lakebase and the (usually cached) catalog are independent reads.
+  const [profile, paths] = await Promise.all([getProfile(auth.user.userId), careerPaths()]);
   if (!profile) return apiError("profile_required", "Finish onboarding to build a roadmap.");
 
   const pathId = query.data.goal ?? profile.primaryGoal;
-  const path = pathId ? await pathById(pathId) : undefined;
+  const path = pathId ? paths.find((p) => p.path_id === pathId) : undefined;
   if (!path) return apiError("bad_request", "Pick a career goal first.");
 
   const rows = await ucFn<RoadmapRow>("build_gap_roadmap", {

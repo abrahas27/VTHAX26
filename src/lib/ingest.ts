@@ -148,7 +148,14 @@ const BOARDS: Record<string, { source: "greenhouse" | "lever"; token: string }> 
   CO009: { source: "greenhouse", token: "bcg" }, // Boston Consulting Group
 };
 
-const INTERN_KEYWORDS = ["intern", "summer analyst", "new grad", "co-op", "university", "rotational"];
+const INTERN_KEYWORDS = [
+  "intern",
+  "summer analyst",
+  "new grad",
+  "co-op",
+  "university",
+  "rotational",
+];
 const INTERN_PATTERN = new RegExp(INTERN_KEYWORDS.join("|"), "i");
 
 // Same order as the Databricks-side `PATH_RULES`: most specific first, so e.g. "Mechanical

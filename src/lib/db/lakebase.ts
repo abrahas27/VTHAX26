@@ -85,9 +85,18 @@ export function pool(): Pool {
       user: cfg.LAKEBASE_USER,
       password: lakebasePassword, // node-postgres accepts an async password provider
       ssl: { rejectUnauthorized: true },
-      max: 3,
-      idleTimeoutMillis: 10_000,
+      max: 5,
+      // Lakebase is in us-east-2 and Vercel functions stay warm between requests, so holding a
+      // connection open for a few minutes turns the next request's ~250 ms TLS + auth handshake
+      // into nothing. Well under the server's own idle timeout.
+      idleTimeoutMillis: 5 * 60_000,
       connectionTimeoutMillis: 8_000,
+    });
+    // search_path belongs to the connection, not the query. Setting it once when a physical
+    // connection opens (pg queues it ahead of anything the caller sends on that client) saves a
+    // full round trip on every query but the first -- roughly 40-70 ms each, on every route.
+    cachedPool.on("connect", (client) => {
+      void client.query("SET search_path TO app, public");
     });
     cachedPool.on("error", (err) => console.error("[lakebase] idle client error", err));
   }
@@ -99,16 +108,18 @@ export async function q<T extends QueryResultRow = QueryResultRow>(
   text: string,
   values: unknown[] = [],
 ): Promise<T[]> {
-  return timed(sqlLabel("pg", text), async () => {
-    const client = await pool().connect();
-    try {
-      await client.query("SET search_path TO app, public");
-      const res = await client.query<T>(text, values);
-      return res.rows;
-    } finally {
-      client.release();
-    }
-  });
+  // pool.query checks a client out and releases it for us; search_path is already set by the
+  // pool's `connect` handler above, so this is one round trip rather than two.
+  return timed(sqlLabel("pg", text), async () => (await pool().query<T>(text, values)).rows);
+}
+
+/**
+ * Open a connection now so the first real query does not pay for the TLS handshake, the OAuth
+ * credential mint, and `SET search_path`. Called by /api/health?warm=1 before a demo (spec 14.3).
+ */
+export async function warmLakebase(): Promise<void> {
+  if (!lakebaseConfigured()) return;
+  await q("SELECT 1");
 }
 
 export async function lakebaseReachable(): Promise<boolean> {

@@ -1,6 +1,7 @@
 // src/lib/db/queries.ts : typed Lakebase reads/writes used by the app.
 import "server-only";
 import { q } from "./lakebase";
+import { ttlCache } from "@/lib/cache";
 import type { ClassYear, Preferences, ProfileSkill, RoadmapItem, SkillProfile } from "@/lib/types";
 import type { DashboardLayout, DashboardSpec } from "@/lib/agent/dashboard-spec";
 
@@ -104,7 +105,22 @@ function rowToProfile(row: ProfileRow): SkillProfile {
   };
 }
 
-export async function getProfile(userId: string): Promise<SkillProfile | null> {
+/**
+ * Almost every route starts by loading the signed-in student's profile, and it only changes when
+ * they edit it. Caching it for a minute per warm instance takes a Lakebase round trip off the
+ * critical path of /api/dashboard, /api/chat, /api/prep and /api/roadmap; every write below
+ * invalidates the entry, so a stale profile can never outlive the request that changed it.
+ */
+const profileCache = ttlCache<SkillProfile | null>(60_000);
+
+export function invalidateProfile(userId: string): void {
+  profileCache.clear(userId);
+}
+
+export const getProfile = (userId: string): Promise<SkillProfile | null> =>
+  profileCache.get(userId, () => loadProfile(userId));
+
+async function loadProfile(userId: string): Promise<SkillProfile | null> {
   const rows = await q<ProfileRow>(
     `SELECT u.user_id, u.display_name, p.major_code, p.class_year, p.resume_file_name,
             p.resume_text, p.parsed_skills, p.skill_evidence, p.skill_levels, p.preferences,
@@ -179,23 +195,30 @@ export async function saveProfile(input: SaveProfileInput): Promise<void> {
       input.markOnboarded ?? false,
     ],
   );
+  invalidateProfile(input.userId);
 }
 
 /** Spec 14.2: delete-my-data removes every row for this user (cascades from app_users). */
 export async function deleteUser(userId: string): Promise<void> {
   await q(`DELETE FROM app_users WHERE user_id = $1`, [userId]);
+  invalidateProfile(userId);
+  layoutCache.clear(userId);
 }
 
 // ---------------------------------------------------------------- chat + goal tabs (F5, F6)
 
-export async function getDashboardLayout(userId: string): Promise<DashboardLayout> {
-  const rows = await q<{ layout: unknown }>(
-    `SELECT layout FROM dashboard_state WHERE user_id = $1`,
-    [userId],
-  );
-  const layout = rows[0]?.layout as { tabs?: DashboardSpec[] } | undefined;
-  return { tabs: Array.isArray(layout?.tabs) ? layout.tabs : [] };
-}
+/** Goal tabs are read on every dashboard load and written only by the agent or a tab close. */
+const layoutCache = ttlCache<DashboardLayout>(60_000);
+
+export const getDashboardLayout = (userId: string): Promise<DashboardLayout> =>
+  layoutCache.get(userId, async () => {
+    const rows = await q<{ layout: unknown }>(
+      `SELECT layout FROM dashboard_state WHERE user_id = $1`,
+      [userId],
+    );
+    const layout = rows[0]?.layout as { tabs?: DashboardSpec[] } | undefined;
+    return { tabs: Array.isArray(layout?.tabs) ? layout.tabs : [] };
+  });
 
 /** Bump `version` on every write so the client can tell a tab actually changed (spec 10.6). */
 export async function saveDashboardLayout(
@@ -215,6 +238,7 @@ export async function saveDashboardLayout(
      RETURNING version`,
     [userId, activeGoal, JSON.stringify(layout)],
   );
+  layoutCache.set(userId, layout);
   return rows[0]?.version ?? 1;
 }
 
@@ -226,6 +250,7 @@ export async function replaceDashboardTabs(userId: string, tabs: DashboardSpec[]
       RETURNING version`,
     [userId, JSON.stringify({ tabs })],
   );
+  layoutCache.set(userId, { tabs });
   return rows[0]?.version ?? 1;
 }
 
@@ -334,30 +359,52 @@ export async function syncRoadmapItems(
   goal: string,
   items: RoadmapItem[],
 ): Promise<void> {
-  const keys = items.map((item) => item.itemId ?? item.name);
-  await q(
-    `DELETE FROM roadmap_items
-      WHERE user_id = $1 AND goal = $2
-        AND COALESCE(item_id, name) <> ALL($3::text[])`,
-    [userId, goal, keys],
-  );
+  // One statement, not 1 + 2N. A 30-item plan used to cost 61 sequential round trips to us-east-2
+  // (several seconds on /api/roadmap); the three CTEs below do the same work in one.
+  //
+  // `del`, `upd` and the INSERT all read the same snapshot and touch disjoint rows: `del` takes
+  // the keys that are no longer on the plan, `upd` the ones that are, and the INSERT only the
+  // keys `upd` did not return. Duplicate keys are dropped first, since nothing in the schema
+  // makes (user_id, goal, key) unique and a duplicate would otherwise be inserted twice.
+  const seen = new Set<string>();
+  const rows = items
+    .map((item, index) => ({
+      key: item.itemId ?? item.name,
+      item_type: item.itemType,
+      item_id: item.itemId,
+      name: item.name,
+      when_text: item.whenText,
+      closes_gaps: item.closesGaps,
+      sort_order: index,
+    }))
+    .filter((row) => !seen.has(row.key) && seen.add(row.key));
 
-  for (const [index, item] of items.entries()) {
-    await q(
-      `INSERT INTO roadmap_items (user_id, goal, item_type, item_id, name, when_text, closes_gaps, sort_order)
-       SELECT $1, $2, $3, $4, $5, $6, $7::text[], $8
-        WHERE NOT EXISTS (
-          SELECT 1 FROM roadmap_items
-           WHERE user_id = $1 AND goal = $2 AND COALESCE(item_id, name) = COALESCE($4, $5))`,
-      [userId, goal, item.itemType, item.itemId, item.name, item.whenText, item.closesGaps, index],
-    );
-    await q(
-      `UPDATE roadmap_items
-          SET sort_order = $6, when_text = $5, closes_gaps = $4::text[], name = $3
-        WHERE user_id = $1 AND goal = $2 AND COALESCE(item_id, name) = COALESCE($7, $3)`,
-      [userId, goal, item.name, item.closesGaps, item.whenText, index, item.itemId],
-    );
-  }
+  await q(
+    `WITH v AS (
+       SELECT * FROM jsonb_to_recordset($3::jsonb)
+         AS x(key text, item_type text, item_id text, name text, when_text text,
+              closes_gaps text[], sort_order int)
+     ),
+     del AS (
+       DELETE FROM roadmap_items
+        WHERE user_id = $1 AND goal = $2
+          AND COALESCE(item_id, name) NOT IN (SELECT key FROM v)
+     ),
+     upd AS (
+       UPDATE roadmap_items r
+          SET item_type = v.item_type, name = v.name, when_text = v.when_text,
+              closes_gaps = v.closes_gaps, sort_order = v.sort_order
+         FROM v
+        WHERE r.user_id = $1 AND r.goal = $2 AND COALESCE(r.item_id, r.name) = v.key
+       RETURNING v.key
+     )
+     INSERT INTO roadmap_items
+       (user_id, goal, item_type, item_id, name, when_text, closes_gaps, sort_order)
+     SELECT $1, $2, v.item_type, v.item_id, v.name, v.when_text, v.closes_gaps, v.sort_order
+       FROM v
+      WHERE v.key NOT IN (SELECT key FROM upd)`,
+    [userId, goal, JSON.stringify(rows)],
+  );
 }
 
 export async function listRoadmapItems(userId: string, goal: string): Promise<StoredRoadmapItem[]> {

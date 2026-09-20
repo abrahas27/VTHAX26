@@ -1,36 +1,16 @@
 // src/lib/catalog.ts : cached Unity Catalog lookups (paths, skills, majors, path_skills).
 // Catalog data changes at most daily, so a per-instance TTL cache keeps the dashboard off the
-// warehouse for repeat reads (spec 6.3: cache catalog lookups for 5-10 minutes).
+// warehouse for repeat reads (spec 6.3).
 import "server-only";
+import { ttlCache } from "@/lib/cache";
 import { sql, T } from "@/lib/databricks/sql";
 import type { CareerPath, Major, PathSkill, Skill } from "@/lib/types";
 
-const TTL_MS = 10 * 60_000;
-
-interface Entry<T> {
-  value: T;
-  expires: number;
-}
-const cache = new Map<string, Entry<unknown>>();
-const inflight = new Map<string, Promise<unknown>>();
-
-/** Cache a loader's result for TTL_MS, de-duplicating concurrent callers. */
-async function cached<T>(key: string, load: () => Promise<T>): Promise<T> {
-  const hit = cache.get(key);
-  if (hit && hit.expires > Date.now()) return hit.value as T;
-
-  const pending = inflight.get(key);
-  if (pending) return pending as Promise<T>;
-
-  const promise = load()
-    .then((value) => {
-      cache.set(key, { value, expires: Date.now() + TTL_MS });
-      return value;
-    })
-    .finally(() => inflight.delete(key));
-  inflight.set(key, promise);
-  return promise;
-}
+// Career paths, skills, majors and path_skills are rebuilt by the seed notebook, not by the app,
+// so a 30-minute window costs nothing in freshness and keeps four warehouse queries off most
+// requests. A cold serverless instance still pays for them once.
+const cache = ttlCache<unknown>(30 * 60_000);
+const cached = <T>(key: string, load: () => Promise<T>) => cache.get(key, load) as Promise<T>;
 
 export const careerPaths = () =>
   cached("career_paths", () =>
@@ -116,5 +96,12 @@ function overlaps(pathName: string, needle: string): boolean {
 /** Test seam: drop cached catalog data (used by pnpm demo:record and unit tests). */
 export function clearCatalogCache() {
   cache.clear();
-  inflight.clear();
+}
+
+/**
+ * Load the whole reference catalog in one parallel batch. /api/health?warm=1 calls this so the
+ * first student of the demo does not pay for four cold warehouse queries (spec 14.3).
+ */
+export async function warmCatalog(): Promise<void> {
+  await Promise.all([careerPaths(), skills(), majors(), pathSkills()]);
 }

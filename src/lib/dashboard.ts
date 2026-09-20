@@ -110,6 +110,13 @@ export interface DashboardOptions {
   /** "for-you" uses the primary goal; a CPxx id renders that goal's tab. */
   tab: string;
   days: number;
+  /**
+   * "core" leaves out the Gap-to-Goal roadmap. build_gap_roadmap is consistently the slowest UC
+   * Function (it joins events, clubs and courses against the gap list), so on the first paint the
+   * client asks for "core" and fetches "roadmap" alongside it: the cards appear at the speed of
+   * the fastest five calls instead of the slowest six (spec 6.4).
+   */
+  sections?: "all" | "core" | "roadmap";
 }
 
 /**
@@ -121,50 +128,77 @@ export async function buildDashboard({
   profile,
   tab,
   days,
+  sections = "all",
 }: DashboardOptions): Promise<DashboardPayload> {
+  const wantsCore = sections !== "roadmap";
+  const wantsRoadmap = sections !== "core";
   const pathId = tab === "for-you" ? profile.primaryGoal : tab;
-  const path = pathId ? await pathById(pathId) : undefined;
-  const pathName = path?.path_name ?? null;
   const studentSkills = profile.skills.map((s) => s.name).join(", ");
 
-  // path_skills doesn't depend on any of the six UC calls below (or vice versa) -- fetch it
-  // alongside them instead of after, so a cold catalog cache doesn't add its latency on top.
-  const [eventsRes, visitsRes, oppsRes, roadmapRes, clubsRes, gapsRes, allPathSkills] =
+  const none = <T>() => Promise.resolve([] as T[]);
+
+  // Nothing here depends on anything else here, including the two cached catalog reads: a cold
+  // instance would otherwise pay for career_paths and path_skills in series on top of the UC
+  // calls. `path` used to be awaited before the fan-out could even be described, which is why
+  // pathName is resolved from the same careerPaths() list rather than from pathById().
+  const [paths, allPathSkills, eventsRes, visitsRes, oppsRes, roadmapRes, clubsRes, gapsRes] =
     await Promise.all([
+      careerPaths(),
+      pathSkills(),
       settle(
         "events",
-        ucFn<EventRow>("find_events", { target_path: pathName ?? "", major: "", days_ahead: days }),
+        wantsCore
+          ? ucFnForPath<EventRow>(pathId, (name) =>
+              ucFn<EventRow>("find_events", { target_path: name, major: "", days_ahead: days }),
+            )
+          : none<EventRow>(),
         [] as EventRow[],
       ),
       settle(
         "visits",
-        ucFn<VisitRow>("companies_visiting", { target_path: pathName ?? "", days_ahead: 45 }),
+        wantsCore
+          ? ucFnForPath<VisitRow>(pathId, (name) =>
+              ucFn<VisitRow>("companies_visiting", { target_path: name, days_ahead: 45 }),
+            )
+          : none<VisitRow>(),
         [] as VisitRow[],
       ),
       settle(
         "opportunities",
-        ucFn<OpportunityRow>("find_opportunities", { target_path: pathName ?? "", opp_type: "" }),
+        wantsCore
+          ? ucFnForPath<OpportunityRow>(pathId, (name) =>
+              ucFn<OpportunityRow>("find_opportunities", { target_path: name, opp_type: "" }),
+            )
+          : none<OpportunityRow>(),
         [] as OpportunityRow[],
       ),
       settle(
         "roadmap",
-        ucFn<RoadmapRow>("build_gap_roadmap", {
-          target_path: pathName ?? "",
-          student_skills: studentSkills,
-          days_ahead: 90,
-        }),
+        wantsRoadmap
+          ? ucFnForPath<RoadmapRow>(pathId, (name) =>
+              ucFn<RoadmapRow>("build_gap_roadmap", {
+                target_path: name,
+                student_skills: studentSkills,
+                days_ahead: 90,
+              }),
+            )
+          : none<RoadmapRow>(),
         [] as RoadmapRow[],
       ),
-      settle("clubs", clubsForPath(pathId), [] as ClubRow[]),
+      settle("clubs", wantsCore ? clubsForPath(pathId) : none<ClubRow>(), [] as ClubRow[]),
       settle(
         "gaps",
-        pathName
-          ? ucFn<GapRow>("get_skill_gap", { target_path: pathName, student_skills: studentSkills })
-          : Promise.resolve([] as GapRow[]),
+        wantsCore && pathId
+          ? ucFnForPath<GapRow>(pathId, (name) =>
+              ucFn<GapRow>("get_skill_gap", { target_path: name, student_skills: studentSkills }),
+            )
+          : none<GapRow>(),
         [] as GapRow[],
       ),
-      pathSkills(),
     ]);
+
+  const path = pathId ? paths.find((p) => p.path_id === pathId) : undefined;
+  const pathName = path?.path_name ?? null;
 
   const errors = [eventsRes, visitsRes, oppsRes, roadmapRes, clubsRes, gapsRes]
     .map((r) => r.error)
@@ -172,7 +206,7 @@ export async function buildDashboard({
 
   const requirements = pathId ? allPathSkills.filter((r) => r.path_id === pathId) : [];
   const missing = missingSkills(profile.skills, requirements);
-  const families = await pathFamilies();
+  const families = new Map(paths.map((p) => [p.path_name, p.career_family]));
 
   const companyRecruitsForGoal = new Set(visitsRes.value.map((v) => v.company_name));
 
@@ -272,8 +306,14 @@ async function clubsForPath(pathId: string | null): Promise<ClubRow[]> {
   );
 }
 
-/** path_name -> career_family, used for the "same family" partial credit in EVENT_SCORE. */
-async function pathFamilies(): Promise<Map<string, string>> {
-  const paths = await careerPaths();
-  return new Map(paths.map((p) => [p.path_name, p.career_family]));
+/**
+ * The UC Functions filter on the exact path name, so each call needs it resolved first. Looking it
+ * up inside the fan-out (from the cached catalog) rather than before it keeps every call on the
+ * same starting line; an unset goal passes "" through, which the functions read as "any".
+ */
+async function ucFnForPath<T>(
+  pathId: string | null,
+  call: (pathName: string) => Promise<T[]>,
+): Promise<T[]> {
+  return call(pathId ? ((await pathById(pathId))?.path_name ?? "") : "");
 }

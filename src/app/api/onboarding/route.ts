@@ -3,12 +3,16 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { apiError, parseBody, requireUser } from "@/lib/api";
 import { careerPaths, pathNameFor, pathSkills, skills as catalogSkills } from "@/lib/catalog";
+import { invalidateDashboard } from "@/lib/dashboard-cache";
 import { getProfile, saveProfile } from "@/lib/db/queries";
 import { fitScore, pickPrimaryGoal } from "@/lib/scoring";
 import { normalizeSkills } from "@/lib/skills-normalize";
 import type { Preferences, ProfileSkill } from "@/lib/types";
 
 export const runtime = "nodejs";
+// Lakebase and the Databricks workspace both live in AWS us-east-2; iad1 is the closest Vercel
+// region, so the round trips this route makes are as short as they can be (spec 6.4).
+export const preferredRegion = ["iad1"];
 
 const AnswersSchema = z.object({
   seeking: z.array(z.enum(["internship", "full_time", "research", "exploring"])).default([]),
@@ -47,15 +51,16 @@ export async function POST(req: Request) {
   const body = await parseBody(req, BodySchema);
   if (!body.ok) return body.response;
 
-  const profile = await getProfile(auth.user.userId);
-  if (!profile)
-    return apiError("profile_required", "Upload a resume before answering the questions.");
-
-  const [paths, requirements, canonical] = await Promise.all([
+  // The profile read and the three catalog reads are independent; a cold instance would
+  // otherwise pay for Lakebase and then for Databricks, one after the other.
+  const [profile, paths, requirements, canonical] = await Promise.all([
+    getProfile(auth.user.userId),
     careerPaths(),
     pathSkills(),
     catalogSkills(),
   ]);
+  if (!profile)
+    return apiError("profile_required", "Upload a resume before answering the questions.");
 
   // Self-ratings only fill gaps: a resume-backed skill keeps its evidence and the higher level.
   const rated = normalizeSkills(
@@ -89,6 +94,7 @@ export async function POST(req: Request) {
     primaryGoalName: await pathNameFor(primaryGoal),
     markOnboarded: true,
   });
+  invalidateDashboard(auth.user.userId);
 
   return NextResponse.json({
     profile: { ...profile, skills: merged, preferences, fitScores, primaryGoal },

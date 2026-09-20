@@ -10,6 +10,9 @@ import { EventNotFoundError, generateEventPrep } from "@/lib/prep";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
+// Lakebase and the Databricks workspace both live in AWS us-east-2; iad1 is the closest Vercel
+// region, so the round trips this route makes are as short as they can be (spec 6.4).
+export const preferredRegion = ["iad1"];
 
 const BodySchema = z.object({ eventId: z.string().regex(/^EV\d{3,4}$/) });
 
@@ -24,10 +27,16 @@ export async function POST(req: Request) {
   if (!body.ok) return body.response;
   const { eventId } = body.data;
 
-  const profile = await getProfile(auth.user.userId);
+  // Three independent reads: the student's profile, any prep we already generated for this
+  // event, and the path catalog the prompt needs. Serially they cost three round trips before
+  // the model call can even start.
+  const [profile, cached, paths] = await Promise.all([
+    getProfile(auth.user.userId),
+    getEventPrep(auth.user.userId, eventId),
+    careerPaths(),
+  ]);
   if (!profile) return apiError("profile_required", "Finish onboarding before using Event Prep.");
 
-  const cached = await getEventPrep(auth.user.userId, eventId);
   if (cached) {
     return NextResponse.json({
       pitch: cached.pitch,
@@ -38,7 +47,6 @@ export async function POST(req: Request) {
   }
 
   try {
-    const paths = await careerPaths();
     const pathNames = Object.fromEntries(paths.map((p) => [p.path_id, p.path_name]));
     const prep = await generateEventPrep(eventId, profile, pathNames);
     await saveEventPrep({
