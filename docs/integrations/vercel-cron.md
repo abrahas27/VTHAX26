@@ -12,6 +12,13 @@ instead, writing to the same Unity Catalog tables through the SQL Statement API.
 never stalls the rest of P4 — it is not a replacement for the notebook path, which is simpler to
 run, re-run, and combine with the gold refresh in one Job.
 
+**Status (2026-09-20): not needed, left unconfigured on purpose.** Databricks serverless compute in
+this workspace has confirmed outbound access to GitHub, Greenhouse, and BLS — the egress risk this
+route hedges against did not materialize. `CRON_SECRET` is deliberately left blank, so
+`GET /api/cron/ingest` 500s on any request; that is this route's own way of staying disabled. The
+code stays in the repo (kept in parity with the notebook's `BOARDS`/id/path-matching logic) as cheap
+insurance in case a workspace or tier change reintroduces the restriction — see `docs/decisions.md`.
+
 ## Cost / free tier limits
 
 Vercel Cron on the Hobby plan runs at most once a day per cron entry; `vercel.json` schedules

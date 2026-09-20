@@ -61,6 +61,10 @@ modeling", ...)` should return a finance workshop event.
   in the response tells you which path ran.
 - A query error (endpoint stopped, quota) is caught and logged (`[search] vector search failed...`),
   then the same ILIKE fallback runs — search never breaks the demo (spec 14.4).
+- **Reranker is blocked on this Free Edition workspace.** `HYBRID` `query_type` works, but its
+  reranker step 403s here. `vsQuery` pins `query_type: "ANN"` (pure vector similarity) and never
+  passes a reranker option, so this never surfaces — confirmed live 2026-09-20. If a future change
+  needs `HYBRID` search, verify the reranker is actually available in the target workspace first.
 
 ## Security notes
 

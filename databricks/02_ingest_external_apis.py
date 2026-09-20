@@ -35,6 +35,7 @@ print("Target:", fq)
 
 # COMMAND ----------
 
+import hashlib
 import json
 import requests
 from datetime import date
@@ -179,24 +180,47 @@ else:
 
 # COMMAND ----------
 
+# Verified live 2026-09-20 against boards-api.greenhouse.io -- each token below returned a real,
+# non-empty jobs list for a company that already exists in our companies table. Never add a token
+# here without confirming it the same way (spec comment above: "an unverified one just returns
+# nothing or 404s").
 BOARDS = {
-    # "CO001": ("greenhouse", "examplecompany"),
-    # "CO002": ("lever", "examplecompany"),
+    "CO002": ("greenhouse", "databricks"),  # Databricks
+    "CO019": ("greenhouse", "janestreet"),  # Jane Street
+    "CO009": ("greenhouse", "bcg"),  # Boston Consulting Group
 }
 
 INTERN_KEYWORDS = ("intern", "summer analyst", "new grad", "co-op", "university", "rotational")
+
+# Checked in order, most specific first, so e.g. "Mechanical Engineer" matches CP15 rather than
+# falling into CP01's generic "engineer" catch-all. Covers all 19 career_paths rows (spec catalog).
+PATH_RULES: list[tuple[str, tuple[str, ...]]] = [
+    ("CP15", ("mechanical engineer", "aerospace engineer", "mechanical", "aerospace")),
+    ("CP16", ("electrical engineer", "embedded", "electrical", "firmware")),
+    ("CP17", ("civil engineer", "structural engineer", "civil", "infrastructure")),
+    ("CP18", ("biomedical", "bioengineer", "research scientist", "lab research")),
+    ("CP10", ("security engineer", "cybersecurity", "penetration tester", "security analyst")),
+    ("CP03", ("machine learning engineer", "ml engineer", "ai engineer", "deep learning")),
+    ("CP02", ("data scien", "data analyst", "analytics")),
+    ("CP06", ("quant",)),
+    ("CP04", ("investment banking", "banking analyst")),
+    ("CP05", ("sales and trading", "trading analyst", "markets analyst")),
+    ("CP09", ("audit", "assurance")),
+    ("CP07", ("management consult", "strategy consult")),
+    ("CP08", ("technology consult", "it consult", "tech consult")),
+    ("CP11", ("product manager", "product management")),
+    ("CP12", ("ux designer", "product designer", "user experience")),
+    ("CP13", ("supply chain", "operations analyst", "logistics")),
+    ("CP14", ("marketing", "brand manager")),
+    ("CP19", ("policy analyst", "public policy", "government affairs")),
+    ("CP01", ("software", "swe", "developer", "full stack", "backend", "frontend", "engineer")),
+]
 
 
 def guess_path_id(title: str) -> str | None:
     """Cheap keyword rule before falling back to ai_query; both only ever pick from real path_ids."""
     t = title.lower()
-    rules = {
-        "CP01": ("software", "swe", "developer", "engineer"),
-        "CP04": ("investment banking", "banking analyst"),
-        "CP02": ("data scien", "machine learning", "ml engineer"),
-        "CP07": ("consult",),
-    }
-    for path_id, needles in rules.items():
+    for path_id, needles in PATH_RULES:
         if any(n in t for n in needles):
             return path_id
     return None
@@ -262,35 +286,79 @@ if BOARDS:
             F.lower(F.col("title")).rlike("|".join(INTERN_KEYWORDS))
         ).collect()
 
-        opp_rows = []
+        def stable_opportunity_id(source: str, job_id: str) -> str:
+            # A hash-based id must be stable across notebook runs -- Python's built-in hash() is
+            # randomized per process (PYTHONHASHSEED), which would mint a new id for the same
+            # posting on every scheduled re-run and duplicate it under an append-only write.
+            digest = hashlib.md5(f"{source}:{job_id}".encode()).hexdigest()
+            return f"OPX{int(digest[:8], 16) % 100000:05d}"
+
+        board_ids = ", ".join(f"'{cid}'" for cid in BOARDS)  # BOARDS keys are hardcoded above, not user input
+        company_names = (
+            {
+                r["company_id"]: r["company_name"]
+                for r in spark.sql(
+                    f"SELECT company_id, company_name FROM {fq}.companies WHERE company_id IN ({board_ids})"
+                ).collect()
+            }
+            if BOARDS
+            else {}
+        )
+
+        # Build against the *existing* table's schema rather than letting createDataFrame infer one:
+        # every row here has required_skills=[] and min_gpa/posted_date/deadline=None, and Spark
+        # cannot infer a type from an all-empty/all-null column. A tuple per row, in the target
+        # table's exact column order, sidesteps both that and Row(**kwargs)'s alphabetical-by-name
+        # field ordering (which would silently transpose values if paired with an explicit schema).
+        opp_schema = spark.table(f"{fq}.opportunities").schema
+        field_names = opp_schema.fieldNames()
+
+        opp_tuples = []
+        skipped_no_path = 0
         for p in student_postings:
             path_id = guess_path_id(p["title"])
-            opp_rows.append(
-                Row(
-                    opportunity_id=f"OPX{abs(hash((p['source'], p['job_id']))) % 100000:05d}",
-                    company_id=p["company_id"],
-                    title=p["title"],
-                    opportunity_type="internship" if "intern" in p["title"].lower() else "full_time",
-                    path_id=path_id,
-                    required_skills=[],
-                    preferred_skills=[],
-                    eligible_majors=["ALL"],
-                    class_years=["Sophomore", "Junior", "Senior"],
-                    min_gpa=None,
-                    location=p["location"],
-                    posted_date=None,
-                    deadline=None,
-                    apply_url=p["url"],
-                    source=p["source"],
-                )
-            )
-        if opp_rows:
-            existing = spark.table(f"{fq}.opportunities")
-            new_df = spark.createDataFrame(opp_rows)
-            # Only add columns the opportunities table already has; extra ingestion columns (source) are
-            # informational and safe to include since the setup notebook does not lock the schema down.
-            new_df.write.mode("append").option("mergeSchema", True).saveAsTable(f"{fq}.opportunities")
-            print(f"opportunities: appended {len(opp_rows)} real postings (source=greenhouse/lever)")
+            if path_id is None:
+                skipped_no_path += 1
+                continue  # would be dropped anyway by gold_opportunity_search_docs's inner join
+            values = {
+                "opportunity_id": stable_opportunity_id(p["source"], p["job_id"]),
+                "company_id": p["company_id"],
+                "company_name": company_names.get(p["company_id"]),
+                "title": p["title"],
+                "opportunity_type": "internship" if "intern" in p["title"].lower() else "full_time",
+                "path_id": path_id,
+                "required_skills": [],
+                "preferred_skills": [],
+                "eligible_majors": ["ALL"],
+                "class_years": ["Sophomore", "Junior", "Senior"],
+                "min_gpa": None,
+                "location": p["location"],
+                "posted_date": None,
+                # Unknown, not zero: find_opportunities and gold_path_supply_demand treat a NULL
+                # deadline as still-open rather than guessing an expiry we have no evidence for.
+                "deadline": None,
+                "apply_url": p["url"],
+                "source": p["source"],
+            }
+            opp_tuples.append(tuple(values.get(f) for f in field_names))
+        if skipped_no_path:
+            print(f"  Skipped {skipped_no_path} posting(s) with no matched career path.")
+
+        if opp_tuples:
+            new_df = spark.createDataFrame(opp_tuples, schema=opp_schema)
+            new_df.createOrReplaceTempView("new_opportunities")
+            # MERGE instead of append: re-running this notebook must update/no-op on a posting it
+            # already ingested, never duplicate it.
+            spark.sql(f"""
+                MERGE INTO {fq}.opportunities AS target
+                USING new_opportunities AS source
+                ON target.opportunity_id = source.opportunity_id
+                WHEN MATCHED THEN UPDATE SET *
+                WHEN NOT MATCHED THEN INSERT *
+            """)
+            print(f"opportunities: merged {len(opp_tuples)} postings (source=greenhouse/lever)")
+        else:
+            print("opportunities: no postings matched a career path to merge.")
     else:
         print("No postings fetched (see errors above, or check egress).")
 else:

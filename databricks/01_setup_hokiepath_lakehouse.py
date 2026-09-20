@@ -104,7 +104,25 @@ for name, spec in TABLES.items():
     for c in spec.get("dates", []):      df = df.withColumn(c, F.to_date(c))
     for c in spec.get("timestamps", []): df = df.withColumn(c, F.to_timestamp(c))
     df = df.withColumn("_ingested_at", F.current_timestamp())
+
+    if name == "opportunities" and spark.catalog.tableExists(f"{fq}.{name}"):
+        # This loop overwrites every table from its mock CSV on every run, which would erase real
+        # postings 02_ingest_external_apis.py already merged in (source != 'mock'). Snapshot them to
+        # a separate table first -- overwriting {fq}.opportunities from a DataFrame that still reads
+        # {fq}.opportunities is undefined in Spark -- then union them back into the fresh CSV load.
+        spark.sql(
+            f"CREATE OR REPLACE TABLE {fq}._tmp_preserved_opportunities AS "
+            f"SELECT * FROM {fq}.{name} WHERE source <> 'mock'"
+        )
+        preserved = spark.table(f"{fq}._tmp_preserved_opportunities")
+        preserved_count = preserved.count()
+        df = df.unionByName(preserved)
+        if preserved_count:
+            print(f"  preserving {preserved_count} ingested opportunities (source <> 'mock')")
+
     df.write.mode("overwrite").option("overwriteSchema", True).saveAsTable(f"{fq}.{name}")
+    if name == "opportunities":
+        spark.sql(f"DROP TABLE IF EXISTS {fq}._tmp_preserved_opportunities")
     print(f"{name:22s} {df.count():6d} rows")
 
 # COMMAND ----------
@@ -294,7 +312,8 @@ co AS (
   FROM (SELECT company_id, explode(career_paths) AS pid FROM {fq}.companies) GROUP BY pid
 ),
 op AS (
-  SELECT path_id, count_if(deadline >= current_date()) AS open_opportunities
+  -- NULL deadline (e.g. an ingested posting with no known expiry) counts as still open (spec 12.5).
+  SELECT path_id, count_if(deadline IS NULL OR deadline >= current_date()) AS open_opportunities
   FROM {fq}.opportunities GROUP BY path_id
 )
 SELECT cp.path_id, cp.path_name, cp.career_family,
@@ -387,10 +406,10 @@ TOOL_FUNCTIONS = {
         comment="Finds open internships, full-time roles, and undergraduate research positions for a career path, soonest deadline first.",
         body=f"""SELECT opportunity_id, title, opportunity_type, company_name, path_name, required_skills, class_years, location, deadline
                  FROM {fq}.gold_opportunity_search_docs
-                 WHERE deadline >= current_date()
+                 WHERE (deadline IS NULL OR deadline >= current_date())
                    AND (target_path = '' OR lower(path_name) LIKE lower(concat('%', target_path, '%')))
                    AND (opp_type = '' OR opportunity_type = opp_type)
-                 ORDER BY deadline LIMIT 25""",
+                 ORDER BY deadline IS NULL, deadline LIMIT 25""",
     ),
     "build_gap_roadmap": dict(
         params="target_path STRING COMMENT 'Career path name or fragment, e.g. investment banking', "

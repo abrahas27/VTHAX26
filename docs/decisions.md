@@ -190,3 +190,80 @@ Format: date, decision, why, consequences. Newest at the bottom.
 - **Why:** Spec rule 3 ("never invent credentials, IDs, or URLs") extends to company board tokens —
   a guessed `boards.greenhouse.io/<token>` could be wrong for another company entirely. Only a human
   who has clicked through a real careers page and confirmed the token should add an entry.
+- **Superseded 2026-09-20:** see the entry below — three tokens are now populated after being
+  verified live, not guessed.
+
+## 2026-09-20 (P4): Databricks serverless egress confirmed; Vercel Cron fallback stays built but unused
+
+- **Decision:** `databricks/02_ingest_external_apis.py` remains the only ingestion path actually
+  run. `src/app/api/cron/ingest/route.ts`, `src/lib/ingest.ts`, and `vercel.json`'s `crons` entry
+  stay in the repo (kept in parity with the notebook, see below) but `CRON_SECRET` is deliberately
+  left unset, so the route 500s on any request — this is the route's own way of being "off."
+- **Why:** GitHub, Greenhouse, and BLS are all reachable from Databricks serverless compute in this
+  workspace, confirmed live — the egress restriction spec 11.9/14.4 warns about did not materialize.
+  The fallback is cheap insurance to keep around (a workspace/tier change could reintroduce the
+  restriction) but wiring it up now would just be a second, redundant ingestion path to keep in
+  sync for no live benefit.
+
+## 2026-09-20 (P4): Verified Greenhouse board tokens for three existing companies
+
+- **Decision:** `BOARDS` now maps `CO002` (Databricks) → `databricks`, `CO019` (Jane Street) →
+  `janestreet`, `CO009` (Boston Consulting Group) → `bcg`, in both
+  `databricks/02_ingest_external_apis.py` and `src/lib/ingest.ts`.
+- **Why:** Each token was confirmed live against `boards-api.greenhouse.io` (2026-09-20), returning
+  a real, non-empty `jobs` array, for a company that already has a matching row in our `companies`
+  table. Other plausible-looking tokens (`stripe`, `airbnb`, `robinhood`, `coinbase`, `figma`, and
+  others) also resolved live but were **not** added, since none of those companies exist in our mock
+  `companies` table and inventing one was out of scope here.
+
+## 2026-09-20 (P4): Stable `opportunity_id` via MD5, upserted with `MERGE INTO`
+
+- **Decision:** `stable_opportunity_id`/`stableOpportunityId` now hash `f"{source}:{job_id}"` with
+  MD5 (not Python's/JS's non-cryptographic default) and truncate to a 5-digit `OPX#####` id. The
+  Databricks notebook writes via `MERGE INTO {fq}.opportunities ... WHEN MATCHED THEN UPDATE SET *
+  WHEN NOT MATCHED THEN INSERT *` instead of `append`.
+- **Why:** Python's built-in `hash()` is randomized per process (`PYTHONHASHSEED`), so the previous
+  version minted a new id for the same posting on every notebook run and, under `append` writes,
+  duplicated every previously-ingested opportunity on each scheduled re-run. MD5 (a stable,
+  non-cryptographic-use hash here — collision resistance is not the concern) gives a deterministic
+  id, and `MERGE` makes re-running the notebook idempotent regardless. `src/lib/ingest.ts` uses the
+  same MD5 scheme so the two ingestion paths can never disagree on an id for the same posting; it
+  keeps its simpler check-then-insert dedup (true `MERGE` was judged not worth the added complexity
+  for a route that is currently unused — see the egress decision above).
+
+## 2026-09-20 (P4): A `NULL` opportunity deadline means "still open," not "expired"
+
+- **Decision:** `find_opportunities` (UC function), `gold_path_supply_demand`'s `open_opportunities`
+  count, and `src/lib/search.ts`'s ILIKE fallback all changed `deadline >= current_date()` to
+  `(deadline IS NULL OR deadline >= current_date())`. Ingested postings write `deadline = NULL`
+  rather than a guessed date.
+- **Why:** Greenhouse/Lever postings don't expose an application deadline, and fabricating one (e.g.
+  "today + 60 days, labeled estimated") would show a student a specific date HokiePath does not
+  actually know to be true — the opportunities table has no column to carry an "estimated" flag, so
+  the label would only ever exist in a code comment, not in what the student sees. Treating unknown
+  as open is honest about what we know and avoids a real posting silently vanishing from the app
+  after an arbitrary guessed date passes.
+
+## 2026-09-20 (P4): `guess_path_id` broadened to all 19 career paths; unmatched postings are skipped
+
+- **Decision:** `PATH_RULES` (both the notebook and `src/lib/ingest.ts`) now covers all 19
+  `career_paths` rows with an ordered list — engineering-discipline and other specific rules first,
+  CP01's generic `"engineer"` keyword last as a catch-all. A posting that still matches no path is
+  not inserted into `opportunities` at all.
+- **Why:** The original 4-path ruleset (CP01/CP02/CP04/CP07) meant most real postings had
+  `path_id = NULL`. `gold_opportunity_search_docs` inner-joins `opportunities` to `career_paths` on
+  `path_id`, so a NULL-path row is invisible in search and in `find_opportunities` regardless —
+  inserting it anyway was dead data, so skipping it (and logging a count) is more honest than
+  silently keeping a permanently-invisible row.
+
+## 2026-09-20 (P4): `01_setup_hokiepath_lakehouse.py` preserves ingested opportunities across reruns
+
+- **Decision:** The bronze→silver loop special-cases `opportunities`: before overwriting it from the
+  mock CSV, it snapshots `WHERE source <> 'mock'` into a throwaway table, then unions those rows back
+  into the freshly-typed CSV load before the final overwrite write.
+- **Why:** The loop unconditionally does `df.write.mode("overwrite")...saveAsTable(f"{fq}.{name}")`
+  for every table on every run, which would silently erase every real Greenhouse/Lever posting
+  `02_ingest_external_apis.py` had merged in. The snapshot goes through a separate physical table
+  rather than an in-memory reference because overwriting a table from a DataFrame that still reads
+  that same table is undefined behavior in Spark ("cannot overwrite a table that is also being read
+  from").

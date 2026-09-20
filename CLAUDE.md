@@ -222,13 +222,17 @@ Never cut: sign-in, resume parsing, dashboard, chat, pivot tab, roadmap.
   (`reasoning` + `text`) instead of a string, which the AI SDK cannot parse. `src/lib/databricks/llm.ts`
   normalizes every response in a `fetch` middleware and drops reasoning. `databricks-llama-4-maverick` needs
   none of this and is the drop-in alternative if gpt-oss misbehaves.
-- **Vector Search, Genie, and the ingestion job are implemented but not yet run against a live
-  workspace.** Each is guarded by `requireEnv`/a `*Configured()` check and degrades on its own:
-  `/api/search` falls back to SQL `ILIKE` (`src/lib/search.ts`) when an index name is blank or a
-  query errors; `/api/admin/genie` returns `not_configured` until `DATABRICKS_GENIE_SPACE_ID` is set,
-  while the rest of `/admin` still renders from `/api/admin/metrics`; ingestion has both the
-  Databricks-side notebook and, pre-built, the Vercel Cron fallback (`/api/cron/ingest`) documented
-  in `docs/integrations/vercel-cron.md`.
+- **Vector Search is confirmed live (2026-09-20)**, `query_type` pinned to `"ANN"` in
+  `src/lib/databricks/vector.ts` because this Free Edition workspace blocks the reranker that ships
+  with `HYBRID` — see `docs/integrations/vector-search.md`. **Genie is not yet configured**
+  (`DATABRICKS_GENIE_SPACE_ID` blank); `/api/admin/genie` returns `not_configured` until it is, while
+  the rest of `/admin` still renders from `/api/admin/metrics`. Each degrades on its own: `/api/search`
+  falls back to SQL `ILIKE` (`src/lib/search.ts`) when an index name is blank or a query errors.
+- **Ingestion runs from `databricks/02_ingest_external_apis.py` only; the Vercel Cron fallback
+  (`/api/cron/ingest`) is intentionally unconfigured.** Databricks serverless compute in this
+  workspace has confirmed outbound access to GitHub, Greenhouse, and BLS, so the egress restriction
+  the cron fallback hedges against never materialized. `CRON_SECRET` stays blank on purpose — see
+  `docs/integrations/vercel-cron.md` and `docs/decisions.md` (2026-09-20).
 - **`agent_turns` nightly Lakebase → Delta copy is not built.** `databricks/03_agent_eval.py` reads
   the Unity Catalog table if present but does not depend on it; the golden-set eval runs standalone.
   See `docs/integrations/mlflow-eval.md`.

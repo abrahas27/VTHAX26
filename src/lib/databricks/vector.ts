@@ -18,6 +18,10 @@ export const vectorSearchConfigured = (kind: "events" | "opportunities") =>
 /**
  * Query a Delta Sync index by semantic similarity. Returns rows shaped like the requested
  * columns plus a trailing `score` column, which the caller strips before returning to the client.
+ *
+ * `query_type` is pinned to "ANN" (pure vector similarity). This workspace's Free Edition blocks
+ * the reranker step, which ships with "HYBRID" query_type -- pinning ANN here means we never rely
+ * on the endpoint's default staying non-hybrid, and never pass a reranker option at all.
  */
 export async function vsQuery<T = Record<string, unknown>>(
   index: string,
@@ -29,7 +33,7 @@ export async function vsQuery<T = Record<string, unknown>>(
     `/api/2.0/vector-search/indexes/${encodeURIComponent(index)}/query`,
     {
       method: "POST",
-      body: JSON.stringify({ query_text: query, columns, num_results: k }),
+      body: JSON.stringify({ query_text: query, columns, num_results: k, query_type: "ANN" }),
     },
   );
   const names = (res.manifest?.columns ?? []).map((c) => c.name);

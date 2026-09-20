@@ -90,8 +90,9 @@ async function searchOpportunities(
   }
   const rows = await sql<OpportunityRow>(
     `SELECT ${OPPORTUNITY_COLUMNS.join(", ")} FROM ${T("gold_opportunity_search_docs")}
-      WHERE deadline >= current_date() AND lower(search_text) LIKE lower(concat('%', :q, '%'))
-      ORDER BY deadline LIMIT ${k}`,
+      WHERE (deadline IS NULL OR deadline >= current_date())
+        AND lower(search_text) LIKE lower(concat('%', :q, '%'))
+      ORDER BY deadline IS NULL, deadline LIMIT ${k}`,
     { q: query },
   );
   return { rows, vector: false };
