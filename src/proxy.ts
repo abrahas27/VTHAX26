@@ -6,8 +6,12 @@ import { auth } from "@/lib/auth";
 /** Pages a signed-out visitor may see. Everything else redirects to the landing page. */
 const PUBLIC_PAGES = new Set(["/", "/unauthorized"]);
 
-/** API routes that never require a session (spec 9). */
-const isPublicApi = (path: string) => path.startsWith("/api/auth/") || path === "/api/health";
+/**
+ * API routes that never require a session (spec 9). `/api/cron/*` has no user to sign in as —
+ * Vercel Cron calls it directly — so it checks its own CRON_SECRET instead (spec 11.9).
+ */
+const isPublicApi = (path: string) =>
+  path.startsWith("/api/auth/") || path === "/api/health" || path.startsWith("/api/cron/");
 
 function unauthorized() {
   return NextResponse.json(

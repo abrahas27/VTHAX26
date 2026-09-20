@@ -7,20 +7,31 @@ Update the **Current phase** and **Fallbacks in use** sections at the end of eve
 
 ## Current phase
 
-**P3 Agent + morphing UI: code complete (2026-09-19).** The streaming agent (`/api/chat`) with the six UC
-Function tools plus `render_dashboard`, DashboardSpec validation, goal tabs that persist in `dashboard_state`,
-the chat panel with tool chips and clickable [ID] chips, and the roadmap page with optimistic completion.
+**P4 Databricks depth: code complete, live verification pending (2026-09-19).** F9 Event Prep
+(`/api/prep`, cached in `event_prep`, wired into the event drawer), F10 Vector Search + `/api/search`
+with an automatic ILIKE fallback (`src/lib/search.ts`), plus the `semantic_search` agent tool, a "/"
+search palette, and `.ics` export (single event and "add all" on the roadmap, via the `ics` package).
+F11 Admin Insights: `/admin` with 4 KPI cards, a supply/demand bar chart, a top-missing-skills table
+(all from `/api/admin/metrics`), and a Genie "Ask the data" box (`/api/admin/genie`); an optional
+AI/BI dashboard link from `NEXT_PUBLIC_AIBI_DASHBOARD_URL`. `databricks/02_ingest_external_apis.py`
+(O*NET, BLS, Greenhouse/Lever, all skip-not-fail on a missing key/token) and
+`databricks/03_agent_eval.py` (golden-set grounding + behavior eval, logs to MLflow). A Vercel Cron
+ingestion fallback (`/api/cron/ingest`, `src/lib/ingest.ts`, `vercel.json`) shipped alongside the
+notebook rather than after observing a live egress failure — see decisions.md.
 
-Verified live (`RUN_LIVE=1 pnpm test`): the pivot question calls get_skill_gap -> build_gap_roadmap ->
-companies_visiting -> render_dashboard, opens a CP04 tab with 6-7 sections in 12-15 s, and answers in
-~1,100 characters citing 3-5 real ids with zero invalid ones. Golden questions 1, 2, 3 and 8 pass, and
-asking about the same path again refreshes the tab instead of duplicating it.
+`pnpm lint`, `pnpm typecheck`, `pnpm test` (145 passed, incl. new `ics`/`genie`/`search` unit tests),
+and `pnpm build` (DEMO_MODE) all pass. **Not run this session: anything needing live Databricks
+credentials** (no `.env.local` was available) — the 11.13 checklist rows that need a live warehouse,
+Serving endpoint, Vector Search index, Genie space, or a Jobs run are unverified. Run them against a
+real workspace before the demo; see the per-service `docs/integrations/*.md` "Verify" sections.
 
-Still outstanding: a human click-through of chat in the browser, the **Vercel deploy** (12.2), and the
-resume bug under Known issues.
+Still outstanding: everything from P3 (a human click-through of chat in the browser, the **Vercel
+deploy** 12.2, the resume bug under Known issues), plus P4's live checklist above, actually running
+`02_ingest_external_apis.py`/`03_agent_eval.py` in a workspace, and the `agent_turns` Lakebase → Delta
+copy (not built — see decisions.md and `docs/integrations/mlflow-eval.md`).
 
-Next: **P4 Databricks depth** (Event Prep F9, Vector Search + /api/search F10, .ics export, Genie admin F11,
-the ingestion notebook, and the MLflow eval).
+Next: **P5 Polish + eval** (motion/empty-state pass, Playwright smoke, latency pre-warm), once P4's
+live checklist is confirmed against a real workspace.
 
 ## What we're building
 
@@ -211,4 +222,13 @@ Never cut: sign-in, resume parsing, dashboard, chat, pivot tab, roadmap.
   (`reasoning` + `text`) instead of a string, which the AI SDK cannot parse. `src/lib/databricks/llm.ts`
   normalizes every response in a `fetch` middleware and drops reasoning. `databricks-llama-4-maverick` needs
   none of this and is the drop-in alternative if gpt-oss misbehaves.
-- Vector Search, Genie, and the ingestion job are not set up yet (P4); each is guarded by `requireEnv`.
+- **Vector Search, Genie, and the ingestion job are implemented but not yet run against a live
+  workspace.** Each is guarded by `requireEnv`/a `*Configured()` check and degrades on its own:
+  `/api/search` falls back to SQL `ILIKE` (`src/lib/search.ts`) when an index name is blank or a
+  query errors; `/api/admin/genie` returns `not_configured` until `DATABRICKS_GENIE_SPACE_ID` is set,
+  while the rest of `/admin` still renders from `/api/admin/metrics`; ingestion has both the
+  Databricks-side notebook and, pre-built, the Vercel Cron fallback (`/api/cron/ingest`) documented
+  in `docs/integrations/vercel-cron.md`.
+- **`agent_turns` nightly Lakebase → Delta copy is not built.** `databricks/03_agent_eval.py` reads
+  the Unity Catalog table if present but does not depend on it; the golden-set eval runs standalone.
+  See `docs/integrations/mlflow-eval.md`.

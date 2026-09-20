@@ -369,6 +369,46 @@ export async function listRoadmapItems(userId: string, goal: string): Promise<St
   );
 }
 
+// ---------------------------------------------------------------- event prep (F9)
+
+export interface StoredEventPrep {
+  event_id: string;
+  pitch: string;
+  questions: string[];
+  talking_points: string[];
+  created_at: string;
+}
+
+export async function getEventPrep(
+  userId: string,
+  eventId: string,
+): Promise<StoredEventPrep | null> {
+  const rows = await q<StoredEventPrep>(
+    `SELECT event_id, pitch, questions, talking_points, created_at
+       FROM event_prep WHERE user_id = $1 AND event_id = $2`,
+    [userId, eventId],
+  );
+  return rows[0] ?? null;
+}
+
+/** Cached so re-opening the same event's drawer does not re-call the model (spec F9). */
+export async function saveEventPrep(input: {
+  userId: string;
+  eventId: string;
+  pitch: string;
+  questions: string[];
+  talkingPoints: string[];
+}): Promise<void> {
+  await q(
+    `INSERT INTO event_prep (user_id, event_id, pitch, questions, talking_points)
+     VALUES ($1, $2, $3, $4::text[], $5::text[])
+     ON CONFLICT (user_id, event_id) DO UPDATE
+       SET pitch = EXCLUDED.pitch, questions = EXCLUDED.questions,
+           talking_points = EXCLUDED.talking_points, created_at = now()`,
+    [input.userId, input.eventId, input.pitch, input.questions, input.talkingPoints],
+  );
+}
+
 export async function setRoadmapItemCompleted(
   userId: string,
   roadmapItemId: string,

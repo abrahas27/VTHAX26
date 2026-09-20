@@ -1,0 +1,36 @@
+// POST /api/admin/genie : "Ask the data" box on Admin Insights (spec F11, 11.10).
+// Route protection (ADMIN_EMAILS) is enforced by src/proxy.ts for every /api/admin/* path.
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { apiError, parseBody, requireUser } from "@/lib/api";
+import { askGenie, genieConfigured } from "@/lib/databricks/genie";
+
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
+const BodySchema = z.object({
+  question: z.string().trim().min(1).max(500),
+  conversationId: z.string().optional(),
+});
+
+export async function POST(req: Request) {
+  const auth = await requireUser();
+  if (!auth.ok) return auth.response;
+  if (!genieConfigured()) {
+    return apiError(
+      "not_configured",
+      "Set DATABRICKS_GENIE_SPACE_ID to use Ask the data (spec 11.10).",
+    );
+  }
+
+  const body = await parseBody(req, BodySchema);
+  if (!body.ok) return body.response;
+
+  try {
+    const answer = await askGenie(body.data.question, body.data.conversationId);
+    return NextResponse.json(answer);
+  } catch (err) {
+    console.error("[admin/genie] failed", err);
+    return apiError("upstream_error", "Genie could not answer that right now. Try again.");
+  }
+}

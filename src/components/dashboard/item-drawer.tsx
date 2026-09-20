@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { CalendarPlus, Loader2, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -54,6 +56,18 @@ function DrawerBody({ selected }: { selected: DrawerItem }) {
           <Row label="Host" value={event.companyName ?? event.host} />
           {event.pathNames.length > 0 && <Row label="Paths" value={event.pathNames.join(", ")} />}
           {event.skills.length > 0 && <ChipRow label="Skills covered" values={event.skills} />}
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              nativeButton={false}
+              render={<a href={`/api/calendar?ids=${event.id}`} download />}
+            >
+              <CalendarPlus className="size-3.5" aria-hidden="true" />
+              Add to calendar
+            </Button>
+          </div>
+          {isPreppable(event.type) && <EventPrep eventId={event.id} />}
           <p className="text-muted-foreground font-mono text-xs">{event.id}</p>
         </div>
       </>
@@ -137,6 +151,127 @@ function DrawerBody({ selected }: { selected: DrawerItem }) {
         <p className="text-muted-foreground font-mono text-xs">{opportunity.id}</p>
       </div>
     </>
+  );
+}
+
+/** Spec F9: Prep me is offered on info sessions, coffee chats, and fairs. */
+const PREPPABLE_TYPES = new Set(["info_session", "coffee_chat", "career_fair_booth", "networking"]);
+const isPreppable = (type: string) => PREPPABLE_TYPES.has(type);
+
+interface PrepResponse {
+  pitch: string;
+  questions: string[];
+  talkingPoints: string[];
+}
+
+/** Generates (and caches) a pitch, 3 questions, and 3 talking points for one event (spec F9). */
+function EventPrep({ eventId }: { eventId: string }) {
+  const [state, setState] = useState<
+    | { status: "idle" }
+    | { status: "loading" }
+    | { status: "error"; message: string }
+    | ({ status: "ready" } & PrepResponse)
+  >({ status: "idle" });
+
+  const generate = async () => {
+    setState({ status: "loading" });
+    try {
+      const res = await fetch("/api/prep", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ eventId }),
+      });
+      const body = (await res.json()) as PrepResponse & { error?: { message?: string } };
+      if (!res.ok) throw new Error(body.error?.message ?? "Could not generate prep notes.");
+      setState({ status: "ready", ...body });
+    } catch (err) {
+      setState({
+        status: "error",
+        message: err instanceof Error ? err.message : "Something went wrong.",
+      });
+    }
+  };
+
+  if (state.status === "idle") {
+    return (
+      <Button variant="secondary" size="sm" onClick={() => void generate()}>
+        <Sparkles className="size-3.5" aria-hidden="true" />
+        Prep me
+      </Button>
+    );
+  }
+
+  if (state.status === "loading") {
+    return (
+      <p className="text-muted-foreground flex items-center gap-2 text-xs">
+        <Loader2 className="size-3 animate-spin" aria-hidden="true" />
+        Writing your pitch and talking points...
+      </p>
+    );
+  }
+
+  if (state.status === "error") {
+    return (
+      <div className="space-y-2">
+        <p className="text-danger text-xs">{state.message}</p>
+        <Button variant="secondary" size="sm" onClick={() => void generate()}>
+          Retry
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-surface-2 space-y-3 rounded-xl p-3 text-xs">
+      <PrepBlock label="Your 30-second pitch" text={state.pitch} />
+      <PrepList label="Smart questions to ask" items={state.questions} />
+      <PrepList label="Talking points" items={state.talkingPoints} />
+    </div>
+  );
+}
+
+function PrepBlock({ label, text }: { label: string; text: string }) {
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center justify-between">
+        <p className="text-muted-foreground">{label}</p>
+        <CopyButton text={text} />
+      </div>
+      <p className="text-foreground">{text}</p>
+    </div>
+  );
+}
+
+function PrepList({ label, items }: { label: string; items: string[] }) {
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center justify-between">
+        <p className="text-muted-foreground">{label}</p>
+        <CopyButton text={items.join("\n")} />
+      </div>
+      <ul className="list-disc space-y-1 pl-4">
+        {items.map((item, i) => (
+          <li key={i}>{item}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        void navigator.clipboard.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1500);
+      }}
+      className="text-muted-foreground hover:text-foreground text-[11px] underline underline-offset-2"
+    >
+      {copied ? "Copied" : "Copy"}
+    </button>
   );
 }
 

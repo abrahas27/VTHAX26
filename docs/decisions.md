@@ -142,3 +142,51 @@ Format: date, decision, why, consequences. Newest at the bottom.
   "Cannot read properties of undefined". The dashboard path had its own inline copy of the mapping and was
   fine, which is exactly how the two drifted. Label helpers now also tolerate a missing type, so one absent
   field degrades a single chip instead of the page.
+
+## 2026-09-19 (P4): Search palette binds to "/", not Cmd/Ctrl+K
+
+- **Decision:** `SearchCommand` (F10) opens on `/` when no input is focused. Cmd/Ctrl+K stays bound
+  to focusing the chat panel (F5, decided in P3).
+- **Why:** The spec asks for both a global Cmd/Ctrl+K search palette (F10) and a global Cmd/Ctrl+K
+  chat focus (F5) — the same key for two different targets. Chat had it first and is a MUST feature;
+  search is SHOULD. Rebinding one key to two behaviors (e.g. "open search if empty, else focus chat")
+  would be surprising, so search gets its own key instead.
+
+## 2026-09-19 (P4): `ics` needs no integration guide
+
+- **Decision:** No `docs/integrations/ics.md`, matching the precedent set for `unpdf`/`mammoth`
+  (spec 12.3, no separate guide either).
+- **Why:** The 12.7 template is for external services with accounts, quotas, and failure modes to
+  document. `ics` is a local npm library with no account, no network call, and no key — there is
+  nothing in the template's sections that would not be empty.
+
+## 2026-09-19 (P4): Vercel Cron ingestion fallback shipped alongside the Databricks notebook, not after failure
+
+- **Decision:** `src/app/api/cron/ingest/route.ts`, `src/lib/ingest.ts`, and `vercel.json`'s `crons`
+  entry exist now, not only if `02_ingest_external_apis.py` is later found to fail from Databricks
+  serverless compute.
+- **Why:** This session has no live Databricks workspace to test outbound egress against, so there
+  is no way to observe the failure spec 11.9 warns about before it happens on stage. Building the
+  documented fallback now — inert until `CRON_SECRET`/`ONET_KEY`/`BLS_KEY` are set — costs nothing
+  and removes a blocking dependency on a live test.
+
+## 2026-09-19 (P4): `agent_turns` Lakebase → Delta copy is not built
+
+- **Decision:** `databricks/03_agent_eval.py` reads `{catalog}.{schema}.agent_turns` if it exists
+  and folds it into a coarse grounding check, but nothing populates that Unity Catalog table yet.
+  The golden-set evaluation (spec 15.3) runs standalone against live UC Functions + `ai_query` and
+  does not depend on it.
+- **Why:** Lakebase is a separate Postgres project; bridging it into Delta needs either a JDBC pull
+  (minting short-lived Lakebase OAuth credentials the same way `src/lib/db/lakebase.ts` does, then
+  `spark.read.jdbc(...)`) or an export endpoint on the app side. Writing either untested against a
+  live workspace this session did not have credentials for was judged riskier than documenting the
+  gap plainly — see `docs/integrations/mlflow-eval.md` — and building the golden-set eval to not
+  depend on it. Revisit once a live workspace is available to verify the JDBC path.
+
+## 2026-09-19 (P4): Job-board and Greenhouse/Lever tokens ship empty on purpose
+
+- **Decision:** `BOARDS` in both `databricks/02_ingest_external_apis.py` and `src/lib/ingest.ts` is
+  an empty map with a comment showing the shape.
+- **Why:** Spec rule 3 ("never invent credentials, IDs, or URLs") extends to company board tokens —
+  a guessed `boards.greenhouse.io/<token>` could be wrong for another company entirely. Only a human
+  who has clicked through a real careers page and confirmed the token should add an entry.

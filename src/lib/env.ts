@@ -59,6 +59,12 @@ export const envSchema = z
     NEXT_PUBLIC_AIBI_DASHBOARD_URL: z.preprocess(blank, z.url().optional()),
     DEMO_MODE: z.preprocess(blank, z.enum(["true", "false"]).default("false")),
     CRON_SECRET: optStr(),
+
+    // Vercel Cron ingestion fallback only (spec 11.9, 14.4). O*NET/BLS normally live only in the
+    // Databricks secret scope `hokiepath`; these are needed only if Databricks serverless compute
+    // cannot reach the internet and /api/cron/ingest calls the APIs from Vercel's network instead.
+    ONET_KEY: optStr(),
+    BLS_KEY: optStr(),
   })
   .superRefine((e, ctx) => {
     // DEMO_MODE serves fixtures (14.4), so live-service config is only mandatory when it is off.

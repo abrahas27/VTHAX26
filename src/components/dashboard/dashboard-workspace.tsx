@@ -6,6 +6,7 @@ import { ChatPanel, type TabSummary } from "@/components/chat/chat-panel";
 import { DashboardView } from "./dashboard-view";
 import { GoalTabs } from "./goal-tabs";
 import { ItemDrawer, type DrawerItem } from "./item-drawer";
+import { SearchCommand } from "./search-command";
 import { SectionRenderer } from "./section-renderer";
 import type { DashboardSpec } from "@/lib/agent/dashboard-spec";
 import type { DashboardPayload } from "@/lib/types";
@@ -95,6 +96,8 @@ export function DashboardWorkspace({ initialTab = "for-you" }: { initialTab?: st
   return (
     <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
       <div className="min-w-0 space-y-4">
+        <SearchCommand onOpen={setSelected} />
+
         {tabs.length > 0 && (
           <GoalTabs
             tabs={tabs}

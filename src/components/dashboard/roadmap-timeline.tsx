@@ -1,6 +1,8 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { CalendarPlus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { roadmapItemsPerMonth } from "@/lib/scoring";
@@ -77,14 +79,30 @@ export function RoadmapTimeline({ goal }: { goal?: string }) {
 
   const lanes = groupIntoLanes(data.items, roadmapItemsPerMonth(data.hoursPerWeek));
   const done = data.items.filter((i) => i.completed).length;
+  const eventIds = data.items
+    .filter((i) => i.item_type === "event" && i.item_id)
+    .map((i) => i.item_id as string);
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-xl">Gap-to-Goal roadmap</h1>
-        <p className="text-muted-foreground mt-1 text-sm">
-          {data.goal.pathName} · {done} of {data.items.length} done
-        </p>
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-xl">Gap-to-Goal roadmap</h1>
+          <p className="text-muted-foreground mt-1 text-sm">
+            {data.goal.pathName} · {done} of {data.items.length} done
+          </p>
+        </div>
+        {eventIds.length > 0 && (
+          <Button
+            variant="secondary"
+            size="sm"
+            nativeButton={false}
+            render={<a href={`/api/calendar?ids=${eventIds.join(",")}`} download />}
+          >
+            <CalendarPlus className="size-3.5" aria-hidden="true" />
+            Add all to Google Calendar
+          </Button>
+        )}
       </header>
 
       {lanes.map(([lane, items]) => (

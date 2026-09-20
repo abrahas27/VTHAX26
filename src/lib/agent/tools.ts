@@ -7,6 +7,7 @@ import { careerPaths, pathById, resolvePath } from "@/lib/catalog";
 import { ucFn } from "@/lib/databricks/functions";
 import { sql, T } from "@/lib/databricks/sql";
 import { getDashboardLayout, saveDashboardLayout } from "@/lib/db/queries";
+import { search } from "@/lib/search";
 import {
   collectIds,
   DashboardSpecSchema,
@@ -163,10 +164,22 @@ export function buildTools(ctx: ToolContext) {
       execute: async ({ path_id }) => {
         const path = (await pathById(path_id)) ?? (await resolvePath(path_id));
         if (!path) return { error: "No such career path." };
+        // bls_wages only exists once databricks/02_ingest_external_apis.py has run (spec 12.6); a
+        // missing table or a code with no national-median series falls back to the mock salary.
+        const wage = path.onet_soc_code
+          ? await sql<{ median_annual_wage: number; year: number }>(
+              `SELECT median_annual_wage, year FROM ${T("bls_wages")}
+                WHERE soc_code = :soc ORDER BY year DESC LIMIT 1`,
+              { soc: path.onet_soc_code },
+            ).catch(() => [])
+          : [];
         return {
           path_id: path.path_id,
           path_name: path.path_name,
           median_salary_usd_mock: path.median_salary_usd_mock,
+          median_salary_bls: wage[0]
+            ? { amount: wage[0].median_annual_wage, year: wage[0].year }
+            : null,
           typical_majors: path.typical_majors,
           onet_soc_code: path.onet_soc_code,
         };
@@ -189,6 +202,35 @@ export function buildTools(ctx: ToolContext) {
               { pid: path.path_id },
             ),
             "club_id",
+          ),
+        );
+      },
+    }),
+
+    semantic_search: tool({
+      description:
+        "Search events and opportunities by meaning, not just keywords (e.g. 'learn valuation' " +
+        "finds a DCF workshop). Use when the student describes what they want to learn or do " +
+        "rather than naming a career path.",
+      inputSchema: z.object({
+        query: z.string().min(1).max(200),
+        kind: z.enum(["events", "opportunities"]).default("events"),
+        k: z.number().int().min(1).max(15).default(8),
+      }),
+      execute: async ({ query, kind, k }) => {
+        const result = await search(query, {
+          events: kind === "events",
+          opportunities: kind === "opportunities",
+          clubs: false,
+          k,
+        });
+        return trim(
+          remember(
+            ctx,
+            kind === "events"
+              ? (result.events as unknown as Record<string, unknown>[])
+              : (result.opportunities as unknown as Record<string, unknown>[]),
+            kind === "events" ? "id" : "id",
           ),
         );
       },
