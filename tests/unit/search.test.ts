@@ -32,13 +32,23 @@ describe("search", () => {
     const eventQuery = sql.mock.calls.find(([stmt]) =>
       String(stmt).includes("gold_event_search_docs"),
     );
-    expect(eventQuery?.[0]).toContain("lower(search_text) LIKE lower(concat('%', :q, '%'))");
-    expect(eventQuery?.[1]).toEqual({ q: "learn valuation" });
+    // Ranked by number of matching query words, not a single substring LIKE.
+    expect(eventQuery?.[0]).toContain(
+      "(CASE WHEN lower(search_text) LIKE concat('%', :term0, '%') THEN 1 ELSE 0 END)",
+    );
+    expect(eventQuery?.[0]).toContain(
+      "(CASE WHEN lower(search_text) LIKE concat('%', :term1, '%') THEN 1 ELSE 0 END)",
+    );
+    expect(eventQuery?.[1]).toEqual({ term0: "learn", term1: "valuation" });
   });
 
   it("uses Vector Search when configured, and never falls back on success", async () => {
     vectorSearchConfigured.mockReturnValue(true);
-    vsQuery.mockResolvedValueOnce([{ event_id: "EV0001", title: "DCF Workshop" }]); // events
+    // Vector Search has no built-in "upcoming only" filter, so this must be a future start_ts --
+    // search() filters past events out of the vector path itself.
+    vsQuery.mockResolvedValueOnce([
+      { event_id: "EV0001", title: "DCF Workshop", start_ts: "2026-12-01T00:00:00.000Z" },
+    ]); // events
     vsQuery.mockResolvedValueOnce([]); // opportunities
 
     const result = await search("learn valuation");

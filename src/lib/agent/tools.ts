@@ -166,6 +166,8 @@ export function buildTools(ctx: ToolContext) {
         if (!path) return { error: "No such career path." };
         // bls_wages only exists once databricks/02_ingest_external_apis.py has run (spec 12.6); a
         // missing table or a code with no national-median series falls back to the mock salary.
+        // One field, always present, always labeled with where the number actually came from --
+        // never let the model present an estimate as a measured wage.
         const wage = path.onet_soc_code
           ? await sql<{ median_annual_wage: number; year: number }>(
               `SELECT median_annual_wage, year FROM ${T("bls_wages")}
@@ -176,10 +178,9 @@ export function buildTools(ctx: ToolContext) {
         return {
           path_id: path.path_id,
           path_name: path.path_name,
-          median_salary_usd_mock: path.median_salary_usd_mock,
-          median_salary_bls: wage[0]
-            ? { amount: wage[0].median_annual_wage, year: wage[0].year }
-            : null,
+          median_salary: wage[0]
+            ? { amount: wage[0].median_annual_wage, year: wage[0].year, source: "bls" as const }
+            : { amount: path.median_salary_usd_mock, year: null, source: "estimated" as const },
           typical_majors: path.typical_majors,
           onet_soc_code: path.onet_soc_code,
         };

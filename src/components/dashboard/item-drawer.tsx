@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CalendarPlus, Loader2, Sparkles } from "lucide-react";
+import { CalendarPlus, ExternalLink, Loader2, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -141,12 +141,31 @@ function DrawerBody({ selected }: { selected: DrawerItem }) {
       </SheetHeader>
       <div className="space-y-4 px-4 pb-6 text-sm">
         <Row label="Type" value={opportunityTypeLabel(opportunity.type)} />
-        {opportunity.deadline && <Row label="Deadline" value={formatDate(opportunity.deadline)} />}
+        {opportunity.deadline && (
+          <Row
+            label="Deadline"
+            value={
+              formatDate(opportunity.deadline) +
+              (opportunity.deadlineEstimated ? " (estimated)" : "")
+            }
+          />
+        )}
         {opportunity.classYears.length > 0 && (
           <Row label="Class years" value={opportunity.classYears.join(", ")} />
         )}
         {opportunity.requiredSkills.length > 0 && (
           <ChipRow label="Required skills" values={opportunity.requiredSkills} />
+        )}
+        {opportunity.applyUrl && (
+          <Button
+            variant="secondary"
+            size="sm"
+            nativeButton={false}
+            render={<a href={opportunity.applyUrl} target="_blank" rel="noopener noreferrer" />}
+          >
+            <ExternalLink className="size-3.5" aria-hidden="true" />
+            Apply
+          </Button>
         )}
         <p className="text-muted-foreground font-mono text-xs">{opportunity.id}</p>
       </div>

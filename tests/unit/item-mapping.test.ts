@@ -27,6 +27,7 @@ describe("toOpportunity", () => {
       classYears: ["Sophomore", "Junior"],
       location: "Charlotte, NC",
       deadline: "2026-10-13",
+      deadlineEstimated: false,
       applyUrl: null,
     });
   });

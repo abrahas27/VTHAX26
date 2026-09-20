@@ -89,7 +89,8 @@ export async function POST(req: Request) {
         ? // The table stores path_id; the drawer shows the readable path name.
           sql<OpportunityRow>(
             `SELECT o.opportunity_id, o.title, o.opportunity_type, o.company_name, p.path_name,
-                    o.required_skills, o.class_years, o.location, o.deadline, o.apply_url
+                    o.required_skills, o.class_years, o.location, o.deadline,
+                    o.deadline_estimated, o.apply_url
                FROM ${T("opportunities")} o
                LEFT JOIN ${T("career_paths")} p ON p.path_id = o.path_id
               WHERE o.opportunity_id IN (SELECT explode(from_json(:ids, 'array<string>')))`,

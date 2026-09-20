@@ -37,8 +37,9 @@ print("Target:", fq)
 
 import hashlib
 import json
+import re
 import requests
-from datetime import date
+from datetime import date, timedelta
 from pyspark.sql import Row
 from pyspark.sql import functions as F
 
@@ -180,17 +181,44 @@ else:
 
 # COMMAND ----------
 
-# Verified live 2026-09-20 against boards-api.greenhouse.io -- each token below returned a real,
-# non-empty jobs list for a company that already exists in our companies table. Never add a token
-# here without confirming it the same way (spec comment above: "an unverified one just returns
-# nothing or 404s").
+# Verified live 2026-09-20 against each board's public API -- both returned a real, non-empty jobs
+# list for a company that already exists in our companies table (greenhouse/palantir 404s; Palantir
+# posts through Lever instead). Never add a token here without confirming it the same way (spec
+# comment above: "an unverified one just returns nothing or 404s").
 BOARDS = {
-    "CO002": ("greenhouse", "databricks"),  # Databricks
-    "CO019": ("greenhouse", "janestreet"),  # Jane Street
-    "CO009": ("greenhouse", "bcg"),  # Boston Consulting Group
+    "CO002": ("greenhouse", "databricks"),  # Databricks -- 877 jobs
+    "CO027": ("lever", "palantir"),  # Palantir -- 313 jobs
 }
 
-INTERN_KEYWORDS = ("intern", "summer analyst", "new grad", "co-op", "university", "rotational")
+# Word-boundary so a title like "Database Engine Internals" does not match "intern" as a bare
+# substring (this actually happened on the first ingestion run). "internship" is listed separately
+# because \bintern\b does not match inside it (no word boundary between "intern" and "ship").
+STUDENT_ROLE_PATTERN = re.compile(
+    r"\bintern\b|internship|new grad|summer analyst|co-op|university", re.IGNORECASE
+)
+# A posting matching a student-role keyword above can still be a senior/staff-level role at a large
+# company (e.g. "Intern Program Manager" as an internal title); exclude those, except the one
+# legitimately entry-level title that happens to contain "manager".
+SENIOR_ROLE_PATTERN = re.compile(r"\bsenior\b|\bstaff\b|\bprincipal\b|\blead\b|\bmanager\b", re.IGNORECASE)
+ASSOCIATE_PM_PATTERN = re.compile(r"associate product manager", re.IGNORECASE)
+
+
+def is_student_role(title: str) -> bool:
+    if not STUDENT_ROLE_PATTERN.search(title):
+        return False
+    if SENIOR_ROLE_PATTERN.search(title) and not ASSOCIATE_PM_PATTERN.search(title):
+        return False
+    return True
+
+
+def extract_description(source: str, raw_json: str) -> str:
+    """Best-effort plain text from the source's raw posting JSON, for skill keyword matching only."""
+    try:
+        j = json.loads(raw_json)
+    except Exception:
+        return ""
+    html = j.get("content") if source == "greenhouse" else (j.get("descriptionPlain") or j.get("description"))
+    return re.sub("<[^<]+?>", " ", html or "")
 
 # Checked in order, most specific first, so e.g. "Mechanical Engineer" matches CP15 rather than
 # falling into CP01's generic "engineer" catch-all. Covers all 19 career_paths rows (spec catalog).
@@ -280,11 +308,10 @@ if BOARDS:
         )
         print(f"bronze_job_postings: {len(rows)} rows")
 
-        # Map postings that look like student roles into `opportunities`, keyword rule first.
-        postings = spark.table(f"{fq}.bronze_job_postings")
-        student_postings = postings.filter(
-            F.lower(F.col("title")).rlike("|".join(INTERN_KEYWORDS))
-        ).collect()
+        # Map postings that look like student roles into `opportunities`.
+        all_postings = spark.table(f"{fq}.bronze_job_postings").collect()
+        student_postings = [p for p in all_postings if is_student_role(p["title"])]
+        print(f"  {len(student_postings)}/{len(all_postings)} postings look like student roles")
 
         def stable_opportunity_id(source: str, job_id: str) -> str:
             # A hash-based id must be stable across notebook runs -- Python's built-in hash() is
@@ -305,46 +332,86 @@ if BOARDS:
             else {}
         )
 
-        # Build against the *existing* table's schema rather than letting createDataFrame infer one:
-        # every row here has required_skills=[] and min_gpa/posted_date/deadline=None, and Spark
-        # cannot infer a type from an all-empty/all-null column. A tuple per row, in the target
-        # table's exact column order, sidesteps both that and Row(**kwargs)'s alphabetical-by-name
-        # field ordering (which would silently transpose values if paired with an explicit schema).
+        # Canonical skills for keyword matching -- required_skills must only ever contain a real
+        # skill name, never anything a posting's own free text happened to say (spec rule 5).
+        skill_names = [r["skill_name"] for r in spark.sql(f"SELECT skill_name FROM {fq}.skills").collect()]
+        skill_names_lower = {s.lower() for s in skill_names}
+
+        def keyword_skills(text: str) -> list[str]:
+            t = text.lower()
+            return [s for s in skill_names if s.lower() in t]
+
+        def ai_query_skills(text: str) -> list[str]:
+            """Fallback only when no keyword matched. Output is filtered back against the canonical
+            list, so a hallucinated skill name can never reach the table even if the model invents one."""
+            prompt = (
+                "From this list of skills, return ONLY the ones clearly relevant to the job posting "
+                "below, as a comma-separated list with no other text. If none apply, return an empty "
+                f"string. Skills: {', '.join(skill_names)}. Posting: {text[:1500]}"
+            )
+            escaped = prompt.replace("'", "\\'")
+            try:
+                result = spark.sql(f"SELECT ai_query('databricks-gpt-oss-120b', '{escaped}') AS s").collect()[0]["s"]
+                return [c.strip() for c in (result or "").split(",") if c.strip().lower() in skill_names_lower]
+            except Exception as e:
+                print(f"    ai_query skill inference failed: {str(e)[:120]}")
+                return []
+
+        # `deadline_estimated` distinguishes a real posted deadline from our own +60-day guess, so
+        # the UI can label the latter honestly instead of presenting it as a fact (spec rule 5).
+        opp_cols_before = {f.name for f in spark.table(f"{fq}.opportunities").schema.fields}
+        if "deadline_estimated" not in opp_cols_before:
+            spark.sql(f"ALTER TABLE {fq}.opportunities ADD COLUMNS (deadline_estimated BOOLEAN)")
         opp_schema = spark.table(f"{fq}.opportunities").schema
         field_names = opp_schema.fieldNames()
 
+        # Build against the *existing* table's schema rather than letting createDataFrame infer one:
+        # required_skills can be [] and min_gpa/posted_date are always None, and Spark cannot infer a
+        # type from an all-empty/all-null column. A tuple per row, in the target table's exact column
+        # order, sidesteps both that and Row(**kwargs)'s alphabetical-by-name field ordering (which
+        # would silently transpose values if paired with an explicit schema).
+        estimated_deadline = date.today() + timedelta(days=60)
         opp_tuples = []
+        merged_ids = []
         skipped_no_path = 0
         for p in student_postings:
             path_id = guess_path_id(p["title"])
             if path_id is None:
                 skipped_no_path += 1
                 continue  # would be dropped anyway by gold_opportunity_search_docs's inner join
+            description = extract_description(p["source"], p["raw"])
+            skills = keyword_skills(f"{p['title']} {description}") or ai_query_skills(
+                f"{p['title']}. {description}"
+            )
+            opp_id = stable_opportunity_id(p["source"], p["job_id"])
             values = {
-                "opportunity_id": stable_opportunity_id(p["source"], p["job_id"]),
+                "opportunity_id": opp_id,
                 "company_id": p["company_id"],
                 "company_name": company_names.get(p["company_id"]),
                 "title": p["title"],
                 "opportunity_type": "internship" if "intern" in p["title"].lower() else "full_time",
                 "path_id": path_id,
-                "required_skills": [],
+                "required_skills": skills,
                 "preferred_skills": [],
                 "eligible_majors": ["ALL"],
                 "class_years": ["Sophomore", "Junior", "Senior"],
                 "min_gpa": None,
                 "location": p["location"],
                 "posted_date": None,
-                # Unknown, not zero: find_opportunities and gold_path_supply_demand treat a NULL
-                # deadline as still-open rather than guessing an expiry we have no evidence for.
-                "deadline": None,
+                # Greenhouse/Lever expose no deadline. We estimate one so the existing "open" filters
+                # (deadline >= current_date()) keep working, flagged so the UI can label it clearly.
+                "deadline": estimated_deadline,
+                "deadline_estimated": True,
                 "apply_url": p["url"],
                 "source": p["source"],
             }
             opp_tuples.append(tuple(values.get(f) for f in field_names))
+            merged_ids.append(opp_id)
         if skipped_no_path:
             print(f"  Skipped {skipped_no_path} posting(s) with no matched career path.")
 
         if opp_tuples:
+            spark.sql("SET spark.databricks.delta.schema.autoMerge.enabled = true")
             new_df = spark.createDataFrame(opp_tuples, schema=opp_schema)
             new_df.createOrReplaceTempView("new_opportunities")
             # MERGE instead of append: re-running this notebook must update/no-op on a posting it
@@ -357,6 +424,43 @@ if BOARDS:
                 WHEN NOT MATCHED THEN INSERT *
             """)
             print(f"opportunities: merged {len(opp_tuples)} postings (source=greenhouse/lever)")
+
+            # MERGE the same rows into gold_opportunity_search_docs directly -- not CREATE OR REPLACE
+            # -- so the table's Delta history / Change Data Feed stays intact for the Vector Search
+            # Delta Sync index. Recreating the table would otherwise force the index to be rebuilt
+            # instead of incrementally synced.
+            ids_literal = ", ".join(f"'{i}'" for i in merged_ids)
+            spark.sql(f"""
+                MERGE INTO {fq}.gold_opportunity_search_docs AS target
+                USING (
+                  SELECT o.opportunity_id, o.title, o.opportunity_type, o.company_name, o.path_id,
+                         cp.path_name, o.required_skills, o.preferred_skills, o.eligible_majors,
+                         o.class_years, o.location, o.deadline, o.deadline_estimated, o.apply_url,
+                         concat_ws(' | ',
+                           o.title, o.opportunity_type, o.company_name, cp.path_name, o.location,
+                           concat('Required: ', array_join(o.required_skills, ', ')),
+                           concat('Preferred: ', array_join(o.preferred_skills, ', ')),
+                           concat('Majors: ', array_join(o.eligible_majors, ', ')),
+                           concat('Years: ', array_join(o.class_years, ', '))) AS search_text
+                  FROM {fq}.opportunities o
+                  JOIN {fq}.career_paths cp ON cp.path_id = o.path_id
+                  WHERE o.opportunity_id IN ({ids_literal})
+                ) AS source
+                ON target.opportunity_id = source.opportunity_id
+                WHEN MATCHED THEN UPDATE SET *
+                WHEN NOT MATCHED THEN INSERT *
+            """)
+            print("gold_opportunity_search_docs: merged the same postings")
+
+            try:
+                from databricks.vector_search.client import VectorSearchClient
+
+                vsc = VectorSearchClient(disable_notice=True)
+                idx = vsc.get_index("hokiepath-vs", f"{fq}.gold_opportunity_search_docs_idx")
+                idx.sync()
+                print("gold_opportunity_search_docs_idx: sync triggered")
+            except Exception as e:
+                print(f"  Could not trigger index sync ({str(e)[:150]}) -- sync it manually: Compute -> AI Search -> hokiepath-vs -> gold_opportunity_search_docs_idx -> Sync now.")
         else:
             print("opportunities: no postings matched a career path to merge.")
     else:

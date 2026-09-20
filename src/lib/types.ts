@@ -130,6 +130,9 @@ export interface OpportunityItem {
   classYears: string[];
   location: string | null;
   deadline: string | null;
+  /** True when `deadline` is our own +60-day guess (Greenhouse/Lever expose no real deadline),
+   * not a posted fact -- the UI must label it, never present it as a real deadline. */
+  deadlineEstimated?: boolean;
   applyUrl?: string | null;
 }
 

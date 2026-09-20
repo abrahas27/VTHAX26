@@ -105,6 +105,13 @@ for name, spec in TABLES.items():
     for c in spec.get("timestamps", []): df = df.withColumn(c, F.to_timestamp(c))
     df = df.withColumn("_ingested_at", F.current_timestamp())
 
+    if name == "opportunities":
+        # 02_ingest_external_apis.py adds this column (via ALTER TABLE) once it has ingested a real
+        # posting; add it here too so gold_opportunity_search_docs can select it below even on a
+        # fresh workspace where 02 has never run yet. Mock rows are not estimates -- their deadlines
+        # come from generate_mock_data.py, not a +60-day guess -- so they get False, not NULL.
+        df = df.withColumn("deadline_estimated", F.lit(False))
+
     if name == "opportunities" and spark.catalog.tableExists(f"{fq}.{name}"):
         # This loop overwrites every table from its mock CSV on every run, which would erase real
         # postings 02_ingest_external_apis.py already merged in (source != 'mock'). Snapshot them to
@@ -116,7 +123,9 @@ for name, spec in TABLES.items():
         )
         preserved = spark.table(f"{fq}._tmp_preserved_opportunities")
         preserved_count = preserved.count()
-        df = df.unionByName(preserved)
+        # allowMissingColumns covers the very first rerun after 02_ingest adds a column this loop's
+        # own CSV-typed df does not yet know about.
+        df = df.unionByName(preserved, allowMissingColumns=True)
         if preserved_count:
             print(f"  preserving {preserved_count} ingested opportunities (source <> 'mock')")
 
@@ -239,6 +248,7 @@ FROM {fq}.gold_events_enriched
 GOLD["gold_opportunity_search_docs"] = f"""
 SELECT o.opportunity_id, o.title, o.opportunity_type, o.company_name, o.path_id, cp.path_name,
        o.required_skills, o.preferred_skills, o.eligible_majors, o.class_years, o.location, o.deadline,
+       o.deadline_estimated, o.apply_url,
        concat_ws(' | ',
          o.title, o.opportunity_type, o.company_name, cp.path_name, o.location,
          concat('Required: ', array_join(o.required_skills, ', ')),
@@ -333,13 +343,46 @@ LEFT JOIN op       ON op.path_id = cp.path_id
 
 CDF_TABLES = {"gold_event_search_docs", "gold_opportunity_search_docs"}  # Vector Search Delta Sync needs Change Data Feed
 for name, q in GOLD.items():
-    props = " TBLPROPERTIES (delta.enableChangeDataFeed = true)" if name in CDF_TABLES else ""
-    spark.sql(f"CREATE OR REPLACE TABLE {fq}.{name}{props} AS {q}")
+    if name in CDF_TABLES and spark.catalog.tableExists(f"{fq}.{name}"):
+        # CREATE OR REPLACE resets the table's Delta history, which forces the Vector Search Delta
+        # Sync index into a full resync instead of an incremental one (spec 14.4: avoid disrupting a
+        # live index where possible). INSERT OVERWRITE replaces every row but keeps the table's
+        # identity and history intact.
+        spark.sql(f"INSERT OVERWRITE TABLE {fq}.{name} {q}")
+    else:
+        props = " TBLPROPERTIES (delta.enableChangeDataFeed = true)" if name in CDF_TABLES else ""
+        spark.sql(f"CREATE OR REPLACE TABLE {fq}.{name}{props} AS {q}")
     print(f"{name:32s} {spark.table(f'{fq}.{name}').count():6d} rows")
 
 for t, pk in [("gold_event_search_docs", "event_id"), ("gold_opportunity_search_docs", "opportunity_id")]:
     try_sql(f"ALTER TABLE {fq}.{t} ALTER COLUMN {pk} SET NOT NULL")
     try_sql(f"ALTER TABLE {fq}.{t} ADD CONSTRAINT {t}_pk PRIMARY KEY ({pk})")
+
+# COMMAND ----------
+
+# MAGIC %md ## 4b. Sync Vector Search indexes, if they already exist
+# MAGIC The gold tables above may have just changed under an existing index (e.g. a rerun after new
+# MAGIC ingested opportunities). Trigger a sync so the index picks up the change without waiting for
+# MAGIC its own schedule. A no-op, not an error, on the very first run before any index exists.
+
+# COMMAND ----------
+
+# MAGIC %pip install -q databricks-vectorsearch
+
+# COMMAND ----------
+
+try:
+    from databricks.vector_search.client import VectorSearchClient
+
+    vsc = VectorSearchClient(disable_notice=True)
+    for idx_name in ["gold_event_search_docs_idx", "gold_opportunity_search_docs_idx"]:
+        try:
+            vsc.get_index("hokiepath-vs", f"{fq}.{idx_name}").sync()
+            print(f"{idx_name}: sync triggered")
+        except Exception as e:
+            print(f"{idx_name}: not found yet or sync failed ({str(e)[:120]}) -- fine before it is first created")
+except Exception as e:
+    print(f"Vector Search SDK unavailable ({str(e)[:120]}) -- skipping index sync")
 
 # COMMAND ----------
 
@@ -402,9 +445,10 @@ TOOL_FUNCTIONS = {
         params="target_path STRING COMMENT 'Career path name or fragment; empty string for any path', "
                "opp_type STRING COMMENT 'internship, full_time, research, or empty string for all'",
         returns="opportunity_id STRING, title STRING, opportunity_type STRING, company_name STRING, path_name STRING, "
-                "required_skills ARRAY<STRING>, class_years ARRAY<STRING>, location STRING, deadline DATE",
+                "required_skills ARRAY<STRING>, class_years ARRAY<STRING>, location STRING, deadline DATE, "
+                "deadline_estimated BOOLEAN, apply_url STRING",
         comment="Finds open internships, full-time roles, and undergraduate research positions for a career path, soonest deadline first.",
-        body=f"""SELECT opportunity_id, title, opportunity_type, company_name, path_name, required_skills, class_years, location, deadline
+        body=f"""SELECT opportunity_id, title, opportunity_type, company_name, path_name, required_skills, class_years, location, deadline, deadline_estimated, apply_url
                  FROM {fq}.gold_opportunity_search_docs
                  WHERE (deadline IS NULL OR deadline >= current_date())
                    AND (target_path = '' OR lower(path_name) LIKE lower(concat('%', target_path, '%')))
@@ -520,13 +564,15 @@ if SETUP_VS:
 
 # MAGIC %md ## 7. AI Functions: parse a resume straight into your tables
 # MAGIC `ai_query` calls a hosted Foundation Model from SQL. Swap the endpoint name for one listed on
-# MAGIC your **Serving** page if this one is not available.
+# MAGIC your **Serving** page if this one is not available. `databricks-gpt-oss-120b` is used elsewhere
+# MAGIC in this repo (`src/lib/databricks/llm.ts`, `02_ingest_external_apis.py`'s skill inference,
+# MAGIC `03_agent_eval.py`), so this demo matches it for consistency.
 
 # COMMAND ----------
 
 # MAGIC %sql
 # MAGIC SELECT ai_query(
-# MAGIC   'databricks-meta-llama-3-3-70b-instruct',
+# MAGIC   'databricks-gpt-oss-120b',
 # MAGIC   concat(
 # MAGIC     'Extract skills from this resume. Use ONLY names from this list when they match: ',
 # MAGIC     (SELECT array_join(collect_list(skill_name), ', ') FROM skills),

@@ -47,6 +47,7 @@ export interface OpportunityRow {
   class_years: string[] | null;
   location: string | null;
   deadline: string | null;
+  deadline_estimated?: boolean | null;
   apply_url?: string | null;
 }
 export interface RoadmapRow {
@@ -100,6 +101,7 @@ export const toOpportunity = (row: OpportunityRow): OpportunityItem => ({
   classYears: row.class_years ?? [],
   location: row.location,
   deadline: row.deadline,
+  deadlineEstimated: row.deadline_estimated ?? false,
   applyUrl: row.apply_url ?? null,
 });
 

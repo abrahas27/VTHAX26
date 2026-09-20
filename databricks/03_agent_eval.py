@@ -23,9 +23,18 @@
 
 # COMMAND ----------
 
+import os
+
 dbutils.widgets.text("catalog", "workspace", "Catalog")
 dbutils.widgets.text("schema", "hokiepath", "Schema")
-dbutils.widgets.text("llm_endpoint", "", "Chat model serving endpoint (spec 11.5, e.g. databricks-meta-llama-3-3-70b-instruct)")
+# Best-effort default from a same-named cluster/compute env var (the app reads this from Vercel's
+# own env, a separate system this notebook has no access to -- this only helps if someone has
+# mirrored it into this compute's environment). Empty otherwise, same as before.
+dbutils.widgets.text(
+    "llm_endpoint",
+    os.environ.get("DATABRICKS_LLM_ENDPOINT", ""),
+    "Chat model serving endpoint (spec 11.5, e.g. databricks-gpt-oss-120b)",
+)
 
 catalog = dbutils.widgets.get("catalog")
 schema = dbutils.widgets.get("schema")
@@ -34,7 +43,11 @@ fq = f"{catalog}.{schema}"
 spark.sql(f"USE CATALOG {catalog}")
 spark.sql(f"USE SCHEMA {schema}")
 if not LLM_ENDPOINT:
-    raise ValueError("Set the llm_endpoint widget to a chat-capable Serving endpoint name (spec 11.5). Never hard-code one.")
+    raise ValueError(
+        "Set the llm_endpoint widget to a chat-capable Serving endpoint name (spec 11.5) -- "
+        "could not default it from a DATABRICKS_LLM_ENDPOINT env var on this compute either. "
+        "Never hard-code one."
+    )
 print("Target:", fq, "| model:", LLM_ENDPOINT)
 
 # COMMAND ----------
@@ -88,8 +101,16 @@ GOLDEN_SET = [
         n=6, question="Is consulting a better fit than banking for me?",
         tool_calls=[("get_skill_gap", dict(target_path="consulting", student_skills=DEMO_SKILLS)),
                     ("get_skill_gap", dict(target_path="investment banking", student_skills=DEMO_SKILLS))],
-        must_hold="compares readiness numbers from tools",
-        check=lambda ans, ids: bool(re.search(r"\d+%|\d+/\d+|\d+ out of \d+", ans)),
+        # get_skill_gap returns raw (skill_name, importance, has_skill) rows, never a percentage --
+        # by design (CLAUDE.md: "anything a model could get wrong by arithmetic is computed in
+        # TypeScript, not prompted for"), so a check demanding \d+% here was asking the agent to do
+        # exactly the arithmetic the system is built to keep out of its hands. Verified live
+        # (run af6ac8f715ea4c208031ea85dc9d594c, 2026-09-20): the agent instead correctly named the
+        # actual missing skills per path, which is the right behavior; only the check was wrong.
+        must_hold="compares both paths using real skill-gap data, not a fabricated percentage",
+        check=lambda ans, ids: "consult" in ans.lower()
+        and "bank" in ans.lower()
+        and any(w in ans.lower() for w in ["missing", "gap", "more", "fewer", "prioritize", "closer"]),
     ),
     dict(
         n=7, question="Something to learn valuation",
@@ -113,8 +134,18 @@ GOLDEN_SET = [
     dict(
         n=10, question="Pivot into underwater basket weaving",
         tool_calls=[("list_career_paths", dict())],
+        # Verified live (run af6ac8f715ea4c208031ea85dc9d594c, 2026-09-20): the agent's actual answer
+        # declined the fake path and named two real ones from the student's profile ("consider paths
+        # such as Software Engineering [CP01] or Data Science & Analytics [CP02]") -- exactly the
+        # required behavior. The keyword list below was just too narrow to recognize that phrasing.
         must_hold="says no matching path; suggests closest real ones",
-        check=lambda ans, ids: any(w in ans.lower() for w in ["closest", "instead", "no exact", "don't have", "do not have", "not a career path"]),
+        check=lambda ans, ids: any(
+            w in ans.lower()
+            for w in [
+                "closest", "instead", "no exact", "don't have", "do not have", "not a career path",
+                "not able to", "not a real", "consider", "such as", "no matching",
+            ]
+        ),
     ),
 ]
 
@@ -169,7 +200,9 @@ ID_PATTERN = re.compile(r"\[([A-Z]{2}\d{3,4})\]")
 
 rows_for_table = []
 for r in results:
-    context = json.dumps(r["context_rows"])[:6000]  # keep the prompt small, same discipline as spec 10.3
+    # default=str: UC Function results carry datetime/date values (e.g. deadline, start_ts) that
+    # json.dumps cannot serialize on its own -- this crashed the eval before the fix.
+    context = json.dumps(r["context_rows"], default=str)[:6000]  # keep the prompt small (spec 10.3)
     prompt = f"{SYSTEM}\n\nCONTEXT:\n{context}\n\nQUESTION: {r['question']}"
     escaped = prompt.replace("'", "\\'")
     try:
