@@ -91,7 +91,7 @@ export function SearchCommand({ onOpen }: { onOpen: (item: DrawerItem) => void }
       <CommandDialog
         open={open}
         onOpenChange={setOpen}
-        title="Search HokiePath"
+        title="Search HireUp"
         description="Search events, clubs, and opportunities by meaning, not just keywords."
       >
         <CommandInput

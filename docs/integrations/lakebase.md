@@ -1,6 +1,6 @@
 # Lakebase (managed Postgres) integration
 
-## Purpose in HokiePath
+## Purpose in HireUp
 
 Per-user application state that changes on every click: `app_users`, `student_profiles`, chat history,
 AI-created goal tabs (`dashboard_state`), `saved_items`, `roadmap_items`, `event_prep`, `readiness_snapshots`
@@ -18,7 +18,7 @@ Free Edition has a Lakebase quota; use the smallest capacity. Instances may be p
 
 ## Human steps (do these in order)
 
-1. Databricks → **Compute → Lakebase** → create a Postgres **project** named `hokiepath-db` (done).
+1. Databricks → **Compute → Lakebase** → create a Postgres **project** named `hireup-db` (done).
 2. Open its SQL editor (or connect with `psql`) and run `lakebase/01_app_schema.sql`, then
    `lakebase/02_migrations.sql`, in that order.
 3. From **Connection details**, copy the endpoint host, database name (`databricks_postgres`) and user into
@@ -31,8 +31,8 @@ Free Edition has a Lakebase quota; use the smallest capacity. Instances may be p
    curl -s -H "Authorization: Bearer $DATABRICKS_TOKEN" \
      "$DATABRICKS_HOST/api/2.0/postgres/projects/<project_id>/branches/<branch_id>/endpoints"
    ```
-   Note that `project_id` is the **name** (`hokiepath-db`), not the UID. For this workspace the value is
-   `projects/hokiepath-db/branches/production/endpoints/primary`.
+   Note that `project_id` is the **name** (`hireup-db`), not the UID. For this workspace the value is
+   `projects/hireup-db/branches/production/endpoints/primary`.
 5. Auth method: leave `LAKEBASE_PASSWORD` empty and the app mints a ~60-minute credential per endpoint
    (option a). Only set `LAKEBASE_PASSWORD` if the project has native Postgres login enabled and you created
    a role (option b); this project currently reports `enable_pg_native_login: false`. When set, it is used
@@ -47,7 +47,7 @@ Free Edition has a Lakebase quota; use the smallest capacity. Instances may be p
 | `LAKEBASE_HOST`     | `ep-blue-heart-d8wg3pum.database.us-east-2.cloud.databricks.com` | `lakebase.ts` pool    | no      |
 | `LAKEBASE_DB`       | `databricks_postgres`                                            | `lakebase.ts` pool    | no      |
 | `LAKEBASE_USER`     | `sam.abrahas1@gmail.com` (Databricks identity)                   | `lakebase.ts` pool    | no      |
-| `LAKEBASE_ENDPOINT` | `projects/hokiepath-db/branches/production/endpoints/primary`    | credential generation | no      |
+| `LAKEBASE_ENDPOINT` | `projects/hireup-db/branches/production/endpoints/primary`       | credential generation | no      |
 | `LAKEBASE_PASSWORD` | native role password                                             | `lakebase.ts` pool    | yes     |
 
 ## Code touchpoints

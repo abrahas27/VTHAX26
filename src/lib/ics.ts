@@ -40,9 +40,9 @@ export function toEventAttributes(event: EventItem, baseUrl: string): EventAttri
     location: event.location,
     description: descriptionLines.join("\n"),
     url: `${baseUrl}/dashboard`,
-    uid: `${event.id}@hokiepath`,
-    productId: "HokiePath",
-    calName: "HokiePath",
+    uid: `${event.id}@hireup`,
+    productId: "HireUp",
+    calName: "HireUp",
   };
 }
 

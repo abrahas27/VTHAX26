@@ -122,7 +122,7 @@ export function ChatPanel({
       <header className="border-border flex items-center justify-between border-b px-4 py-3">
         <span className="flex items-center gap-2 text-sm font-medium">
           <Sparkles className="text-accent size-4" aria-hidden="true" />
-          HokiePath AI
+          HireUp AI
         </span>
         {messages.length > 0 && (
           <Button

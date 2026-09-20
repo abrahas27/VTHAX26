@@ -169,7 +169,7 @@ export function buildTools(ctx: ToolContext) {
 
     list_career_paths: tool({
       description:
-        "List the career paths HokiePath knows about. Use when the student's goal is vague or ambiguous.",
+        "List the career paths HireUp knows about. Use when the student's goal is vague or ambiguous.",
       inputSchema: z.object({}),
       execute: async () =>
         (await careerPaths()).map((p) => ({

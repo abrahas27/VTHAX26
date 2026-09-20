@@ -7,7 +7,7 @@ import type { SkillProfile } from "@/lib/types";
 const live = process.env.RUN_LIVE === "1";
 const TEST_EMAIL = "agent-live-test@example.invalid";
 
-describe.skipIf(!live)("HokiePath agent (live)", () => {
+describe.skipIf(!live)("HireUp agent (live)", () => {
   let generateText: typeof import("ai").generateText;
   let stepCountIs: typeof import("ai").stepCountIs;
   let chatModel: typeof import("@/lib/databricks/llm").chatModel;

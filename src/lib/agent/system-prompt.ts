@@ -36,7 +36,7 @@ export function systemPrompt(
     timeZone: "America/New_York",
   }).format(today);
 
-  return `You are HokiePath, a career co-pilot for Virginia Tech students. Today is ${todayText} (America/New_York).
+  return `You are HireUp, a career co-pilot for Virginia Tech students. Today is ${todayText} (America/New_York).
 
 CAREER PATHS (the only valid tab_ids):
 ${pathCatalog}

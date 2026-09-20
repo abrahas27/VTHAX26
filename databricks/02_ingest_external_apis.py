@@ -1,6 +1,6 @@
 # Databricks notebook source
 # MAGIC %md
-# MAGIC # HokiePath: ingest external APIs (P4, spec 11.9 / 12.4-12.6)
+# MAGIC # HireUp: ingest external APIs (P4, spec 11.9 / 12.4-12.6)
 # MAGIC
 # MAGIC Pulls real-world data into Delta so the gold refresh and the app have more than mock rows:
 # MAGIC

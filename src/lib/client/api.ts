@@ -22,7 +22,7 @@ const FRIENDLY: Record<string, string> = {
   unauthorized: "Your session expired. Sign in again to keep going.",
   profile_required: "Finish onboarding first and this will fill in.",
   upstream_error: "Our live data is having a moment. Try again in a few seconds.",
-  not_configured: "This part of HokiePath is not switched on yet.",
+  not_configured: "This part of HireUp is not switched on yet.",
   forbidden: "You do not have access to this.",
 };
 

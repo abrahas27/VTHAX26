@@ -1,6 +1,6 @@
 # Databricks notebook source
 # MAGIC %md
-# MAGIC # HokiePath: agent evaluation (P4, spec 11.12, 15.3)
+# MAGIC # HireUp: agent evaluation (P4, spec 11.12, 15.3)
 # MAGIC
 # MAGIC Runs the 10-question golden set from spec 15.3 against the live UC Function tools and the chat
 # MAGIC model, scores grounding (every `[ID]` the model cites must come from a tool result) and the
@@ -188,7 +188,7 @@ for g in GOLDEN_SET:
 
 # COMMAND ----------
 
-SYSTEM = f"""You are HokiePath, a career co-pilot for Virginia Tech students. Today is {date.today().isoformat()}.
+SYSTEM = f"""You are HireUp, a career co-pilot for Virginia Tech students. Today is {date.today().isoformat()}.
 STUDENT: CS sophomore. Skills: {DEMO_SKILLS}.
 RULES: Only mention items from CONTEXT below, and cite each one as [ID] using its id field exactly.
 Never invent names, dates, or ids. If CONTEXT is empty, do not call any tool results a fact; answer

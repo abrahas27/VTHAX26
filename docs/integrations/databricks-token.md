@@ -1,6 +1,6 @@
 # Databricks access token integration
 
-## Purpose in HokiePath
+## Purpose in HireUp
 
 One bearer token authenticates the Vercel server to every Databricks surface: the SQL Statement Execution
 API, Foundation Model APIs, Vector Search, Lakebase credential minting, and Genie (spec 11.4).
@@ -13,7 +13,7 @@ principal with OAuth M2M.
 ## Human steps (do these in order)
 
 1. Databricks → **Settings → Developer → Access tokens → Generate new token**.
-2. Comment `hokiepath-vercel`, lifetime 30 days.
+2. Comment `hireup-vercel`, lifetime 30 days.
 3. Copy it once into `.env.local` as `DATABRICKS_TOKEN`, and into Vercel → Settings → Environment Variables
    (Production + Preview).
 4. Never paste it into code, commits, chat, or the browser.

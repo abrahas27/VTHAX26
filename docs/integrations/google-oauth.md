@@ -1,6 +1,6 @@
 # Google OAuth (Sign in with Google) integration
 
-## Purpose in HokiePath
+## Purpose in HireUp
 
 F1: any student signs in with a Google account (including @vt.edu Google accounts). Auth.js v5 issues a JWT
 session; the session carries the Lakebase `userId` and an `isAdmin` flag that gates `/admin` (spec 12.1).
@@ -13,7 +13,7 @@ every teammate and judge, or publish the app (basic scopes usually need no verif
 ## Human steps (do these in order)
 
 1. Google Cloud Console → create project `hokiepath`.
-2. **APIs and Services → OAuth consent screen**: User type External, app name HokiePath, support email,
+2. **APIs and Services → OAuth consent screen**: User type External, app name HireUp, support email,
    scopes `openid`, `email`, `profile`. Add teammates and judges as test users, or Publish.
 3. **Credentials → Create credentials → OAuth client ID → Web application**.
 4. Authorized JavaScript origins: `http://localhost:3000` and `https://<your-app>.vercel.app`.

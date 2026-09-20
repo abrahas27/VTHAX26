@@ -43,7 +43,7 @@ export async function GET(req: Request) {
     status: 200,
     headers: {
       "Content-Type": "text/calendar; charset=utf-8",
-      "Content-Disposition": `attachment; filename="hokiepath-${ids.length > 1 ? "events" : ids[0]}.ics"`,
+      "Content-Disposition": `attachment; filename="hireup-${ids.length > 1 ? "events" : ids[0]}.ics"`,
     },
   });
 }

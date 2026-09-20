@@ -1,5 +1,5 @@
 """
-HokiePath mock data generator.
+HireUp mock data generator.
 
 Produces CSVs for Unity Catalog Delta tables. Deterministic (seeded), so every
 teammate gets identical data. List-valued columns are pipe-delimited ("a|b|c")

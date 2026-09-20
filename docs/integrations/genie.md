@@ -1,6 +1,6 @@
 # Databricks Genie integration
 
-## Purpose in HokiePath
+## Purpose in HireUp
 
 Powers the "Ask the data" box on `/admin` (F11): Career Services types a natural-language question
 and gets an answer plus a result table, backed by the gold aggregate tables (never per-student

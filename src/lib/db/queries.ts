@@ -102,6 +102,7 @@ function rowToProfile(row: ProfileRow): SkillProfile {
     preferences: { ...EMPTY_PREFERENCES, ...((row.preferences ?? {}) as Partial<Preferences>) },
     fitScores: (row.fit_scores ?? {}) as Record<string, number>,
     primaryGoal: row.target_path_id,
+    primaryGoalName: row.target_path_name,
   };
 }
 

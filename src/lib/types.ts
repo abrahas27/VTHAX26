@@ -43,6 +43,8 @@ export interface SkillProfile {
   preferences: Preferences;
   fitScores: Record<string, number>; // path_id -> 0..100
   primaryGoal: string | null; // path_id
+  /** Denormalized alongside primaryGoal, so showing the goal needs no catalog lookup. */
+  primaryGoalName?: string | null;
 }
 
 // ---------------------------------------------------------------- catalog

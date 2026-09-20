@@ -12,7 +12,7 @@ const live = {
   LAKEBASE_HOST: "instance.database.cloud.databricks.com",
   LAKEBASE_DB: "databricks_postgres",
   LAKEBASE_USER: "me@example.com",
-  LAKEBASE_ENDPOINT: "projects/hokiepath-db/branches/production/endpoints/primary",
+  LAKEBASE_ENDPOINT: "projects/hireup-db/branches/production/endpoints/primary",
 };
 
 describe("parseEnv", () => {

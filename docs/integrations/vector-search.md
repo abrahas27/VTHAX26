@@ -1,6 +1,6 @@
 # Databricks Vector Search integration
 
-## Purpose in HokiePath
+## Purpose in HireUp
 
 Semantic matching so "learn company valuation" finds a DCF workshop even though the words don't
 overlap (F10). Also backs the `semantic_search` agent tool (spec 10.3), so the chat can answer
@@ -10,14 +10,14 @@ not yet wired in) and F10.
 ## Cost / free tier limits
 
 Free Edition limits how many Vector Search endpoints a workspace can have; the setup notebook
-reuses one endpoint (`hokiepath-vs`) for both indexes. Endpoint creation can take several minutes.
+reuses one endpoint (`hireup-vs`) for both indexes. Endpoint creation can take several minutes.
 Indexing runs on the `TRIGGERED` pipeline type, so a new row is not searchable until the index is
 manually synced (or the endpoint auto-syncs on the schedule Databricks assigns).
 
 ## Human steps (do these in order)
 
 1. Run `databricks/01_setup_hokiepath_lakehouse.py` with the widget `setup_vector_search` set to
-   `true` (last section of the notebook). This creates the `hokiepath-vs` endpoint and two Delta
+   `true` (last section of the notebook). This creates the `hireup-vs` endpoint and two Delta
    Sync indexes: `{catalog}.{schema}.gold_event_search_docs_idx` and
    `..._opportunity_search_docs_idx`, embedding with `databricks-gte-large-en`.
 2. **Compute → Vector Search** → wait until both indexes show **Online**.

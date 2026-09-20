@@ -1,6 +1,6 @@
 @AGENTS.md
 
-# HokiePath: project brief for Claude Code
+# HireUp: project brief for Claude Code
 
 Living summary of `HokiePath_Spec.pdf` (v1.0). The spec is the source of truth; this file records how we are applying it.
 Update the **Current phase** and **Fallbacks in use** sections at the end of every phase.
@@ -52,7 +52,7 @@ Next: **P6 Ship** — final deploy, deck, rehearsals including DEMO_MODE, backup
 ## What we're building
 
 A student signs in with Google, uploads a resume (parsed by a Databricks-hosted LLM), and answers an 8-question
-questionnaire. HokiePath then builds a skill profile and a **For You** dashboard: events, recruiter visits, clubs,
+questionnaire. HireUp then builds a skill profile and a **For You** dashboard: events, recruiter visits, clubs,
 opportunities, and a Gap-to-Goal roadmap, all ranked by how well they close skill gaps. A tool-using chat agent answers
 career questions and **opens goal tabs** (the "morphing dashboard", F6). Career Services get an aggregate Admin Insights
 page backed by Genie.

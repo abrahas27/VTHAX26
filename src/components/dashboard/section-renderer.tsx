@@ -59,7 +59,7 @@ export function SectionRenderer({
           {computed ? ` · Readiness ${computed.readiness.score}` : ""}
         </p>
         <p className="text-muted-foreground mt-2 text-xs italic">
-          Built by HokiePath AI from: &ldquo;{spec.source_question}&rdquo;
+          Built by HireUp AI from: &ldquo;{spec.source_question}&rdquo;
         </p>
       </header>
 

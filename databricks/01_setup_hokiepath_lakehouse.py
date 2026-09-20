@@ -1,6 +1,6 @@
 # Databricks notebook source
 # MAGIC %md
-# MAGIC # HokiePath: Lakehouse setup (Unity Catalog + Delta)
+# MAGIC # HireUp: Lakehouse setup (Unity Catalog + Delta)
 # MAGIC
 # MAGIC Run this notebook top to bottom on **serverless** compute (Databricks Free Edition). It will:
 # MAGIC
@@ -34,8 +34,8 @@ print("Target:", fq, "| raw files:", VOLUME_PATH)
 
 # COMMAND ----------
 
-spark.sql(f"CREATE SCHEMA IF NOT EXISTS {fq} COMMENT 'HokiePath: AI career navigator for Virginia Tech students (VTHacks Deloitte x Databricks challenge)'")
-spark.sql(f"CREATE VOLUME IF NOT EXISTS {fq}.raw COMMENT 'Raw CSV drops for HokiePath'")
+spark.sql(f"CREATE SCHEMA IF NOT EXISTS {fq} COMMENT 'HireUp: AI career navigator for Virginia Tech students (VTHacks Deloitte x Databricks challenge)'")
+spark.sql(f"CREATE VOLUME IF NOT EXISTS {fq}.raw COMMENT 'Raw CSV drops for HireUp'")
 spark.sql(f"USE CATALOG {catalog}")
 spark.sql(f"USE SCHEMA {schema}")
 
@@ -189,7 +189,7 @@ COLUMN_COMMENTS = [
     ("events", "target_majors", "Array of majors.major_code; ['ALL'] means open to every major"),
     ("events", "related_skills", "Array of skills.skill_name this event helps develop"),
     ("students", "is_pivoting", "True if target career path is outside the typical paths for the student's major"),
-    ("event_registrations", "recommended_by_agent", "True if the HokiePath agent recommended this event to the student"),
+    ("event_registrations", "recommended_by_agent", "True if the HireUp agent recommended this event to the student"),
 ]
 for t, col, c in COLUMN_COMMENTS:
     try_sql(f"ALTER TABLE {fq}.{t} ALTER COLUMN {col} COMMENT '{c}'")
@@ -400,7 +400,7 @@ TOOL_FUNCTIONS = {
     "list_career_paths": dict(
         params="",
         returns="path_id STRING, path_name STRING, career_family STRING, core_skills ARRAY<STRING>",
-        comment="Lists every career path HokiePath knows about. Call this first if the student's goal does not obviously match a path name.",
+        comment="Lists every career path HireUp knows about. Call this first if the student's goal does not obviously match a path name.",
         body=f"SELECT path_id, path_name, career_family, core_skills FROM {fq}.career_paths",
     ),
     "get_skill_gap": dict(

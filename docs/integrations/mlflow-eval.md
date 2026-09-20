@@ -1,6 +1,6 @@
 # MLflow agent evaluation integration
 
-## Purpose in HokiePath
+## Purpose in HireUp
 
 Shows engineering rigor: the agent is measured against the 10-question golden set (spec 15.3), not
 only demoed. Scores grounding (does every `[ID]` the model cites come from a real tool result) and a
@@ -19,8 +19,8 @@ which does consume Foundation Model API tokens like any other chat call.
 2. Open `databricks/03_agent_eval.py`, set the `llm_endpoint` widget to the same
    `DATABRICKS_LLM_ENDPOINT` the app uses (spec 11.5) — **never hard-code an endpoint name**, verify
    it on the Serving page.
-3. **Run all.** It logs one run per execution to the MLflow experiment `/Shared/hokiepath-agent-eval`.
-4. **Experiments** (left sidebar) → open `/Shared/hokiepath-agent-eval` → the run has
+3. **Run all.** It logs one run per execution to the MLflow experiment `/Shared/hireup-agent-eval`.
+4. **Experiments** (left sidebar) → open `/Shared/hireup-agent-eval` → the run has
    `grounding_pass_rate`, `behavior_pass_rate`, `overall_pass_rate` as metrics and a
    `golden_set_results.json` artifact with the per-question detail. Screenshot the metrics table for
    the pitch deck (spec 18.2).

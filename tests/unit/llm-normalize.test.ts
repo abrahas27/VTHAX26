@@ -6,7 +6,7 @@ const { flattenContent } = await import("@/lib/databricks/llm");
 
 describe("flattenContent", () => {
   it("passes strings through unchanged (Llama-style responses)", () => {
-    expect(flattenContent("hello from HokiePath")).toBe("hello from HokiePath");
+    expect(flattenContent("hello from HireUp")).toBe("hello from HireUp");
     expect(flattenContent("")).toBe("");
   });
 
@@ -21,9 +21,9 @@ describe("flattenContent", () => {
         type: "reasoning",
         summary: [{ type: "summary_text", text: "The user wants a greeting." }],
       },
-      { type: "text", text: "hello from HokiePath" },
+      { type: "text", text: "hello from HireUp" },
     ];
-    expect(flattenContent(content)).toBe("hello from HokiePath");
+    expect(flattenContent(content)).toBe("hello from HireUp");
   });
 
   it("returns an empty string when a chunk carries reasoning only", () => {

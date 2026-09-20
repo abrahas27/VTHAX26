@@ -1,4 +1,4 @@
-# HokiePath
+# HireUp
 
 AI career co-pilot for Virginia Tech students (VTHacks, Deloitte x Databricks challenge, _Campus Career Navigator_ track).
 A student uploads a resume, answers 8 questions, and gets a living dashboard of VT events, clubs, recruiter visits, and a

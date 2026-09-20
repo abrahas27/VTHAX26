@@ -1,4 +1,4 @@
-# HokiePath: mock data + Databricks setup
+# HireUp: mock data + Databricks setup
 
 > In the app repo these files live under `databricks/` (notebook, generator, `data/`) and `lakebase/` (Postgres schema).
 > Paths below are relative to that layout.
@@ -6,7 +6,7 @@
 AI career navigator for Virginia Tech (VTHacks, Deloitte x Databricks challenge, _Campus Career Navigator_ track).
 
 ```
-hokiepath/
+hireup/
 ├── data/                                  13 CSVs (mock, deterministic)
 ├── databricks/01_setup_hokiepath_lakehouse.py   Databricks notebook (import into your workspace)
 ├── lakebase/01_app_schema.sql             Postgres schema for the live app (Lakebase)

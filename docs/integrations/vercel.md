@@ -1,6 +1,6 @@
 # Vercel (hosting) integration
 
-## Purpose in HokiePath
+## Purpose in HireUp
 
 Hosts the Next.js app: RSC pages, `/api/*` Route Handlers, the agent loop, and preview deployments per
 branch (spec 12.2). The judge-facing URL.
@@ -16,7 +16,7 @@ Hobby is free. Function execution time is limited by plan and settings, so chat,
 
 ## Human steps (do these in order)
 
-1. Create a Vercel account with GitHub. **Add New → Project → Import** the HokiePath repo. Framework preset
+1. Create a Vercel account with GitHub. **Add New → Project → Import** the HireUp repo. Framework preset
    Next.js (root directory is the repo root; build `pnpm build`).
 2. **Settings → Environment Variables**: add every filled-in key from `.env.local` for Production _and_
    Preview (see the list below).

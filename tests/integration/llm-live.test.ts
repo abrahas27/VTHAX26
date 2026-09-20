@@ -28,10 +28,10 @@ describe.skipIf(!live)("Databricks model serving (live)", () => {
   it("returns plain text with no reasoning leakage", async () => {
     const { text } = await generateText({
       model: chatModel(),
-      prompt: "Reply with exactly: hello from HokiePath",
+      prompt: "Reply with exactly: hello from HireUp",
       maxOutputTokens: 200,
     });
-    expect(text.toLowerCase()).toContain("hello from hokiepath");
+    expect(text.toLowerCase()).toContain("hello from hireup");
     expect(text.toLowerCase()).not.toContain("the user wants");
   }, 60_000);
 

@@ -1,6 +1,6 @@
 # O*NET Web Services integration
 
-## Purpose in HokiePath
+## Purpose in HireUp
 
 Free U.S. Department of Labor occupational data. Links each career path's `onet_soc_code` to
 official skill importances and descriptions, enriching `get_path_outlook` and goal-tab headers with
@@ -16,8 +16,8 @@ version mismatch is easy to spot.
 ## Human steps (do these in order)
 
 1. Register at O*NET Web Services (free): https://services.onetcenter.org/ → request API access.
-2. Store the key in the Databricks secret scope: `databricks secrets create-scope hokiepath` (once),
-   then `databricks secrets put-secret hokiepath onet_key` (paste the key when prompted).
+2. Store the key in the Databricks secret scope: `databricks secrets create-scope hireup` (once),
+   then `databricks secrets put-secret hireup onet_key` (paste the key when prompted).
 3. Run `databricks/02_ingest_external_apis.py` on serverless compute. Section 1 reads
    `dbutils.secrets.get("hokiepath", "onet_key")` and writes `onet_occupation_skills`.
 4. Rerun `01_setup_hokiepath_lakehouse.py` (gold refresh) so `get_path_outlook` and the goal-tab

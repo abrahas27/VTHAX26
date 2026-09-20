@@ -1,4 +1,4 @@
-// Session/JWT fields HokiePath adds in src/lib/auth.ts.
+// Session/JWT fields HireUp adds in src/lib/auth.ts.
 import type { DefaultSession } from "next-auth";
 
 declare module "next-auth" {

@@ -1,6 +1,6 @@
 # Databricks AI/BI Dashboard integration
 
-## Purpose in HokiePath
+## Purpose in HireUp
 
 Spec F11 / 11.11: an optional, polished Databricks-native dashboard for Career Services, linked from
 `/admin`, for deeper exploration than the in-app KPI cards and chart cover. Purely a link — no data

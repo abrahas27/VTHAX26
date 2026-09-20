@@ -1,6 +1,6 @@
 # Vercel Cron ingestion fallback
 
-## Purpose in HokiePath
+## Purpose in HireUp
 
 Spec 14.4 / 11.9's documented fallback for one specific risk: **Free Edition serverless compute may
 restrict outbound internet access**, which would make `databricks/02_ingest_external_apis.py`'s

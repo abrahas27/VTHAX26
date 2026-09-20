@@ -1,6 +1,6 @@
 # Databricks SQL Warehouse (Statement Execution API) integration
 
-## Purpose in HokiePath
+## Purpose in HireUp
 
 Every catalog read and every agent tool call runs as parameterized SQL on a serverless SQL Warehouse over
 HTTPS (spec 11.3). No JDBC/ODBC driver is needed, which is what makes it work inside Vercel serverless

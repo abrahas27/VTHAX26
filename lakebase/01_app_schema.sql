@@ -1,8 +1,8 @@
 -- =====================================================================
--- HokiePath - Lakebase Application Database
+-- HireUp - Lakebase Application Database
 -- =====================================================================
 -- Purpose:
--- Stores live, user-specific state for the HokiePath web application.
+-- Stores live, user-specific state for the HireUp web application.
 --
 -- Lakebase:
 --   - User profiles

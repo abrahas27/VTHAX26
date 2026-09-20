@@ -5,6 +5,8 @@ import { apiError, parseBody, requireUser } from "@/lib/api";
 import { pathNameFor } from "@/lib/catalog";
 import { invalidateDashboard } from "@/lib/dashboard-cache";
 import { getProfile, saveProfile } from "@/lib/db/queries";
+import { isDemoMode, readFixture } from "@/lib/demo";
+import type { SkillProfile } from "@/lib/types";
 
 export const runtime = "nodejs";
 
@@ -33,6 +35,14 @@ const UpdateSchema = z.object({
 export async function GET() {
   const auth = await requireUser();
   if (!auth.ok) return auth.response;
+
+  // In DEMO_MODE the recorded profile stands in for a Lakebase row that may not exist, so the
+  // profile page shows a populated student rather than an empty state (spec 14.4).
+  if (isDemoMode()) {
+    const demo = await readFixture<SkillProfile>("profile");
+    if (demo) return NextResponse.json(demo);
+  }
+
   const profile = await getProfile(auth.user.userId);
   if (!profile) return apiError("not_found", "No profile yet. Upload a resume to get started.");
   return NextResponse.json(profile);

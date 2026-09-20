@@ -1,6 +1,6 @@
 # DEMO_MODE and recorded fixtures
 
-## Purpose in HokiePath
+## Purpose in HireUp
 
 The stage safety net (spec 14.4). With `DEMO_MODE=true` the dashboard serves payloads recorded from
 real Databricks responses, so a cold warehouse, an exhausted quota, or bad conference wifi cannot

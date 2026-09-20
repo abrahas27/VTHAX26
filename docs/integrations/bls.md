@@ -1,6 +1,6 @@
 # BLS Public Data API integration
 
-## Purpose in HokiePath
+## Purpose in HireUp
 
 Official median wages by occupation (OEWS), replacing the mock `career_paths.median_salary_usd_mock`
 in goal-tab headers where a real national series exists (spec 12.6, F6).
@@ -14,7 +14,7 @@ wage — some fall back to mock data, and that's expected, not a bug.
 ## Human steps (do these in order)
 
 1. Register for a free BLS API v2 key: https://www.bls.gov/developers/.
-2. Store it in the Databricks secret scope: `databricks secrets put-secret hokiepath bls_key`.
+2. Store it in the Databricks secret scope: `databricks secrets put-secret hireup bls_key`.
 3. **Confirm the OEWS national-median series id pattern for your SOC codes** with the BLS series ID
    formatter on their site before running this in a demo — the pattern has shifted between OEWS
    vintages, and a stale pattern silently returns zero rows for every code.

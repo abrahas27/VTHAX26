@@ -1,4 +1,5 @@
 // F1: landing page (spec Figure 5.1). Public; the only action is Continue with Google.
+import Image from "next/image";
 import Link from "next/link";
 import { CalendarClock, MessageCircleQuestion, Target } from "lucide-react";
 import { auth } from "@/lib/auth";
@@ -33,7 +34,7 @@ export default async function Landing() {
           dashboard load does not pay for a cold start (spec 14.3). */}
       <WarmUp />
       <header className="mx-auto flex w-full max-w-[1440px] items-center justify-between px-6 py-5">
-        <span className="text-base font-semibold tracking-tight">HokiePath</span>
+        <span className="text-base font-semibold tracking-tight">HireUp</span>
         {session ? (
           <div className="flex items-center gap-2">
             <Button size="sm" nativeButton={false} render={<Link href="/start" />}>
@@ -62,7 +63,7 @@ export default async function Landing() {
                 nativeButton={false}
                 render={<Link href="/start" />}
               >
-                Continue to HokiePath
+                Continue to HireUp
               </Button>
             ) : (
               <SignInButton />
@@ -73,46 +74,22 @@ export default async function Landing() {
             </p>
           </div>
 
-          {/* A sketch of the real thing, in the real tokens: the goal tabs, a readiness ring and
-              two cards. Cheap to render, and far better than the words "product preview" if the
-              live screenshot does not land before the demo. */}
-          <div className="card-elevated flex aspect-[16/10] flex-col gap-3 p-5" aria-hidden="true">
-            <div className="flex gap-2">
-              <span className="bg-primary text-primary-foreground rounded-full px-3 py-1 text-[11px]">
-                For You
-              </span>
-              <span className="bg-accent text-accent-foreground rounded-full px-3 py-1 text-[11px]">
-                Investment Banking
-              </span>
-              <span className="bg-surface-2 text-muted-foreground rounded-full px-3 py-1 text-[11px]">
-                + asked by AI
-              </span>
-            </div>
-            <div className="grid flex-1 grid-cols-[auto_1fr] gap-3">
-              <div className="border-border flex flex-col items-center justify-center gap-2 rounded-xl border px-6">
-                <div className="border-accent flex size-16 items-center justify-center rounded-full border-4">
-                  <span className="text-base">62</span>
-                </div>
-                <span className="text-muted-foreground text-[10px]">Readiness</span>
-              </div>
-              <div className="flex flex-col gap-2">
-                {[
-                  "J.P. Morgan info session",
-                  "DCF modeling workshop",
-                  "SEO Career fall deadline",
-                ].map((label) => (
-                  <div
-                    key={label}
-                    className="border-border flex-1 rounded-xl border px-3 py-2 text-[11px]"
-                  >
-                    {label}
-                    <span className="bg-surface-2 text-muted-foreground ml-2 rounded-full px-1.5 py-0.5 text-[9px]">
-                      closes a gap
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
+          {/*
+            The hero art. Shipped as a pre-resized WebP (1.4 MB PNG -> 172 KB) rather than the
+            original: this is the largest element above the fold, so it is what Largest Contentful
+            Paint measures. `priority` preloads it instead of waiting for the lazy-load observer,
+            and the explicit dimensions reserve the box so nothing below it shifts when it lands.
+          */}
+          <div className="card-elevated relative aspect-[3/2] overflow-hidden">
+            <Image
+              src="/hero-resumes.webp"
+              alt="The Virginia Tech HokieBird tossing out resumes to Google, Microsoft, Amazon, Apple, Meta, NVIDIA and Virginia Tech."
+              width={1400}
+              height={933}
+              priority
+              sizes="(min-width: 1024px) 45vw, 100vw"
+              className="size-full object-cover"
+            />
           </div>
         </section>
 

@@ -1,6 +1,6 @@
 # Databricks Foundation Model APIs integration
 
-## Purpose in HokiePath
+## Purpose in HireUp
 
 The agent's brain and the resume parser (spec 11.5). Databricks serves OpenAI-compatible chat and
 embedding endpoints, so the Vercel AI SDK talks to them directly. Used by F2 (resume extraction),
@@ -49,7 +49,7 @@ short profile JSON), cap tool steps at 6, and cache Event Prep results.
 {
   "content": [
     { "type": "reasoning", "summary": [{ "type": "summary_text", "text": "We need to ..." }] },
-    { "type": "text", "text": "hello from HokiePath" }
+    { "type": "text", "text": "hello from HireUp" }
   ]
 }
 ```

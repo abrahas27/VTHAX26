@@ -1,6 +1,6 @@
 # <Service name> integration
 
-## Purpose in HokiePath
+## Purpose in HireUp
 
 One paragraph: which features (F#) use it and why it was chosen.
 

@@ -5,7 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * HokiePath design tokens (spec 5.1-5.2): modern, sleek, dark-first, with Virginia Tech identity
+ * HireUp design tokens (spec 5.1-5.2): modern, sleek, dark-first, with Virginia Tech identity
  * used as confident accents. The spec's names (--bg, --surface, --primary, --accent, ...) are the
  * source of truth; the shadcn variables below alias them so generated components inherit the theme.
  */

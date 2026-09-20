@@ -8,7 +8,7 @@ vi.mock("@/lib/env", () => ({
 const { normalizeEndpoint } = await import("@/lib/db/lakebase");
 
 describe("normalizeEndpoint", () => {
-  const full = "projects/hokiepath-db/branches/production/endpoints/primary";
+  const full = "projects/hireup-db/branches/production/endpoints/primary";
 
   it("accepts a full resource name", () => {
     expect(normalizeEndpoint(full)).toBe(full);
@@ -19,14 +19,14 @@ describe("normalizeEndpoint", () => {
   });
 
   it("adds a missing projects/ prefix", () => {
-    expect(normalizeEndpoint("hokiepath-db/branches/production/endpoints/primary")).toBe(full);
+    expect(normalizeEndpoint("hireup-db/branches/production/endpoints/primary")).toBe(full);
   });
 
   it("rejects a bare project id, which is the old instance-style value", () => {
-    expect(() => normalizeEndpoint("hokiepath-db")).toThrow(/LAKEBASE_ENDPOINT must look like/);
+    expect(() => normalizeEndpoint("hireup-db")).toThrow(/LAKEBASE_ENDPOINT must look like/);
   });
 
   it("rejects a path that is missing the endpoint segment", () => {
-    expect(() => normalizeEndpoint("projects/hokiepath-db/branches/production")).toThrow();
+    expect(() => normalizeEndpoint("projects/hireup-db/branches/production")).toThrow();
   });
 });

@@ -65,8 +65,8 @@ Format: date, decision, why, consequences. Newest at the bottom.
   `LAKEBASE_ENDPOINT`. `LAKEBASE_PASSWORD` remains an override that skips generation entirely.
 - **Why:** The workspace uses an autoscaling Lakebase project, not a provisioned database instance. The
   instance-era call (`/api/2.0/database/credentials` with `instance_names`) fails with
-  `Database instance 'hokiepath-db' not found`.
-- **Gotchas:** the API addresses projects by **name** (`hokiepath-db`), not by UID; the response field is
+  `Database instance 'hireup-db' not found`.
+- **Gotchas:** the API addresses projects by **name** (`hireup-db`), not by UID; the response field is
   `expire_time`; credentials last ~60 minutes. This project has `enable_pg_native_login: false`, so option
   (b) is unavailable until native login is turned on.
 
@@ -238,7 +238,7 @@ WHEN NOT MATCHED THEN INSERT *` instead of `append`.
   `(deadline IS NULL OR deadline >= current_date())`. Ingested postings write `deadline = NULL`
   rather than a guessed date.
 - **Why:** Greenhouse/Lever postings don't expose an application deadline, and fabricating one (e.g.
-  "today + 60 days, labeled estimated") would show a student a specific date HokiePath does not
+  "today + 60 days, labeled estimated") would show a student a specific date HireUp does not
   actually know to be true — the opportunities table has no column to carry an "estimated" flag, so
   the label would only ever exist in a code comment, not in what the student sees. Treating unknown
   as open is honest about what we know and avoids a real posting silently vanishing from the app

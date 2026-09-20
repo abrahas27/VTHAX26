@@ -34,10 +34,10 @@ describe("toEventAttributes", () => {
     expect("end" in attrs && attrs.end).toEqual([2026, 9, 21, 19, 30]);
   });
 
-  it("includes a link back to HokiePath and the event id in the uid", () => {
+  it("includes a link back to HireUp and the event id in the uid", () => {
     const attrs = toEventAttributes(event, "https://hokiepath.vercel.app");
     expect(attrs.url).toBe("https://hokiepath.vercel.app/dashboard");
-    expect(attrs.uid).toBe("EV0037@hokiepath");
+    expect(attrs.uid).toBe("EV0037@hireup");
   });
 });
 

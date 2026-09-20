@@ -1,6 +1,6 @@
 # Greenhouse & Lever public job boards integration
 
-## Purpose in HokiePath
+## Purpose in HireUp
 
 Many employers publish postings through public, keyless JSON endpoints. Pulling a few real
 internships next to the mock `opportunities` rows makes the demo feel live (spec 12.5, F6).
@@ -13,7 +13,7 @@ board.
 
 ## Human steps (do these in order)
 
-1. For each company HokiePath tracks, open its real careers page. Only add it if the page links to
+1. For each company HireUp tracks, open its real careers page. Only add it if the page links to
    `boards.greenhouse.io/<token>` or `jobs.lever.co/<token>` — **verify by clicking through**, never
    guess a token.
 2. Add `company_id -> (source, token)` to the `BOARDS` dict:
@@ -59,4 +59,4 @@ SELECT source, count(*) FROM workspace.hokiepath.opportunities GROUP BY source; 
 ## Security notes
 
 No credentials involved. `bronze_job_postings.raw` stores the full JSON response for traceability;
-it contains only public posting data, nothing about HokiePath users.
+it contains only public posting data, nothing about HireUp users.

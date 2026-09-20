@@ -181,7 +181,7 @@ export function DashboardWorkspace({ initialTab = "for-you" }: { initialTab?: st
       <Button
         onClick={() => setChatOpen(true)}
         className="fixed right-4 bottom-4 z-40 h-14 rounded-full px-5 shadow-lg xl:hidden"
-        aria-label="Open HokiePath AI"
+        aria-label="Open HireUp AI"
       >
         <MessageCircle className="size-4" aria-hidden="true" />
         Ask AI
@@ -191,7 +191,7 @@ export function DashboardWorkspace({ initialTab = "for-you" }: { initialTab?: st
         <div
           role="dialog"
           aria-modal="true"
-          aria-label="HokiePath AI"
+          aria-label="HireUp AI"
           className="fixed inset-0 z-50 flex flex-col justify-end bg-black/60 xl:hidden"
           onClick={() => setChatOpen(false)}
         >

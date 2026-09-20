@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "HokiePath",
+  title: "HireUp",
   description: "Your career, mapped to Virginia Tech.",
 };
 
