@@ -1,0 +1,37 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "words": [
+    "hokie",
+    "Hokie",
+    "Priya",
+    "hokiepath",
+    "shadcn",
+    "vitest",
+    "vercel",
+    "recharts",
+    "unpdf",
+    "cmdk",
+    "tailwindcss",
+    "typecheck",
+    "typegen",
+    "lucide",
+    "postcss",
+    "jsdom",
+    "mammoth",
+    "nextauth",
+    "openapi",
+    "touchpoints",
+    "unrs"
+  ],
+  "ignorePaths": [
+    ".next/**",
+    "node_modules/**",
+    "dist/**",
+    ".husky/**",
+    "pnpm-lock.yaml",
+    "package.json",
+    "cspell.json",
+    "**/CLAUDE.md"
+  ]
+}

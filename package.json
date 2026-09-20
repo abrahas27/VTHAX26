@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "lint:spelling": "cspell \"**\"",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -51,6 +52,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6.1.1",
+    "cspell": "^10.3.3",
     "eslint": "^9",
     "eslint-config-next": "16.3.5",
     "eslint-config-prettier": "^10.1.8",
@@ -61,6 +63,10 @@
     "typescript": "^5",
     "vitest": "^5.0.1"
   },
+  "lint-staged": {
+    "*": "cspell --no-must-find-files"
+  },
+
   "packageManager": "pnpm@12.4.2",
   "engines": {
     "node": ">=20"
