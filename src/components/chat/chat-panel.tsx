@@ -2,13 +2,14 @@
 
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowUp, Loader2, Plus, Sparkles } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ArrowUp, Loader2, Plus, RotateCcw, Sparkles, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SUGGESTED_PROMPTS } from "@/lib/agent/system-prompt";
 
 /** Friendly labels for the status chips shown while tools run (spec F5). */
 const TOOL_LABELS: Record<string, string> = {
+  plan_for_path: "Pulling together everything for that path",
   get_skill_gap: "Checking your skill gaps",
   build_gap_roadmap: "Building your roadmap",
   find_events: "Finding events",
@@ -17,6 +18,7 @@ const TOOL_LABELS: Record<string, string> = {
   find_clubs: "Finding clubs",
   list_career_paths: "Matching your goal to a path",
   get_path_outlook: "Looking up pay and outlook",
+  semantic_search: "Searching by meaning",
   render_dashboard: "Opening your goal tab",
 };
 
@@ -37,13 +39,17 @@ export function ChatPanel({
   const [sessionId, setSessionId] = useState<string | undefined>();
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  // Auto-scroll follows new tokens only while the student is already at the bottom. Scrolling up
+  // to re-read an earlier answer should not be yanked back down on the next chunk.
+  const [pinnedToBottom, setPinnedToBottom] = useState(true);
 
   const transport = useMemo(
     () => new DefaultChatTransport({ api: "/api/chat", body: () => ({ sessionId }) }),
     [sessionId],
   );
 
-  const { messages, sendMessage, status, error, setMessages } = useChat({
+  const { messages, sendMessage, status, error, setMessages, stop, regenerate } = useChat({
     transport,
     onFinish: ({ message }) => {
       const meta = message.metadata as { sessionId?: string; tabs?: TabSummary[] } | undefined;
@@ -66,14 +72,27 @@ export function ChatPanel({
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  const onScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setPinnedToBottom(el.scrollHeight - el.scrollTop - el.clientHeight < 80);
+  }, []);
+
   useEffect(() => {
+    if (!pinnedToBottom) return;
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [messages]);
+  }, [messages, pinnedToBottom]);
 
   const submit = () => {
     const text = input.trim();
     if (!text || busy) return;
     setInput("");
+    setPinnedToBottom(true);
+    void sendMessage({ text });
+  };
+
+  const ask = (text: string) => {
+    setPinnedToBottom(true);
     void sendMessage({ text });
   };
 
@@ -99,7 +118,13 @@ export function ChatPanel({
         )}
       </header>
 
-      <div className="flex-1 space-y-4 overflow-y-auto p-4" aria-live="polite">
+      <div
+        ref={scrollRef}
+        onScroll={onScroll}
+        className="flex-1 space-y-4 overflow-y-auto p-4"
+        aria-live="polite"
+        aria-busy={busy}
+      >
         {messages.length === 0 && (
           <div className="space-y-2">
             <p className="text-muted-foreground text-sm">
@@ -109,8 +134,8 @@ export function ChatPanel({
               <button
                 key={prompt}
                 type="button"
-                onClick={() => void sendMessage({ text: prompt })}
-                className="border-border hover:bg-surface-2 block w-full rounded-xl border px-3 py-2 text-left text-xs transition-colors"
+                onClick={() => ask(prompt)}
+                className="border-border hover:bg-surface-2 focus-visible:ring-ring block min-h-11 w-full rounded-xl border px-3 py-2 text-left text-xs transition-colors focus-visible:ring-2 focus-visible:outline-none"
               >
                 {prompt}
               </button>
@@ -129,15 +154,22 @@ export function ChatPanel({
           </p>
         )}
         {error && (
-          <p className="border-danger/40 text-danger rounded-xl border px-3 py-2 text-xs">
-            {error.message || "Something went wrong. Try asking again."}
-          </p>
+          <div className="border-danger/40 space-y-2 rounded-xl border px-3 py-2">
+            {/* The transport surfaces raw server text; a student gets one sentence and a button. */}
+            <p className="text-danger text-xs">
+              That answer did not come through. The live data may still be waking up.
+            </p>
+            <Button variant="secondary" size="xs" onClick={() => void regenerate()}>
+              <RotateCcw className="size-3" aria-hidden="true" />
+              Try again
+            </Button>
+          </div>
         )}
         <div ref={endRef} />
       </div>
 
       <div className="border-border border-t p-3">
-        <div className="bg-surface-2 flex items-end gap-2 rounded-xl px-3 py-2">
+        <div className="bg-surface-2 focus-within:ring-ring flex items-end gap-2 rounded-xl px-3 py-2 focus-within:ring-2">
           <textarea
             ref={inputRef}
             value={input}
@@ -152,16 +184,22 @@ export function ChatPanel({
             maxLength={2000}
             placeholder="Ask about your career... (Ctrl+K)"
             aria-label="Ask about your career"
-            className="max-h-32 flex-1 resize-none bg-transparent text-sm outline-none"
+            className="max-h-32 min-h-11 flex-1 resize-none bg-transparent text-sm outline-none"
           />
-          <Button
-            size="icon-sm"
-            onClick={submit}
-            disabled={busy || !input.trim()}
-            aria-label="Send"
-          >
-            <ArrowUp className="size-3.5" aria-hidden="true" />
-          </Button>
+          {busy ? (
+            <Button
+              size="icon-sm"
+              variant="secondary"
+              onClick={() => void stop()}
+              aria-label="Stop"
+            >
+              <Square className="size-3" aria-hidden="true" />
+            </Button>
+          ) : (
+            <Button size="icon-sm" onClick={submit} disabled={!input.trim()} aria-label="Send">
+              <ArrowUp className="size-3.5" aria-hidden="true" />
+            </Button>
+          )}
         </div>
       </div>
     </div>
@@ -249,7 +287,7 @@ function WithItemChips({
         key={`${id}-${start}`}
         type="button"
         onClick={() => onItemClick?.(id)}
-        className="bg-surface-2 text-accent hover:bg-surface mx-0.5 rounded-full px-2 py-0.5 font-mono text-[11px] transition-colors"
+        className="bg-surface-2 text-accent hover:bg-surface focus-visible:ring-ring mx-0.5 rounded-full px-2 py-0.5 font-mono text-[11px] transition-colors focus-visible:ring-2 focus-visible:outline-none"
       >
         {id}
       </button>,

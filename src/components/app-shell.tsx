@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { SignOutButton } from "@/components/sign-in-button";
+import { WarmUp } from "@/components/warm-up";
 
+// Only pages that exist: /saved and /profile are not built yet, and a 404 mid-demo is worse than
+// a missing link. Add them back here when their routes land.
 const NAV = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/roadmap", label: "Roadmap" },
-  { href: "/saved", label: "Saved" },
-  { href: "/profile", label: "Profile" },
 ];
 
 /** Sidebar + content frame used by every signed-in page (spec Figure 5.3). */
@@ -20,6 +21,7 @@ export function AppShell({
 }) {
   return (
     <div className="mx-auto flex w-full max-w-[1440px] flex-1 flex-col gap-6 px-4 py-6 lg:flex-row lg:px-6">
+      <WarmUp />
       <aside className="lg:w-44 lg:shrink-0">
         <div className="flex items-center justify-between gap-4 lg:block">
           <Link href="/dashboard" className="text-base font-semibold tracking-tight">

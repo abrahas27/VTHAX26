@@ -1,43 +1,72 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { AlertTriangle } from "lucide-react";
 import { ClubCard, EventCard, OpportunityCard, RecruiterTimeline, RoadmapPreview } from "./cards";
 import { ItemDrawer, type DrawerItem } from "./item-drawer";
 import { ReadinessRing } from "./readiness-ring";
+import { CardListSkeleton, Empty, Notice, Section, Stagger, WakingNotice } from "./states";
 import { Skeleton } from "@/components/ui/skeleton";
+import { apiFetch } from "@/lib/client/api";
+import { useWaking } from "@/lib/client/waking";
 import type { DashboardPayload } from "@/lib/types";
 
 const DAY_FILTERS = [7, 30, 90] as const;
 
-async function fetchDashboard(tab: string, days: number): Promise<DashboardPayload> {
-  const res = await fetch(`/api/dashboard?tab=${tab}&days=${days}`);
-  if (!res.ok) {
-    const body = (await res.json().catch(() => null)) as { error?: { message?: string } } | null;
-    throw new Error(body?.error?.message ?? "Could not load your dashboard.");
-  }
-  return (await res.json()) as DashboardPayload;
-}
+export const dashboardKey = (tab: string, days: number, sections: "core" | "roadmap") =>
+  ["dashboard", tab, days, sections] as const;
 
+export const fetchDashboard = (tab: string, days: number, sections: "core" | "roadmap") =>
+  apiFetch<DashboardPayload>(`/api/dashboard?tab=${tab}&days=${days}&sections=${sections}`);
+
+/**
+ * The For You dashboard (F4). The roadmap is fetched alongside the rest rather than inside it:
+ * build_gap_roadmap is consistently the slowest UC Function, and letting it gate the whole page
+ * meant every card waited for the one section nobody reads first (spec 6.4).
+ */
 export function DashboardView({ tab = "for-you" }: { tab?: string }) {
   const [days, setDays] = useState<number>(30);
   const [selected, setSelected] = useState<DrawerItem | null>(null);
 
-  const { data, isPending, error } = useQuery({
-    queryKey: ["dashboard", tab, days],
-    queryFn: () => fetchDashboard(tab, days),
+  const core = useQuery({
+    queryKey: dashboardKey(tab, days, "core"),
+    queryFn: () => fetchDashboard(tab, days, "core"),
+    // Changing the date range keeps the current cards on screen while the new ones load, so the
+    // page never blinks back to skeletons for data it already has.
+    placeholderData: keepPreviousData,
   });
 
-  if (isPending) return <DashboardSkeleton />;
+  const roadmap = useQuery({
+    queryKey: dashboardKey(tab, days, "roadmap"),
+    queryFn: () => fetchDashboard(tab, days, "roadmap"),
+    placeholderData: keepPreviousData,
+  });
 
-  if (error) {
+  const waking = useWaking(core.isPending);
+
+  if (core.isPending) {
+    return (
+      <div className="space-y-6">
+        {waking && <WakingNotice />}
+        <DashboardSkeleton />
+      </div>
+    );
+  }
+
+  if (core.error) {
     return (
       <Section title="Dashboard">
-        <p className="text-muted-foreground text-sm">{error.message}</p>
+        <Empty
+          message={core.error.message}
+          actionLabel="Try again"
+          onAction={() => void core.refetch()}
+        />
       </Section>
     );
   }
+
+  const data = core.data;
+  const refreshing = core.isFetching || roadmap.isFetching;
 
   return (
     <div className="space-y-6">
@@ -49,7 +78,7 @@ export function DashboardView({ tab = "for-you" }: { tab?: string }) {
               ? `Primary goal · ${data.goal.pathName}`
               : "Pick a goal to focus your plan."}
             {data.goal.medianSalary
-              ? ` · median pay $${Math.round(data.goal.medianSalary / 1000)}k (mock)`
+              ? ` · median pay $${Math.round(data.goal.medianSalary / 1000)}k (estimated)`
               : ""}
           </p>
         </div>
@@ -62,8 +91,8 @@ export function DashboardView({ tab = "for-you" }: { tab?: string }) {
               aria-pressed={days === value}
               className={
                 days === value
-                  ? "bg-primary text-primary-foreground rounded-full px-3 py-1 text-xs"
-                  : "bg-surface-2 text-muted-foreground hover:text-foreground rounded-full px-3 py-1 text-xs"
+                  ? "bg-primary text-primary-foreground focus-visible:ring-ring min-h-11 rounded-full px-4 text-xs focus-visible:ring-2 focus-visible:outline-none"
+                  : "bg-surface-2 text-muted-foreground hover:text-foreground focus-visible:ring-ring min-h-11 rounded-full px-4 text-xs focus-visible:ring-2 focus-visible:outline-none"
               }
             >
               {value} days
@@ -72,136 +101,168 @@ export function DashboardView({ tab = "for-you" }: { tab?: string }) {
         </div>
       </header>
 
+      <span className="sr-only" role="status" aria-live="polite">
+        {refreshing ? "Updating your dashboard" : `Showing the next ${days} days`}
+      </span>
+
       {data.demoMode && (
-        <p className="border-warning/40 text-warning flex items-center gap-2 rounded-xl border px-3 py-2 text-xs">
-          <AlertTriangle className="size-3.5" aria-hidden="true" />
-          Demo mode: showing recorded data.
-        </p>
+        <Notice>
+          Showing recorded demo data — live Databricks results were not available just now.
+        </Notice>
       )}
       {data.errors?.length ? (
-        <p className="border-warning/40 text-warning flex items-center gap-2 rounded-xl border px-3 py-2 text-xs">
-          <AlertTriangle className="size-3.5" aria-hidden="true" />
+        <Notice>
           Some sections could not load ({data.errors.join(", ")}). Try again in a moment.
-        </p>
+        </Notice>
       ) : null}
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
-        <Section title="Readiness">
-          <ReadinessRing score={data.readiness.score} gaps={data.readiness.topGaps} />
-        </Section>
+        <Stagger index={0}>
+          <Section title="Readiness" className="h-full">
+            <ReadinessRing score={data.readiness.score} gaps={data.readiness.topGaps} />
+          </Section>
+        </Stagger>
 
-        <Section title="Up next for you">
-          {data.events.length === 0 ? (
-            <Empty message="No events in this range. Try a broader date range." />
-          ) : (
-            <div className="space-y-2">
-              {data.events.slice(0, 6).map((event) => (
-                <EventCard
-                  key={event.id}
-                  event={event}
-                  onOpen={() => setSelected({ kind: "event", item: event })}
-                />
-              ))}
-            </div>
-          )}
-        </Section>
+        <Stagger index={1}>
+          <Section title="Up next for you" className="h-full">
+            {data.events.length === 0 ? (
+              <Empty
+                message="Nothing in this range yet."
+                actionLabel="Look 90 days ahead"
+                onAction={() => setDays(90)}
+              />
+            ) : (
+              <div className="space-y-2">
+                {data.events.slice(0, 6).map((event) => (
+                  <EventCard
+                    key={event.id}
+                    event={event}
+                    onOpen={() => setSelected({ kind: "event", item: event })}
+                  />
+                ))}
+              </div>
+            )}
+          </Section>
+        </Stagger>
       </div>
 
-      <Section title="Recruiters coming to VT" subtitle="Next 45 days">
-        <RecruiterTimeline
-          visits={data.visits}
-          onOpen={(visit) => setSelected({ kind: "visit", item: visit })}
-        />
-      </Section>
+      <Stagger index={2}>
+        <Section title="Recruiters coming to VT" subtitle="Next 45 days">
+          <RecruiterTimeline
+            visits={data.visits}
+            onOpen={(visit) => setSelected({ kind: "visit", item: visit })}
+          />
+        </Section>
+      </Stagger>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Section title="Clubs that fit you">
-          {data.clubs.length === 0 ? (
-            <Empty message="No clubs matched this goal yet." />
-          ) : (
-            <div className="grid gap-2 sm:grid-cols-2">
-              {data.clubs.map((club) => (
-                <ClubCard
-                  key={club.id}
-                  club={club}
-                  onOpen={() => setSelected({ kind: "club", item: club })}
-                />
-              ))}
-            </div>
-          )}
-        </Section>
+        <Stagger index={3}>
+          <Section title="Clubs that fit you" className="h-full">
+            {data.clubs.length === 0 ? (
+              <Empty message="No clubs matched this goal yet. Try the search palette (press /)." />
+            ) : (
+              <div className="grid gap-2 sm:grid-cols-2">
+                {data.clubs.map((club) => (
+                  <ClubCard
+                    key={club.id}
+                    club={club}
+                    onOpen={() => setSelected({ kind: "club", item: club })}
+                  />
+                ))}
+              </div>
+            )}
+          </Section>
+        </Stagger>
 
-        <Section title="Open opportunities">
-          {data.opportunities.length === 0 ? (
-            <Empty message="No open postings for this goal right now." />
-          ) : (
-            <div className="space-y-2">
-              {data.opportunities.slice(0, 6).map((opportunity) => (
-                <OpportunityCard
-                  key={opportunity.id}
-                  opportunity={opportunity}
-                  onOpen={() => setSelected({ kind: "opportunity", item: opportunity })}
-                />
-              ))}
-            </div>
-          )}
-        </Section>
+        <Stagger index={4}>
+          <Section title="Open opportunities" className="h-full">
+            {data.opportunities.length === 0 ? (
+              <Empty message="No open postings for this goal right now. Widen the date range or ask the chat for related paths." />
+            ) : (
+              <div className="space-y-2">
+                {data.opportunities.slice(0, 6).map((opportunity) => (
+                  <OpportunityCard
+                    key={opportunity.id}
+                    opportunity={opportunity}
+                    onOpen={() => setSelected({ kind: "opportunity", item: opportunity })}
+                  />
+                ))}
+              </div>
+            )}
+          </Section>
+        </Stagger>
       </div>
 
-      <Section
-        title="Gap-to-Goal roadmap"
-        subtitle={
-          data.readiness.topGaps.length > 0
-            ? `Closing ${data.readiness.topGaps.join(", ")}`
-            : undefined
-        }
-      >
-        <RoadmapPreview items={data.roadmapPreview.slice(0, 4)} />
-      </Section>
+      <Stagger index={5}>
+        <Section
+          title="Gap-to-Goal roadmap"
+          subtitle={
+            data.readiness.topGaps.length > 0
+              ? `Closing ${data.readiness.topGaps.join(", ")}`
+              : undefined
+          }
+        >
+          {roadmap.isPending ? (
+            <CardListSkeleton count={3} />
+          ) : roadmap.error ? (
+            <Empty
+              message="The roadmap did not load."
+              actionLabel="Try again"
+              onAction={() => void roadmap.refetch()}
+            />
+          ) : (
+            <RoadmapPreview items={roadmap.data.roadmapPreview.slice(0, 4)} />
+          )}
+        </Section>
+      </Stagger>
 
       <ItemDrawer selected={selected} onClose={() => setSelected(null)} />
     </div>
   );
 }
 
-function Section({
-  title,
-  subtitle,
-  children,
-}: {
-  title: string;
-  subtitle?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="card-elevated p-5">
-      <div className="mb-3 flex items-baseline justify-between gap-2">
-        <h2 className="text-base">{title}</h2>
-        {subtitle && <span className="text-muted-foreground truncate text-xs">{subtitle}</span>}
-      </div>
-      {children}
-    </section>
-  );
-}
-
-function Empty({ message }: { message: string }) {
-  return <p className="text-muted-foreground text-sm">{message}</p>;
-}
-
 /** Skeletons shaped like the final cards, never spinners (spec 5.2). */
 function DashboardSkeleton() {
   return (
     <div className="space-y-6">
-      <Skeleton className="h-8 w-64" />
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="space-y-2">
+          <Skeleton className="h-6 w-56" />
+          <Skeleton className="h-3 w-72" />
+        </div>
+        <Skeleton className="h-11 w-48 rounded-full" />
+      </div>
+
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
-        <Skeleton className="h-44 rounded-2xl" />
-        <Skeleton className="h-44 rounded-2xl" />
+        <div className="card-elevated flex flex-col items-center gap-3 p-5">
+          <Skeleton className="size-28 rounded-full" />
+          <Skeleton className="h-3 w-32" />
+          <Skeleton className="h-3 w-24" />
+        </div>
+        <div className="card-elevated space-y-3 p-5">
+          <Skeleton className="h-4 w-32" />
+          <CardListSkeleton count={3} />
+        </div>
       </div>
-      <Skeleton className="h-32 rounded-2xl" />
+
+      <div className="card-elevated space-y-3 p-5">
+        <Skeleton className="h-4 w-44" />
+        <div className="flex gap-3 overflow-hidden">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-24 min-w-[190px] rounded-xl" />
+          ))}
+        </div>
+      </div>
+
       <div className="grid gap-4 lg:grid-cols-2">
-        <Skeleton className="h-48 rounded-2xl" />
-        <Skeleton className="h-48 rounded-2xl" />
+        {[0, 1].map((i) => (
+          <div key={i} className="card-elevated space-y-3 p-5">
+            <Skeleton className="h-4 w-36" />
+            <CardListSkeleton count={3} />
+          </div>
+        ))}
       </div>
+
       <span className="sr-only" role="status">
         Loading your dashboard
       </span>

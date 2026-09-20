@@ -11,9 +11,6 @@ import { withTiming } from "@/lib/timing";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
-// Lakebase is in AWS us-east-2 and the workspace is in the same region, so run the function in
-// the nearest Vercel region rather than wherever the viewer happens to be (spec 6.4).
-export const preferredRegion = ["iad1"];
 
 const QuerySchema = z.object({
   tab: z

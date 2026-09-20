@@ -2,9 +2,13 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CalendarPlus } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
+import { apiFetch } from "@/lib/client/api";
+import { useWaking } from "@/lib/client/waking";
+import { CardListSkeleton, Empty, WakingNotice } from "./states";
 import { roadmapItemsPerMonth } from "@/lib/scoring";
 import type { Preferences } from "@/lib/types";
 
@@ -29,29 +33,19 @@ export function RoadmapTimeline({ goal }: { goal?: string }) {
   const queryClient = useQueryClient();
   const queryKey = ["roadmap", goal ?? "primary"];
 
-  const { data, isPending, error } = useQuery({
+  const { data, isPending, error, refetch } = useQuery({
     queryKey,
-    queryFn: async (): Promise<RoadmapResponse> => {
-      const res = await fetch(`/api/roadmap${goal ? `?goal=${goal}` : ""}`);
-      if (!res.ok) {
-        const body = (await res.json().catch(() => null)) as {
-          error?: { message?: string };
-        } | null;
-        throw new Error(body?.error?.message ?? "Could not load your roadmap.");
-      }
-      return (await res.json()) as RoadmapResponse;
-    },
+    queryFn: () => apiFetch<RoadmapResponse>(`/api/roadmap${goal ? `?goal=${goal}` : ""}`),
   });
+  const waking = useWaking(isPending);
 
   const toggle = useMutation({
-    mutationFn: async ({ id, completed }: { id: string; completed: boolean }) => {
-      const res = await fetch(`/api/roadmap/${id}`, {
+    mutationFn: ({ id, completed }: { id: string; completed: boolean }) =>
+      apiFetch(`/api/roadmap/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ completed }),
-      });
-      if (!res.ok) throw new Error("Could not update that item.");
-    },
+      }).then(() => undefined),
     // Optimistic: ticking an item should feel instant (spec F7).
     onMutate: async ({ id, completed }) => {
       await queryClient.cancelQueries({ queryKey });
@@ -70,12 +64,30 @@ export function RoadmapTimeline({ goal }: { goal?: string }) {
     },
     onError: (_err, _vars, context) => {
       if (context?.previous) queryClient.setQueryData(queryKey, context.previous);
+      toast.error("That did not save", { description: "The tick has been put back." });
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey }),
   });
 
-  if (isPending) return <Skeleton className="h-64 rounded-2xl" />;
-  if (error) return <p className="text-muted-foreground text-sm">{error.message}</p>;
+  if (isPending) {
+    return (
+      <div className="space-y-4">
+        {waking && <WakingNotice />}
+        <Skeleton className="h-8 w-64" />
+        <div className="card-elevated space-y-3 p-5">
+          <Skeleton className="h-4 w-24" />
+          <CardListSkeleton count={4} />
+        </div>
+      </div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="card-elevated p-5">
+        <Empty message={error.message} actionLabel="Try again" onAction={() => void refetch()} />
+      </div>
+    );
+  }
 
   const lanes = groupIntoLanes(data.items, roadmapItemsPerMonth(data.hoursPerWeek));
   const done = data.items.filter((i) => i.completed).length;
@@ -117,7 +129,7 @@ export function RoadmapTimeline({ goal }: { goal?: string }) {
                     toggle.mutate({ id: item.roadmap_item_id, completed: checked === true })
                   }
                   aria-label={`Mark ${item.name} complete`}
-                  className="mt-0.5"
+                  className="mt-0.5 size-5"
                 />
                 <div className="min-w-0">
                   <p

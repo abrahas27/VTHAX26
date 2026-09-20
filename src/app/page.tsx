@@ -4,6 +4,7 @@ import { CalendarClock, MessageCircleQuestion, Target } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { SignInButton, SignOutButton } from "@/components/sign-in-button";
+import { WarmUp } from "@/components/warm-up";
 
 const FEATURES = [
   {
@@ -28,6 +29,9 @@ export default async function Landing() {
 
   return (
     <div className="flex min-h-full flex-1 flex-col">
+      {/* Google's consent screen takes several seconds; start the warehouse now so the first
+          dashboard load does not pay for a cold start (spec 14.3). */}
+      <WarmUp />
       <header className="mx-auto flex w-full max-w-[1440px] items-center justify-between px-6 py-5">
         <span className="text-base font-semibold tracking-tight">HokiePath</span>
         {session ? (

@@ -1,12 +1,26 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import dynamic from "next/dynamic";
 import { ExternalLink } from "lucide-react";
-import { GenieBox } from "./genie-box";
 import { KpiCards, type AdminKpis } from "./kpi-cards";
 import { SkillGapTable, type SkillGapRow } from "./skill-gap-table";
-import { SupplyDemandChart, type SupplyDemandRow } from "./supply-demand-chart";
+import { type SupplyDemandRow } from "./supply-demand-chart";
 import { Skeleton } from "@/components/ui/skeleton";
+import { apiFetch } from "@/lib/client/api";
+import { useWaking } from "@/lib/client/waking";
+import { Empty, WakingNotice } from "@/components/dashboard/states";
+
+// Recharts is the largest dependency in the app and only Career Services ever sees it; keeping
+// it out of the shared bundle costs nothing here and helps every student page (spec 6.4).
+const SupplyDemandChart = dynamic(
+  () => import("./supply-demand-chart").then((m) => m.SupplyDemandChart),
+  { ssr: false, loading: () => <Skeleton className="h-72 rounded-xl" /> },
+);
+const GenieBox = dynamic(() => import("./genie-box").then((m) => m.GenieBox), {
+  ssr: false,
+  loading: () => <Skeleton className="h-24 rounded-xl" />,
+});
 
 interface MetricsResponse {
   kpis: AdminKpis;
@@ -14,21 +28,15 @@ interface MetricsResponse {
   topGaps: SkillGapRow[];
 }
 
-async function fetchMetrics(): Promise<MetricsResponse> {
-  const res = await fetch("/api/admin/metrics");
-  if (!res.ok) {
-    const body = (await res.json().catch(() => null)) as { error?: { message?: string } } | null;
-    throw new Error(body?.error?.message ?? "Could not load admin metrics.");
-  }
-  return (await res.json()) as MetricsResponse;
-}
+const fetchMetrics = () => apiFetch<MetricsResponse>("/api/admin/metrics");
 
 /** Admin Insights (spec F11): KPI cards, supply/demand chart, skill-gap table, Ask the data. */
 export function AdminView({ aibiDashboardUrl }: { aibiDashboardUrl?: string }) {
-  const { data, isPending, error } = useQuery({
+  const { data, isPending, error, refetch } = useQuery({
     queryKey: ["admin-metrics"],
     queryFn: fetchMetrics,
   });
+  const waking = useWaking(isPending);
 
   return (
     <div className="space-y-6">
@@ -52,6 +60,8 @@ export function AdminView({ aibiDashboardUrl }: { aibiDashboardUrl?: string }) {
         )}
       </header>
 
+      {waking && <WakingNotice />}
+
       {isPending && (
         <div className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -63,7 +73,11 @@ export function AdminView({ aibiDashboardUrl }: { aibiDashboardUrl?: string }) {
         </div>
       )}
 
-      {error && <p className="text-danger text-sm">{error.message}</p>}
+      {error && (
+        <div className="card-elevated p-5">
+          <Empty message={error.message} actionLabel="Try again" onAction={() => void refetch()} />
+        </div>
+      )}
 
       {data && (
         <>

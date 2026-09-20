@@ -13,12 +13,15 @@ export function GoalTabs({
   active,
   newTabId,
   onSelect,
+  onHover,
   onClose,
 }: {
   tabs: DashboardSpec[];
   active: string;
   newTabId?: string | null;
   onSelect: (tabId: string) => void;
+  /** Prefetch this tab's data while the pointer is still on its way (spec 5.2). */
+  onHover?: (tabId: string) => void;
   onClose: (tabId: string) => void;
 }) {
   const reduceMotion = useReducedMotion();
@@ -35,6 +38,7 @@ export function GoalTabs({
             ? "bg-primary text-primary-foreground shrink-0 rounded-full px-3 py-1.5 text-xs font-medium"
             : "bg-surface-2 text-muted-foreground hover:text-foreground shrink-0 rounded-full px-3 py-1.5 text-xs"
         }
+        onPointerEnter={() => onHover?.("for-you")}
       >
         For You
       </button>
@@ -71,6 +75,9 @@ export function GoalTabs({
                   role="tab"
                   aria-selected={isActive}
                   onClick={() => onSelect(tab.tab_id)}
+                  onPointerEnter={() => onHover?.(tab.tab_id)}
+                  onFocus={() => onHover?.(tab.tab_id)}
+                  className="focus-visible:ring-ring rounded-full focus-visible:ring-2 focus-visible:outline-none"
                 >
                   {tab.title}
                 </button>
@@ -78,7 +85,7 @@ export function GoalTabs({
                   type="button"
                   aria-label={`Close ${tab.title} tab`}
                   onClick={() => onClose(tab.tab_id)}
-                  className="hover:bg-background/20 rounded-full p-0.5"
+                  className="hover:bg-background/20 focus-visible:ring-ring rounded-full p-0.5 focus-visible:ring-2 focus-visible:outline-none"
                 >
                   <X className="size-3" aria-hidden="true" />
                 </button>

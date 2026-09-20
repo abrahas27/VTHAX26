@@ -10,9 +10,6 @@ import { timed, withTiming } from "@/lib/timing";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
-// Lakebase and the Databricks workspace both live in AWS us-east-2; iad1 is the closest Vercel
-// region, so the round trips this route makes are as short as they can be (spec 6.4).
-export const preferredRegion = ["iad1"];
 
 export async function POST(req: Request) {
   const auth = await requireUser();

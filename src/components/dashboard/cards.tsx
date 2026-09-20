@@ -69,7 +69,7 @@ export function RecruiterTimeline({
           key={`${visit.id}-${visit.companyName}`}
           type="button"
           onClick={() => onOpen(visit)}
-          className="border-border hover:bg-surface-2 focus-visible:ring-ring min-w-[190px] shrink-0 rounded-xl border p-3 text-left transition-colors focus-visible:ring-2 focus-visible:outline-none"
+          className="border-border hover:bg-surface-2 focus-visible:ring-ring min-h-11 min-w-[190px] shrink-0 rounded-xl border p-3 text-left transition-colors focus-visible:ring-2 focus-visible:outline-none"
         >
           <p className="text-accent text-xs font-medium">{formatDate(visit.visitDate)}</p>
           <p className="mt-1 truncate text-sm font-medium">{visit.companyName}</p>
@@ -100,7 +100,7 @@ export function ClubCard({ club, onOpen }: { club: ClubItem; onOpen: () => void 
     <button
       type="button"
       onClick={onOpen}
-      className="border-border hover:bg-surface-2 focus-visible:ring-ring rounded-xl border p-4 text-left transition-colors focus-visible:ring-2 focus-visible:outline-none"
+      className="border-border hover:bg-surface-2 focus-visible:ring-ring min-h-11 rounded-xl border p-4 text-left transition-colors focus-visible:ring-2 focus-visible:outline-none"
     >
       <p className="truncate text-sm font-medium">{club.name}</p>
       <p className="text-muted-foreground mt-0.5 flex items-center gap-1 text-xs">
@@ -126,37 +126,61 @@ export function OpportunityCard({
   const level = urgency(opportunity.deadline);
   const days = opportunity.deadline ? daysUntil(opportunity.deadline) : null;
   return (
-    <button
-      type="button"
-      onClick={onOpen}
-      className="border-border hover:bg-surface-2 focus-visible:ring-ring w-full rounded-xl border p-4 text-left transition-colors focus-visible:ring-2 focus-visible:outline-none"
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="truncate text-sm font-medium">{opportunity.title}</p>
-          <p className="text-muted-foreground mt-0.5 text-xs">
-            {opportunity.companyName}
-            {opportunity.location ? ` · ${opportunity.location}` : ""}
-          </p>
+    // A div, not a button: a real posting carries an Apply link, and a link nested inside a
+    // button is invalid markup and unreachable by keyboard.
+    <div className="border-border hover:bg-surface-2 focus-within:ring-ring rounded-xl border transition-colors focus-within:ring-2">
+      <button
+        type="button"
+        onClick={onOpen}
+        className="w-full rounded-xl p-4 text-left focus-visible:outline-none"
+      >
+        <div className="flex min-h-11 items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="truncate text-sm font-medium">{opportunity.title}</p>
+            <p className="text-muted-foreground mt-0.5 text-xs">
+              {opportunity.companyName}
+              {opportunity.location ? ` · ${opportunity.location}` : ""}
+            </p>
+          </div>
+          {days !== null && days >= 0 && (
+            <span
+              className={
+                level === "urgent"
+                  ? "text-danger shrink-0 text-xs font-medium"
+                  : level === "soon"
+                    ? "text-warning shrink-0 text-xs font-medium"
+                    : "text-muted-foreground shrink-0 text-xs"
+              }
+            >
+              due {days}d{opportunity.deadlineEstimated ? "*" : ""}
+            </span>
+          )}
         </div>
-        {days !== null && days >= 0 && (
-          <span
-            className={
-              level === "urgent"
-                ? "text-danger shrink-0 text-xs font-medium"
-                : level === "soon"
-                  ? "text-warning shrink-0 text-xs font-medium"
-                  : "text-muted-foreground shrink-0 text-xs"
-            }
+        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+          <Badge variant="outline" className="text-[10px]">
+            {opportunityTypeLabel(opportunity.type)}
+          </Badge>
+          {/* An inferred deadline is never shown as if the employer published it (spec 1.1). */}
+          {opportunity.deadlineEstimated && (
+            <span className="text-muted-foreground text-[10px]">* deadline estimated</span>
+          )}
+        </div>
+      </button>
+
+      {opportunity.applyUrl && (
+        <div className="border-border border-t px-4">
+          <a
+            href={opportunity.applyUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-accent hover:text-foreground focus-visible:ring-ring inline-flex min-h-11 items-center gap-1.5 text-xs focus-visible:ring-2 focus-visible:outline-none"
           >
-            due {days}d
-          </span>
-        )}
-      </div>
-      <Badge variant="outline" className="mt-2 text-[10px]">
-        {opportunityTypeLabel(opportunity.type)}
-      </Badge>
-    </button>
+            Apply on the company site
+            <ExternalLink className="size-3" aria-hidden="true" />
+          </a>
+        </div>
+      )}
+    </div>
   );
 }
 
