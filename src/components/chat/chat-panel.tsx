@@ -52,13 +52,34 @@ export function ChatPanel({
   const { messages, sendMessage, status, error, setMessages, stop, regenerate } = useChat({
     transport,
     onFinish: ({ message }) => {
+      // Tabs are announced mid-stream (see below); the finish metadata is the backstop for a
+      // tool whose output the transport did not surface as a part.
       const meta = message.metadata as { sessionId?: string; tabs?: TabSummary[] } | undefined;
       if (meta?.sessionId) setSessionId(meta.sessionId);
-      if (meta?.tabs?.length) onTabsCreated?.(meta.tabs);
+      const fresh = (meta?.tabs ?? []).filter((tab) => !announced.current.has(tab.tab_id));
+      if (fresh.length > 0) {
+        for (const tab of fresh) announced.current.add(tab.tab_id);
+        onTabsCreated?.(fresh);
+      }
     },
   });
 
   const busy = status === "submitted" || status === "streaming";
+
+  // The goal tab is the hero moment of the demo, and it used to wait for the whole answer to
+  // finish because the tab list only travelled in the finish metadata. The tool's own output
+  // arrives mid-stream, so the tab can be born while the answer is still being written (F6).
+  const announced = useRef(new Set<string>());
+  useEffect(() => {
+    const last = messages[messages.length - 1];
+    if (!last || last.role !== "assistant") return;
+    const opened = (last.parts as UIPart[])
+      .map(tabFromPart)
+      .filter((tab): tab is TabSummary => tab !== null && !announced.current.has(tab.tab_id));
+    if (opened.length === 0) return;
+    for (const tab of opened) announced.current.add(tab.tab_id);
+    onTabsCreated?.(opened);
+  }, [messages, onTabsCreated]);
 
   // Cmd/Ctrl+K focuses the chat from anywhere (spec F5).
   useEffect(() => {
@@ -210,6 +231,19 @@ interface UIPart {
   type: string;
   text?: string;
   state?: string;
+  output?: unknown;
+}
+
+/** The tab a tool opened, as soon as that tool's output lands -- not at the end of the turn. */
+function tabFromPart(part: UIPart): TabSummary | null {
+  if (part.state !== "output-available") return null;
+  if (part.type !== "tool-plan_for_path" && part.type !== "tool-render_dashboard") return null;
+  const output = part.output as
+    | { tab?: { tab_id?: string; title?: string } | null; tab_id?: string; title?: string }
+    | undefined;
+  const tab = output?.tab ?? output;
+  if (!tab || typeof tab.tab_id !== "string" || typeof tab.title !== "string") return null;
+  return { tab_id: tab.tab_id, title: tab.title, source_question: "" };
 }
 
 function Message({

@@ -140,5 +140,21 @@ export function embedModel() {
   return provider().textEmbeddingModel(DATABRICKS_EMBEDDING_ENDPOINT);
 }
 
+/**
+ * Provider options merged verbatim into the request body by @ai-sdk/openai-compatible (the key
+ * matches the provider `name` above).
+ *
+ * `databricks-gpt-oss-120b` is a reasoning model and defaults to a high reasoning budget: measured
+ * against this workspace, the same "assess this pivot" prompt takes 4-10 s and burns 1,600-4,300
+ * characters of hidden reasoning at the default, against 2.1-2.2 s and under 100 at "low" -- for
+ * an answer of the same length and quality. The agent runs three of these round trips per pivot
+ * question, so this is the difference between a chat that answers and a chat you wait out.
+ *
+ * Every hard judgement (readiness, class year, ranking, fit) is arithmetic done in TypeScript, not
+ * reasoned about by the model (spec 10.7), so what is being cut here is deliberation the answer
+ * never depended on.
+ */
+export const LOW_REASONING = { databricks: { reasoning_effort: "low" } } as const;
+
 export const llmConfigured = () => Boolean(env.DATABRICKS_LLM_ENDPOINT);
 export const embeddingsConfigured = () => Boolean(env.DATABRICKS_EMBEDDING_ENDPOINT);

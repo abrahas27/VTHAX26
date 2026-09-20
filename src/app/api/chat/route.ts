@@ -3,7 +3,7 @@ import { convertToModelMessages, stepCountIs, streamText, type UIMessage } from 
 import { z } from "zod";
 import { apiError, parseBody, requireUser } from "@/lib/api";
 import { careerPaths } from "@/lib/catalog";
-import { chatModel, llmConfigured } from "@/lib/databricks/llm";
+import { chatModel, llmConfigured, LOW_REASONING } from "@/lib/databricks/llm";
 import { env } from "@/lib/env";
 import { applyOutputGuard, rateLimit, sanitizeUserMessage } from "@/lib/agent/guard";
 import { systemPrompt } from "@/lib/agent/system-prompt";
@@ -63,7 +63,7 @@ export async function POST(req: Request) {
   console.log(JSON.stringify({ route: "/api/chat", event: "setup", serverTiming: setupTiming }));
 
   const modelMessages = await convertToModelMessages(messages);
-  const ctx: ToolContext = { profile, seenIds: new Set(), renderedTabs: [] };
+  const ctx: ToolContext = { profile, question, seenIds: new Set(), renderedTabs: [] };
   let ttfbLogged = false;
 
   const result = streamText({
@@ -74,6 +74,7 @@ export async function POST(req: Request) {
     stopWhen: stepCountIs(MAX_STEPS),
     temperature: 0.3,
     maxOutputTokens: 1500,
+    providerOptions: LOW_REASONING,
     onError: ({ error }) => console.error("[chat] stream error", error),
     // A streaming response's headers go out before generation finishes, so this can't carry a
     // Server-Timing header the way the JSON routes do -- structured logs are the measurement here.

@@ -36,6 +36,8 @@ const pick = <K extends string>(
 
 export interface ToolContext {
   profile: SkillProfile;
+  /** The question being answered, quoted verbatim onto any tab this turn opens (spec 10.6). */
+  question?: string;
   /** Collects every id returned to the model this turn, for the output guard (spec 10.8). */
   seenIds: Set<string>;
   /** Specs saved this turn, so the route can tell the client which tab to open. */
@@ -113,7 +115,22 @@ export function buildTools(ctx: ToolContext) {
         remember(ctx, roadmap as Record<string, unknown>[], "item_id");
         remember(ctx, clubs as Record<string, unknown>[], "club_id");
 
+        // Opening the tab here rather than waiting for a render_dashboard call removes a whole
+        // model round trip from the hero moment of the demo: the tab is on screen while the
+        // answer is still being written, instead of after it. Every id in it came out of the six
+        // UC calls above, so it is as grounded as a spec the model assembled by hand -- and the
+        // model can still call render_dashboard to rearrange it.
+        const tab = await openDefaultTab(ctx, path.path_id, name, {
+          events: (events as Record<string, unknown>[]).map((r) => String(r.event_id)),
+          visits: (visits as Record<string, unknown>[]).map((r) => String(r.event_id)),
+          opportunities: (opportunities as Record<string, unknown>[]).map((r) =>
+            String(r.opportunity_id),
+          ),
+          clubs: (clubs as Record<string, unknown>[]).map((r) => String(r.club_id)),
+        });
+
         return {
+          tab,
           path_id: path.path_id,
           path_name: name,
           gaps: pick(
@@ -360,6 +377,56 @@ export function buildTools(ctx: ToolContext) {
       execute: async (spec) => saveTabAndReturn(ctx, spec),
     }),
   };
+}
+
+/**
+ * Build the tab a pivot answer always wants -- readiness, gaps, the events and visits we just
+ * found, clubs, opportunities and the roadmap -- and persist it.
+ *
+ * No verifyIds round trip: unlike a spec the model wrote, every id here was returned by a UC
+ * Function moments ago in this same turn, so there is nothing to confirm. The spec still goes
+ * through DashboardSpecSchema, so a malformed tab can no more reach Lakebase than before.
+ */
+async function openDefaultTab(
+  ctx: ToolContext,
+  pathId: string,
+  pathName: string,
+  ids: { events: string[]; visits: string[]; opportunities: string[]; clubs: string[] },
+) {
+  const spec = DashboardSpecSchema.safeParse({
+    tab_id: pathId,
+    title: pathName,
+    source_question: (ctx.question ?? `Pivot to ${pathName}`).slice(0, 200),
+    sections: [
+      { type: "readiness" },
+      { type: "skill_gap" },
+      { type: "event_list", title: `${pathName} events`, event_ids: ids.events.slice(0, 6) },
+      {
+        type: "company_radar",
+        title: "Coming to VT",
+        visit_event_ids: ids.visits.slice(0, 6),
+      },
+      { type: "club_grid", club_ids: ids.clubs.slice(0, 6) },
+      { type: "opportunity_list", opportunity_ids: ids.opportunities.slice(0, 6) },
+      { type: "roadmap", days_ahead: 90 },
+    ],
+  });
+  if (!spec.success) {
+    console.error("[agent] default tab failed validation", spec.error.issues);
+    return null;
+  }
+
+  try {
+    const layout = await getDashboardLayout(ctx.profile.userId);
+    await saveDashboardLayout(ctx.profile.userId, upsertTab(layout, spec.data), pathName);
+  } catch (err) {
+    // A tab that cannot be saved must not take the answer down with it (spec 14.3).
+    console.error("[agent] could not save the default tab", err);
+    return null;
+  }
+
+  ctx.renderedTabs.push(spec.data);
+  return { tab_id: spec.data.tab_id, title: spec.data.title, opened: true };
 }
 
 /**

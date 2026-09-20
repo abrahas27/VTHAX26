@@ -21,6 +21,7 @@ describe.skipIf(!live)("HokiePath agent (live)", () => {
   const ask = async (question: string) => {
     const ctx = {
       profile,
+      question,
       seenIds: new Set<string>(),
       renderedTabs: [] as import("@/lib/agent/dashboard-spec").DashboardSpec[],
     };
@@ -87,8 +88,10 @@ describe.skipIf(!live)("HokiePath agent (live)", () => {
     const { text, calls, ctx } = await ask("How can I pivot into investment banking?");
     const names = calls.map((c) => c.toolName);
 
-    expect(names).toContain("get_skill_gap");
-    expect(names).toContain("render_dashboard");
+    // plan_for_path gathers the gaps, events, visits, opportunities, clubs and roadmap in one
+    // call and opens the tab itself, so a pivot answer no longer needs five separate tools and
+    // a render_dashboard round trip. What matters is the tab, not which tool produced it.
+    expect(names).toContain("plan_for_path");
     expect(ctx.renderedTabs[0]?.tab_id).toBe("CP04");
 
     // The student must actually get an answer, not just a tab.
@@ -104,6 +107,7 @@ describe.skipIf(!live)("HokiePath agent (live)", () => {
     const tab = layout.tabs.find((t) => t.tab_id === "CP04");
     expect(tab).toBeDefined();
     expect(tab?.sections.length).toBeGreaterThanOrEqual(3);
+    expect(tab?.source_question).toContain("investment banking");
   }, 180_000);
 
   it("golden 2: 'what should I do this week' looks only a week ahead", async () => {

@@ -2,7 +2,7 @@
 import "server-only";
 import { generateObject } from "ai";
 import { z } from "zod";
-import { chatModel } from "@/lib/databricks/llm";
+import { chatModel, LOW_REASONING } from "@/lib/databricks/llm";
 import { normalizeSkills, type RawSkill } from "@/lib/skills-normalize";
 import { timed } from "@/lib/timing";
 import type { ClassYear, ProfileSkill, Skill } from "@/lib/types";
@@ -142,6 +142,7 @@ export async function parseResume(
         prompt,
         temperature: 0,
         maxOutputTokens: 8000,
+        providerOptions: LOW_REASONING,
       }),
     ));
   } catch (err) {
@@ -161,6 +162,7 @@ and at most 25 skills. Return valid JSON for every required field, using null or
 does not say.`,
           temperature: 0,
           maxOutputTokens: 8000,
+          providerOptions: LOW_REASONING,
         }),
       ));
     } catch (retryErr) {

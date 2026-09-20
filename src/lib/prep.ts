@@ -3,7 +3,7 @@
 import "server-only";
 import { generateObject } from "ai";
 import { z } from "zod";
-import { chatModel } from "@/lib/databricks/llm";
+import { chatModel, LOW_REASONING } from "@/lib/databricks/llm";
 import { sql, T } from "@/lib/databricks/sql";
 import { profileSummary } from "@/lib/agent/system-prompt";
 import type { SkillProfile } from "@/lib/types";
@@ -135,6 +135,7 @@ export async function generateEventPrep(
     prompt: prepPrompt(event, company, profile, pathNames),
     temperature: 0.6,
     maxOutputTokens: 700,
+    providerOptions: LOW_REASONING,
   });
   return object;
 }

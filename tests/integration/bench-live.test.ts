@@ -113,6 +113,20 @@ describe.skipIf(!live)(`bench ${LABEL}`, () => {
       ]),
     );
 
+    console.log("\n-- the core five, without the roadmap (what first paint waits for now) --");
+    await time("dashboard:core 5 in parallel", () =>
+      Promise.all([
+        ucFn("find_events", { target_path: PATH, major: "", days_ahead: 60 }),
+        ucFn("companies_visiting", { target_path: PATH, days_ahead: 45 }),
+        ucFn("find_opportunities", { target_path: PATH, opp_type: "" }),
+        ucFn("get_skill_gap", { target_path: PATH, student_skills: SKILLS }),
+        sql(
+          "SELECT club_id FROM workspace.hokiepath.clubs WHERE array_contains(career_paths, :pid) LIMIT 6",
+          { pid: "CP01" },
+        ),
+      ]),
+    );
+
     console.log("\n-- search --");
     await time("search:all kinds", () => search("learn valuation", { k: 8 }));
     await time("search:events only", () =>
@@ -194,6 +208,7 @@ describe.skipIf(!live)(`bench ${LABEL}`, () => {
         stopWhen: stepCountIs(8),
         temperature: 0.3,
         maxOutputTokens: 1500,
+        providerOptions: (await import("@/lib/databricks/llm")).LOW_REASONING,
       });
       let first = -1;
       for await (const _chunk of res.textStream) {
@@ -202,6 +217,12 @@ describe.skipIf(!live)(`bench ${LABEL}`, () => {
       const total = Math.round(performance.now() - t0);
       const steps = await res.steps;
       const calls = steps.flatMap((step) => step.toolCalls).map((c) => c.toolName);
+      const answer = await res.text;
+      const ids = [...answer.matchAll(/\[([A-Z]{2}\d{3,4})\]/g)].map((m) => m[1]);
+      console.log(`  ${"agent:answer chars".padEnd(36)} ${String(answer.length).padStart(6)}`);
+      console.log(
+        `  ${"agent:grounded ids cited".padEnd(36)} ${String(ids.length).padStart(6)}     ${ids.join(", ")}`,
+      );
       console.log(`  ${"agent:time to first token".padEnd(36)} ${String(first).padStart(6)} ms`);
       console.log(`  ${"agent:total".padEnd(36)} ${String(total).padStart(6)} ms`);
       console.log(
