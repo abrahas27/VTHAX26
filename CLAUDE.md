@@ -7,31 +7,47 @@ Update the **Current phase** and **Fallbacks in use** sections at the end of eve
 
 ## Current phase
 
-**P4 Databricks depth: code complete, live verification pending (2026-09-19).** F9 Event Prep
-(`/api/prep`, cached in `event_prep`, wired into the event drawer), F10 Vector Search + `/api/search`
-with an automatic ILIKE fallback (`src/lib/search.ts`), plus the `semantic_search` agent tool, a "/"
-search palette, and `.ics` export (single event and "add all" on the roadmap, via the `ics` package).
-F11 Admin Insights: `/admin` with 4 KPI cards, a supply/demand bar chart, a top-missing-skills table
-(all from `/api/admin/metrics`), and a Genie "Ask the data" box (`/api/admin/genie`); an optional
-AI/BI dashboard link from `NEXT_PUBLIC_AIBI_DASHBOARD_URL`. `databricks/02_ingest_external_apis.py`
-(O*NET, BLS, Greenhouse/Lever, all skip-not-fail on a missing key/token) and
-`databricks/03_agent_eval.py` (golden-set grounding + behavior eval, logs to MLflow). A Vercel Cron
-ingestion fallback (`/api/cron/ingest`, `src/lib/ingest.ts`, `vercel.json`) shipped alongside the
-notebook rather than after observing a live egress failure — see decisions.md.
+**P5 Polish + eval: performance and UX pass done and measured live (2026-09-20).** Two tracks.
 
-`pnpm lint`, `pnpm typecheck`, `pnpm test` (145 passed, incl. new `ics`/`genie`/`search` unit tests),
-and `pnpm build` (DEMO_MODE) all pass. **Not run this session: anything needing live Databricks
-credentials** (no `.env.local` was available) — the 11.13 checklist rows that need a live warehouse,
-Serving endpoint, Vector Search index, Genie space, or a Jobs run are unverified. Run them against a
-real workspace before the demo; see the per-service `docs/integrations/*.md` "Verify" sections.
+_Performance._ Measured first with `tests/integration/bench-live.test.ts`
+(`RUN_LIVE=1 BENCH=1 pnpm vitest run tests/integration/bench-live.test.ts`), which times every
+external call the hot routes make. The finding that shaped everything else: a Statement Execution
+API call costs ~500-900 ms of round trip even for `SELECT 1`, so the win is in making **fewer**
+calls, not faster ones. Shipped: a shared `ttlCache` (`src/lib/cache.ts`) behind the catalog
+(30 min), profile, goal-tab layout and dashboard payload (60 s each, invalidated by every write);
+`/api/dashboard?sections=core|roadmap` so the slowest UC Function stops gating first paint; Lakebase
+`search_path` on the connection instead of per query; `syncRoadmapItems` in one statement instead of
+1 + 2N; Event Prep in one joined query; `reasoning_effort: "low"` on every model call; and
+`plan_for_path`, one agent tool that replaces the five-call pivot sequence and opens the goal tab
+itself. Warm dashboard data **2.5-2.8 s -> ~1.6 s**; a pivot turn **~11 s and 5-6 tool calls -> 5.5 s
+and 1**. A cold warehouse still costs ~14 s on the first query, which is what the warm-up ping
+(`src/components/warm-up.tsx`, on the landing page and in `AppShell`) exists to hide.
 
-Still outstanding: everything from P3 (a human click-through of chat in the browser, the **Vercel
-deploy** 12.2, the resume bug under Known issues), plus P4's live checklist above, actually running
-`02_ingest_external_apis.py`/`03_agent_eval.py` in a workspace, and the `agent_turns` Lakebase → Delta
-copy (not built — see decisions.md and `docs/integrations/mlflow-eval.md`).
+_UX._ Card-shaped skeletons and staggered entrance (`src/components/dashboard/states.tsx`),
+`keepPreviousData` plus hover prefetch on goal tabs, optimistic tab close and roadmap ticks with
+rollback and a toast, a "Waking up live data..." state after 3.5 s, friendly errors everywhere via
+`apiFetch` (`src/lib/client/api.ts`), a chat Stop button and auto-scroll that stops following once
+you scroll up, the goal tab animating in mid-stream instead of at the end of the answer, Apply
+buttons and "estimated" labels on real postings, a mobile chat bottom sheet, 44 px touch targets
+and focus rings. Onboarding gained the manual-entry path its error copy had been promising, and
+prefetches the dashboard during the build animation.
 
-Next: **P5 Polish + eval** (motion/empty-state pass, Playwright smoke, latency pre-warm), once P4's
-live checklist is confirmed against a real workspace.
+`pnpm lint`, `pnpm typecheck`, `pnpm test` (145 passed) and `pnpm build` all pass, and the live
+agent goldens (`RUN_LIVE=1`, 5 passed) confirm grounding survived the agent changes. A production
+build with live credentials was exercised end to end: landing TTFB 40 ms, `/api/health` green,
+`/api/dashboard` 401 without a session, DEMO_MODE fixtures complete.
+
+> **Local note:** this repo needs **Node 22+**. Node 20.11 cannot run vitest 5 or the Next 16
+> toolchain (`styleText`, type stripping). `pnpm install --force` once on Node 22 if the rolldown
+> native binding is missing.
+
+Still outstanding: a human click-through in the browser, the **Vercel deploy** (12.2), P4's live
+checklist (Genie is now configured; the AI/BI link and a Jobs run are not), actually running
+`02_ingest_external_apis.py` / `03_agent_eval.py` in a workspace, the `agent_turns` Lakebase -> Delta
+copy, and from P5 itself the **Playwright smoke tests** (`tests/e2e/` is still empty) and the
+**MLflow eval / golden set**.
+
+Next: **P6 Ship** — final deploy, deck, rehearsals including DEMO_MODE, backup video.
 
 ## What we're building
 
@@ -115,21 +131,29 @@ Browser (Next.js UI) --HTTPS--> Vercel: pages (RSC) + /api/* Route Handlers + ag
 - Tests: Vitest in `tests/unit/` (node env; `server-only` is stubbed). Live Databricks tests are opt-in via
   `RUN_LIVE=1`. Playwright smoke in `tests/e2e/` (P5).
 - Prettier (100 cols, tailwind plugin) + ESLint (next core-web-vitals + TS + prettier). `_`-prefixed vars may be unused.
+- Every Databricks Statement API call costs ~500-900 ms of round trip regardless of how little it
+  reads, so the cheapest query is the one never sent. Cache reference data in `ttlCache`
+  (`src/lib/cache.ts`), fan out with `Promise.all`, and collapse two queries into a join before
+  reaching for a faster query.
+- Nothing user-facing shows a raw error. Client fetches go through `apiFetch` (`src/lib/client/api.ts`),
+  which turns `{ error: { code, message } }` into one sentence a student can act on; every empty or
+  failed section offers one clear action.
 - Record non-obvious choices in `docs/decisions.md`.
 
 ## Commands
 
-| Command                             | Does                                                                |
-| ----------------------------------- | ------------------------------------------------------------------- |
-| `pnpm dev`                          | Dev server on :3000                                                 |
-| `pnpm build` / `pnpm start`         | Production build / serve                                            |
-| `pnpm lint`                         | ESLint                                                              |
-| `pnpm typecheck`                    | `next typegen` (route types like `LayoutProps`) then `tsc --noEmit` |
-| `pnpm test` / `pnpm test:watch`     | Vitest                                                              |
-| `pnpm format` / `pnpm format:check` | Prettier                                                            |
-| `pnpm demo:record`                  | record DEMO_MODE fixtures from live responses                       |
-| `pnpm fixtures:resumes`             | regenerate the three sample resume PDFs                             |
-| `RUN_LIVE=1 pnpm test`              | also run the live Databricks integration tests                      |
+| Command                                                                   | Does                                                                |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `pnpm dev`                                                                | Dev server on :3000                                                 |
+| `pnpm build` / `pnpm start`                                               | Production build / serve                                            |
+| `pnpm lint`                                                               | ESLint                                                              |
+| `pnpm typecheck`                                                          | `next typegen` (route types like `LayoutProps`) then `tsc --noEmit` |
+| `pnpm test` / `pnpm test:watch`                                           | Vitest                                                              |
+| `pnpm format` / `pnpm format:check`                                       | Prettier                                                            |
+| `pnpm demo:record`                                                        | record DEMO_MODE fixtures from live responses                       |
+| `pnpm fixtures:resumes`                                                   | regenerate the three sample resume PDFs                             |
+| `RUN_LIVE=1 pnpm test`                                                    | also run the live Databricks integration tests                      |
+| `RUN_LIVE=1 BENCH=1 pnpm vitest run tests/integration/bench-live.test.ts` | step-level latency table (P5)                                       |
 
 Health check: `curl localhost:3000/api/health` (add `?warm=1` to start a cold warehouse before a demo).
 
@@ -147,13 +171,15 @@ fixtures/demo/          DEMO_MODE JSON (P2)
 src/app/                pages: /, /onboarding, /dashboard, /roadmap, /saved, /profile, /admin, /unauthorized
 src/app/api/            health, resume, profile, onboarding, catalog, dashboard, items/batch, chat, tabs,
                         roadmap(/[id]), saved, prep, search, calendar, admin/metrics, admin/genie, me, auth/[...nextauth]
-src/components/         ui/ (shadcn), dashboard/, chat/, onboarding/, admin/
+src/components/         ui/ (shadcn), dashboard/, chat/, onboarding/, admin/, warm-up.tsx
 src/lib/                env.ts, auth.ts, types.ts, scoring.ts, skills-normalize.ts, ics.ts, demo.ts
+                        cache.ts (ttlCache), dashboard-cache.ts, timing.ts (P5)
+src/lib/client/         api.ts (apiFetch, friendly errors), waking.ts — browser-side only
 src/lib/databricks/     sql.ts, functions.ts, llm.ts, vector.ts, genie.ts
 src/lib/db/             lakebase.ts, queries.ts
 src/lib/agent/          system-prompt.ts, tools.ts, dashboard-spec.ts
 src/proxy.ts            route protection (Next 16 name for middleware.ts)
-tests/unit, tests/e2e
+tests/unit, tests/integration (RUN_LIVE=1; bench-live.test.ts is RUN_LIVE=1 BENCH=1), tests/e2e
 legacy/python-prototype superseded stubs, excluded from build
 ```
 
@@ -213,8 +239,9 @@ Never cut: sign-in, resume parsing, dashboard, chat, pivot tab, roadmap.
   parse, even at the old 3000-token budget, so output truncation is ruled out. Remaining suspects: PDF text
   extraction on multi-column or scanned files, a 429 rate limit, or a model refusal on a real person's PII.
   `parseResume` now logs `finishReason`, `usage`, truncated raw output, and the cause (never resume text) —
-  reproduce, then read the `[resume]` lines from the server log. Note the failure message offers manual
-  entry, but **the wizard has no manual-entry path yet**; either build one or change the copy.
+  reproduce, then read the `[resume]` lines from the server log. The wizard now has the manual-entry
+  path the message promises: "Skip and add skills by hand" on the upload step, and "Continue without
+  a resume" on the error (P5).
 
 ## Fallbacks in use
 
@@ -233,6 +260,12 @@ Never cut: sign-in, resume parsing, dashboard, chat, pivot tab, roadmap.
   workspace has confirmed outbound access to GitHub, Greenhouse, and BLS, so the egress restriction
   the cron fallback hedges against never materialized. `CRON_SECRET` stays blank on purpose — see
   `docs/integrations/vercel-cron.md` and `docs/decisions.md` (2026-09-20).
+- **Cold SQL Warehouse (~14 s on the first query, auto-stop after 10 min idle).** Not worked
+  around in code — hidden by `src/components/warm-up.tsx`, which fires `GET /api/health?warm=1`
+  from the landing page and re-pings every 4 minutes while a tab is _visible_ (only while visible:
+  Free Edition bills the warehouse for being up). `?warm=1` also primes the reference catalog and
+  the Lakebase pool. If it is still cold when a student loads the dashboard, `useWaking` shows
+  "Waking up live data..." after 3.5 s rather than a skeleton that looks stuck.
 - **`agent_turns` nightly Lakebase → Delta copy is not built.** `databricks/03_agent_eval.py` reads
   the Unity Catalog table if present but does not depend on it; the golden-set eval runs standalone.
   See `docs/integrations/mlflow-eval.md`.

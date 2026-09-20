@@ -267,3 +267,98 @@ WHEN NOT MATCHED THEN INSERT *` instead of `append`.
   rather than an in-memory reference because overwriting a table from a DataFrame that still reads
   that same table is undefined behavior in Spark ("cannot overwrite a table that is also being read
   from").
+
+## 2026-09-20 (P5): Measure first — a step-level bench, not a stopwatch on the page
+
+- **Decision:** `tests/integration/bench-live.test.ts` (opt-in via `RUN_LIVE=1 BENCH=1`) times every
+  external call the hot routes make — each UC Function, each catalog read, Lakebase credential +
+  connect + query, Vector Search, the LLM's time-to-first-token, and a whole agent turn — and prints
+  a table. Route totals are read off `Server-Timing` and the structured logs `withTiming` already
+  emits.
+- **Why:** The routes need a Google session, so a black-box timing pass over `/api/*` would have
+  measured almost nothing without a browser in the loop. Timing the steps instead attributes the
+  cost: it showed that every Statement Execution API call has a ~500-900 ms floor even for
+  `SELECT 1`, which reframes the whole problem as "make fewer calls", not "make the calls faster".
+
+## 2026-09-20 (P5): `/api/dashboard?sections=core|roadmap` — the slowest UC Function stops gating first paint
+
+- **Decision:** `buildDashboard` takes a `sections` option. The client fires `core` and `roadmap` as
+  two parallel requests; the cards render from `core`, and the roadmap section shows a shaped
+  skeleton until its own request lands. Both For You and the agent-built goal tabs do this.
+- **Why:** Measured warm, `build_gap_roadmap` is 1.8-2.5 s against 0.5-0.9 s for the other five
+  calls, so the six-way `Promise.all` finished at 2.5-2.8 s while the five-way finishes at ~1.6 s.
+  Every card on the page was waiting for the one section a student reads last. The second request
+  costs an extra `auth()` and a profile read, both of which are now cached per warm instance.
+- **Alternative considered:** converting the dashboard to RSC with per-section Suspense boundaries,
+  which the spec's wording suggests. Rejected for now: the tab switching, optimistic writes and
+  hover prefetch all live in TanStack Query on the client, and moving the fetch to the server would
+  have meant rebuilding that for a smaller win than the split itself delivers.
+
+## 2026-09-20 (P5): `reasoning_effort: "low"` on every model call
+
+- **Decision:** `LOW_REASONING` in `src/lib/databricks/llm.ts`, passed as `providerOptions` from the
+  agent, resume extraction and Event Prep. `@ai-sdk/openai-compatible` merges provider options whose
+  key matches the provider name straight into the request body, so this reaches the endpoint as a
+  top-level `reasoning_effort`.
+- **Why:** `databricks-gpt-oss-120b` is a reasoning model and defaults to a high budget. Measured
+  against this workspace on the same pivot prompt: 4.1 s / 10.1 s and 1,617 / 4,304 characters of
+  hidden reasoning at the default, against 2.1 s / 2.2 s and 77 / 30 characters at `"low"` — for an
+  answer of the same length. The agent makes two or three of these round trips per turn.
+- **Why it is safe here:** every judgement that has to be right — readiness, class year, ranking, fit
+  — is arithmetic done in TypeScript, not reasoned about by the model (spec 10.7). The live agent
+  goldens (1, 2, 3, 8 and the tab-reuse check) all pass at `"low"`, with the output guard finding no
+  ungrounded IDs.
+
+## 2026-09-20 (P5): `plan_for_path` — one tool call per pivot question, and it opens the tab itself
+
+- **Decision:** A composite agent tool that runs `get_skill_gap`, `find_events`,
+  `companies_visiting`, `find_opportunities`, `build_gap_roadmap` and the clubs query in one
+  `Promise.all`, returns them as one column-narrowed result, and saves a default `DashboardSpec`
+  built from the IDs it just fetched. The system prompt tells the agent not to call
+  `render_dashboard` afterwards; the narrow tools and `render_dashboard` both remain, for narrower
+  questions and for rearranging a tab.
+- **Why:** The spec's five-tool sequence was five agent steps — five model round trips as well as
+  five warehouse queries — and `render_dashboard` added a sixth whose output is a large JSON spec
+  that is expensive to generate. A pivot turn went from 5-6 tool calls and ~11 s to 1 tool call and
+  5.5 s.
+- **Why the auto-opened tab is still grounded:** every ID in it came out of a UC Function moments
+  earlier in the same turn, and the spec still goes through `DashboardSpecSchema`. The `verifyIds`
+  round trip that `render_dashboard` does is deliberately skipped for this path — there is nothing
+  to confirm about an ID the warehouse just handed us — while a model-written spec still gets it.
+- **Consequence:** `tests/integration/agent-live.test.ts` golden 1 now asserts the tab, not the old
+  tool names.
+
+## 2026-09-20 (P5): `preferredRegion` is deprecated in Next 16; the region is pinned in `vercel.json`
+
+- **Decision:** `"regions": ["iad1"]` in `vercel.json`. The `export const preferredRegion` route
+  segment config was added first and then removed — `next build` warns that it is deprecated, and
+  `node_modules/next/dist/docs/.../preferredRegion.md` says to remove the export.
+- **Why:** Lakebase and the Databricks workspace are both in AWS `us-east-2`; `iad1` is the closest
+  Vercel region. Left on the default, a function can run several hundred milliseconds of round trip
+  away from data it queries five or six times per request.
+
+## 2026-09-20 (P5): Caches are per-instance and TTL'd, not shared
+
+- **Decision:** `src/lib/cache.ts` (`ttlCache`, with request coalescing) backs the catalog (30 min),
+  the student profile (60 s), the goal-tab layout (60 s) and the dashboard payload (60 s). Every
+  write that changes what a dashboard would show clears the relevant entries.
+- **Why:** These live in the module scope of one warm serverless instance, so a miss is only ever a
+  slow response, never a wrong one, and a cold instance simply re-fetches. That is enough for a demo
+  and for Free Edition quota, and it avoids standing up a shared cache for state that is already
+  authoritative in Lakebase and Unity Catalog.
+- **Note:** `unstable_cache` was not used. It keys on the function's arguments and is invalidated by
+  tag, which would have meant threading tags through modules that are also called by scripts and
+  tests outside a Next.js request context.
+
+## 2026-09-20 (P5): Lakebase `search_path` moves to the connection, and roadmap sync to one statement
+
+- **Decision:** The pool passes `options: "-c search_path=app,public"` rather than issuing
+  `SET search_path` per query, and `syncRoadmapItems` does its delete/update/insert in a single
+  statement with three CTEs over `jsonb_to_recordset`.
+- **Why:** `q()` was two round trips instead of one, on every Lakebase query in the app; and a
+  30-item roadmap cost 61 sequential round trips to us-east-2. Verified live that the connection
+  option takes: `SHOW search_path` returns `app,public`, and `SELECT ... FROM app_users` resolves
+  with no per-query `SET`.
+- **Alternative considered:** issuing the `SET` from the pool's `connect` handler. It works, but it
+  overlaps the caller's first query on the same client, which node-postgres deprecates (it warns
+  that this is removed in pg@9).
